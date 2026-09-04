@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Word Fleet - The App</title>
+  <link rel="icon" type="image/x-icon" href="src/media/wf.ico">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Favicon and App Icons -->
+  <link rel="icon" type="image/x-icon" href="src/media/wf.ico">
+  <link rel="shortcut icon" href="src/media/wf.ico">
+  
+  <!-- Apple Touch Icons -->
+  <link rel="apple-touch-icon" sizes="57x57" href="src/media/apple-touch-icon-57x57-precomposed.png">
+  <link rel="apple-touch-icon" sizes="57x57" href="src/media/apple-touch-icon-57x57.png">
+  <link rel="apple-touch-icon" sizes="76x76" href="src/media/apple-touch-icon-76x76-precomposed.png">
+  <link rel="apple-touch-icon" sizes="76x76" href="src/media/apple-touch-icon-76x76.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="src/media/apple-touch-icon-120x120-precomposed.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="src/media/apple-touch-icon-120x120.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="src/media/apple-touch-icon-152x152-precomposed.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="src/media/apple-touch-icon-152x152.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="src/media/apple-touch-icon-167x167-precomposed.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="src/media/apple-touch-icon-167x167.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="src/media/apple-touch-icon-180x180-precomposed.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="src/media/apple-touch-icon-180x180.png">
+  <link rel="apple-touch-icon" href="src/media/apple-touch-icon.png">
+  
+  <!-- Safari Pinned Tab -->
+  <link rel="mask-icon" href="src/media/safari-pinned-tab.svg" color="#6aaa64">
+  
+  <!-- Web App Manifest -->
+  <link rel="manifest" href="src/media/site.webmanifest">
+  
+  <!-- Apple Web App Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Word Fleet">
+<link rel="stylesheet" href="wf.css">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-RVDTY31P7E"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-RVDTY31P7E');
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ============ WORD FLEET - APP UI ============ */
+.app-main { max-width: 1180px; padding: 32px 20px 72px; }
+
+.app-screen { display: none; }
+.app-screen.active { display: block; }
+
+/* --- shared chrome --- */
+.app-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+  border: 1px solid #000; background: #fff; padding: 14px 18px; margin-bottom: 24px;
+}
+.app-topbar-id { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.app-topbar-title { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+.app-topbar-sub { font-size: 13px; color: #666; }
+.app-chip {
+  font-family: 'Courier Prime', monospace; font-size: 12px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  border: 1px solid #000; padding: 4px 10px; background: #6aaa64; color: #000;
+}
+.app-chip.is-quiet { background: #fff; }
+
+.app-btn {
+  font-family: inherit; font-size: 14px; font-weight: 600; letter-spacing: 0.02em;
+  padding: 11px 20px; border: 1px solid #000; background: #fff; color: #000;
+  cursor: pointer; transition: background 0.15s ease, color 0.15s ease;
+}
+.app-btn:hover:not(:disabled) { background: #000; color: #fff; }
+.app-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.app-btn--primary { background: #6aaa64; }
+.app-btn--primary:hover:not(:disabled) { background: #4a8444; color: #000; }
+.app-btn--danger { background: #fff; color: #a93226; border-color: #a93226; }
+.app-btn--danger:hover:not(:disabled) { background: #a93226; color: #fff; }
+.app-btn--sm { padding: 7px 12px; font-size: 12px; }
+.app-btn--wide { width: 100%; }
+
+.app-panel { border: 1px solid #000; background: #fff; padding: 20px; }
+.app-panel + .app-panel { margin-top: 16px; }
+.app-panel-title {
+  font-family: 'Courier Prime', monospace; font-size: 12px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.12em; color: #000;
+  padding-bottom: 8px; margin-bottom: 14px; border-bottom: 1px solid #e5e5e5;
+}
+.app-hint { font-size: 13px; color: #666; line-height: 1.5; }
+.app-hint strong { color: #000; }
+
+/* --- grids --- */
+.app-board { display: inline-block; }
+.app-board-label {
+  font-family: 'Courier Prime', monospace; font-size: 12px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 8px;
+  display: flex; justify-content: space-between; gap: 12px; align-items: baseline;
+}
+.app-board-label span { color: #666; font-weight: 400; letter-spacing: 0; text-transform: none; }
+/* 11 columns, 1px gaps, inside a panel: never wider than the screen allows. */
+.app-grid {
+  --cell: clamp(24px, calc((100vw - 64px) / 11), 46px);
+  display: grid; grid-template-columns: repeat(11, var(--cell));
+  border: 1px solid #000; background: #000; gap: 1px; width: max-content;
+}
+.app-grid.is-mini { --cell: clamp(18px, calc((100vw - 64px) / 11), 30px); }
+.app-cell {
+  width: var(--cell); height: var(--cell); background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Courier Prime', monospace; font-size: calc(var(--cell) * 0.46);
+  font-weight: 700; color: #000; position: relative; user-select: none;
+}
+.app-cell.is-label { background: #f2f2f2; color: #666; font-size: calc(var(--cell) * 0.36); }
+.app-cell.is-open { cursor: crosshair; }
+.app-cell.is-open:hover { background: #eef6ed; }
+.app-cell.is-miss { background: #f7f7f7; }
+.app-cell.is-miss::after { content: ''; width: 22%; height: 22%; border-radius: 50%; background: #9a9a9a; }
+.app-cell.is-hit { background: #f6e6a8; box-shadow: inset 0 0 0 3px #c9a227; }
+.app-cell.is-revealed { background: #6aaa64; color: #000; }
+.app-cell.is-target { background: #000; color: #fff; }
+.app-cell.is-ship { background: #e9eef5; }
+.app-cell.is-preview { background: #d6ead4; }
+.app-cell.is-bad { background: #f6d5d1; }
+.app-cell.is-down { box-shadow: inset 0 0 0 3px #a93226; }
+.app-cell.is-lost { background: #a93226; color: #fff; }
+
+/* --- battle layout --- */
+.app-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start; }
+.app-stack { display: flex; flex-direction: column; gap: 16px; }
+.app-row { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* --- fleet roster --- */
+.app-ship {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  border: 1px solid #000; background: #fff; padding: 10px 12px; cursor: pointer;
+  font-family: inherit; text-align: left; transition: background 0.15s ease;
+}
+.app-ship + .app-ship { margin-top: 8px; }
+.app-ship:hover { background: #f5f5f5; }
+.app-ship.is-active { background: #6aaa64; }
+.app-ship.is-placed { border-style: dashed; }
+.app-ship-class {
+  font-family: 'Courier Prime', monospace; font-size: 11px; letter-spacing: 0.1em;
+  min-width: 52px; color: #666;
+}
+.app-ship-word { font-family: 'Courier Prime', monospace; font-size: 17px; font-weight: 700; letter-spacing: 0.18em; flex: 1; color: #000; }
+.app-ship-at { font-size: 11px; color: #666; font-family: 'Courier Prime', monospace; }
+
+/* --- alpha strike keyboard --- */
+.app-keys { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+.app-key {
+  font-family: 'Courier Prime', monospace; font-weight: 700; font-size: 15px;
+  padding: 9px 0; border: 1px solid #000; background: #fff; cursor: pointer;
+  position: relative; transition: background 0.12s ease;
+}
+.app-key:hover:not(:disabled) { background: #6aaa64; }
+.app-key:disabled { cursor: not-allowed; background: #f2f2f2; color: #bbb; }
+.app-key-tally {
+  position: absolute; top: 1px; right: 3px; font-size: 9px; font-weight: 400; color: #a93226;
+}
+.app-key:disabled .app-key-tally { color: #999; }
+
+/* --- log --- */
+.app-log { max-height: 300px; overflow-y: auto; }
+.app-log-item { border-bottom: 1px solid #f0f0f0; padding: 8px 0; font-size: 13px; line-height: 1.45; }
+.app-log-item:last-child { border-bottom: none; }
+.app-log-who { font-family: 'Courier Prime', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #666; display: block; }
+.app-log-empty { font-size: 13px; color: #666; font-style: italic; }
+.app-quote { font-family: 'Courier Prime', monospace; font-weight: 700; }
+
+/* --- forms --- */
+.app-field { margin-bottom: 16px; }
+.app-label { display: block; font-family: 'Courier Prime', monospace; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+.app-input, .app-select {
+  font-family: 'Courier Prime', monospace; font-size: 16px; font-weight: 700;
+  padding: 10px 12px; border: 1px solid #000; background: #fff; color: #000;
+  width: 100%; text-transform: uppercase; letter-spacing: 0.1em;
+}
+.app-input:focus, .app-select:focus { outline: 2px solid #6aaa64; outline-offset: -2px; }
+.app-input::placeholder { color: #bbb; letter-spacing: 0.05em; }
+.app-choice { display: flex; border: 1px solid #000; width: max-content; max-width: 100%; flex-wrap: wrap; }
+.app-choice button {
+  font-family: inherit; font-size: 13px; font-weight: 600; padding: 10px 18px;
+  border: none; background: #fff; cursor: pointer; border-right: 1px solid #000;
+}
+.app-choice button:last-child { border-right: none; }
+.app-choice button.is-on { background: #000; color: #fff; }
+.app-note { font-size: 12px; color: #a93226; margin-top: 6px; min-height: 16px; }
+
+/* --- word entry + surrender rows --- */
+.app-wordrow { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 12px; align-items: center; margin-bottom: 10px; }
+.app-claim { display: grid; grid-template-columns: 74px minmax(0, 1fr) 76px 76px 104px; gap: 8px; align-items: center; margin-bottom: 10px; }
+
+/* --- handoff / gameover --- */
+.app-curtain { border: 1px solid #000; background: #fff; padding: 56px 24px; text-align: center; }
+.app-curtain-eyebrow { font-family: 'Courier Prime', monospace; font-size: 12px; letter-spacing: 0.24em; text-transform: uppercase; color: #666; }
+.app-curtain-name { font-size: clamp(28px, 6vw, 46px); font-weight: 700; letter-spacing: -0.02em; margin: 10px 0 8px; }
+.app-curtain-text { font-size: 15px; color: #666; margin-bottom: 28px; }
+.app-reveal { display: flex; gap: 32px; flex-wrap: wrap; justify-content: center; margin-top: 28px; }
+
+@media (max-width: 900px) {
+  .app-layout { grid-template-columns: minmax(0, 1fr); }
+  .app-claim { grid-template-columns: 60px minmax(0, 1fr) 1fr 1fr 1fr; }
+  /* One column: keep the fire controls with the grid you are shooting at,
+     instead of stranding them below both boards. */
+  #screenBattle .app-layout { display: flex; flex-direction: column; gap: 16px; align-items: stretch; }
+  #screenBattle .app-stack { display: contents; }
+  #screenBattle .app-panel { margin-top: 0; }
+  #panelOffense { order: 1; }
+  #firePanel { order: 2; }
+  #panelDefense { order: 3; }
+  #panelTally { order: 4; }
+  #panelLog { order: 5; }
+}
+@media (max-width: 560px) {
+  .app-main { padding: 20px 12px 56px; }
+  .app-panel { padding: 14px; }
+  .app-keys { grid-template-columns: repeat(6, 1fr); }
+  .app-claim { grid-template-columns: 52px 1fr 1fr 1fr; }
+  .app-claim .app-btn { grid-column: 1 / -1; }
+}
+</style>
+</head>
+<body>
+
+<!-- START: NAVIGATION BAR -->
+<div class="nav-container">
+  <nav class="nav">
+    <!-- Brand -->
+    <a href="index.html" class="nav-brand">Word Fleet</a>
+
+    <!-- Desktop Navigation -->
+    <ul class="nav-links">
+      <li><a href="index.html" class="nav-link">Home Port</a></li>
+      <li><a href="app.html" class="nav-link active">The App</a></li>
+      <li><a href="pandp.html" class="nav-link">Pen &amp; Paper Mode</a></li>
+      <li><a href="rules.html" class="nav-link">Rules of Engagement</a></li>
+      <li><a href="codes.html" class="nav-link">Who Goes First?</a></li>
+      <li><a href="future.html" class="nav-link">Future Deployments</a></li>
+    </ul>
+
+    <!-- Mobile Hamburger Button -->
+    <button class="nav-toggle" id="navToggle">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </nav>
+
+  <!-- Mobile Menu Overlay -->
+  <div class="mobile-menu" id="mobileMenu">
+    <ul class="nav-links">
+      <li><a href="index.html" class="nav-link">Home Port</a></li>
+      <li><a href="app.html" class="nav-link active">The App</a></li>
+      <li><a href="pandp.html" class="nav-link">Pen &amp; Paper Mode</a></li>
+      <li><a href="rules.html" class="nav-link">Rules of Engagement</a></li>
+      <li><a href="codes.html" class="nav-link">Who Goes First?</a></li>
+      <li><a href="future.html" class="nav-link">Future Deployments</a></li>
+    </ul>
+  </div>
+</div>
+<!-- END: NAVIGATION BAR -->
+
+<main class="main app-main">
+
+  <!-- START: STATUS BAR -->
+  <div class="app-topbar">
+    <div class="app-topbar-id">
+      <div class="app-topbar-title" id="barTitle">Word Fleet</div>
+      <div class="app-topbar-sub" id="barSub">Where words wage war</div>
+    </div>
+    <div class="app-row">
+      <span class="app-chip" id="barChip">Briefing</span>
+      <button class="app-btn app-btn--sm" id="btnAbandon" type="button" hidden>New Game</button>
+    </div>
+  </div>
+  <!-- END: STATUS BAR -->
+
+  <!-- ============ SCREEN: BRIEFING ============ -->
+  <section class="app-screen active" id="screenBriefing">
+    <div class="app-layout">
+      <div class="app-panel">
+        <div class="app-panel-title">Mission Briefing</div>
+        <p class="app-hint" style="margin-bottom:22px;">Two captains, one device. Name your fleets, deploy five word-ships each, then hunt each other down letter by letter. The device is passed between turns &mdash; a privacy screen stands between you and your opponent's grid.</p>
+
+        <div class="app-field">
+          <label class="app-label" for="fleetA">Fleet One</label>
+          <input class="app-input" id="fleetA" maxlength="18" placeholder="STORM RAIDERS" autocomplete="off">
+        </div>
+        <div class="app-field">
+          <label class="app-label" for="fleetB">Fleet Two</label>
+          <input class="app-input" id="fleetB" maxlength="18" placeholder="IRON GUARDIANS" autocomplete="off">
+        </div>
+
+        <div class="app-field">
+          <span class="app-label">Word-ships</span>
+          <div class="app-choice" id="modeChoice">
+            <button type="button" data-mode="auto" class="is-on">Auto-Generated</button>
+            <button type="button" data-mode="manual">Captain's Choice</button>
+          </div>
+          <p class="app-hint" style="margin-top:8px;">Both captains must use the same method.</p>
+        </div>
+
+        <div class="app-field">
+          <span class="app-label">Who Fires First?</span>
+          <div class="app-choice" id="firstChoice">
+            <button type="button" data-first="0" class="is-on">Fleet One</button>
+            <button type="button" data-first="1">Fleet Two</button>
+          </div>
+          <p class="app-hint" style="margin-top:8px;">Settle it properly first &mdash; <a href="codes.html">Who Goes First?</a> No coin tossing.</p>
+        </div>
+
+        <p class="app-note" id="briefNote"></p>
+        <button class="app-btn app-btn--primary app-btn--wide" id="btnBrief" type="button">Begin Deployment</button>
+      </div>
+
+      <div class="app-stack">
+        <div class="app-panel">
+          <div class="app-panel-title">Fleet Roster</div>
+          <p class="app-hint" style="margin-bottom:12px;">Every fleet carries the same five word-ships.</p>
+          <table class="classification-table" style="width:100%;font-size:13px;">
+            <tr><td style="padding:6px 0;"><strong>KETCH</strong></td><td>5 letters</td></tr>
+            <tr><td style="padding:6px 0;"><strong>SHIP</strong></td><td>4 letters</td></tr>
+            <tr><td style="padding:6px 0;"><strong>SUB</strong></td><td>3 letters</td></tr>
+            <tr><td style="padding:6px 0;"><strong>ARK</strong></td><td>3 letters</td></tr>
+            <tr><td style="padding:6px 0;"><strong>PT</strong></td><td>2 letters</td></tr>
+          </table>
+        </div>
+        <div class="app-panel">
+          <div class="app-panel-title">Order of Battle</div>
+          <p class="app-hint">Fire on a coordinate. <strong>Miss</strong> and your turn ends. <strong>Hit</strong> and you may call an Alpha Strike &mdash; guess the letter hiding there. Wrong letter and the defender must announce how many times it appears across their whole fleet.</p>
+          <p class="app-hint" style="margin-top:10px;">Victory comes one way: <strong>Demand Surrender</strong> and name every word-ship and its exact berth. Get it all right and you win outright. Get anything wrong and you lose on the spot.</p>
+          <p class="app-hint" style="margin-top:10px;"><a href="rules.html">Full Rules of Engagement &rarr;</a></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SCREEN: DEPLOYMENT ============ -->
+  <section class="app-screen" id="screenDeploy">
+    <div class="app-layout">
+      <div class="app-panel">
+        <div class="app-board-label" id="deployBoardLabel">Defense Grid <span>Place your fleet</span></div>
+        <div class="app-grid" id="deployGrid"></div>
+      </div>
+      <div class="app-stack">
+        <div class="app-panel" id="wordEntry" hidden>
+          <div class="app-panel-title">Choose Your Word-Ships</div>
+          <p class="app-hint" style="margin-bottom:14px;">No proper nouns, abbreviations, or suffixes. Keep the screen to yourself.</p>
+          <div id="wordRows"></div>
+          <p class="app-note" id="wordNote"></p>
+          <button class="app-btn app-btn--primary app-btn--wide" id="btnLockWords" type="button">Lock In Fleet</button>
+        </div>
+
+        <div class="app-panel" id="deployPanel">
+          <div class="app-panel-title">Deployment Orders</div>
+          <div class="app-field">
+            <span class="app-label">Heading</span>
+            <div class="app-choice" id="orientChoice">
+              <button type="button" data-dir="H" class="is-on">Horizontal</button>
+              <button type="button" data-dir="V">Vertical</button>
+            </div>
+          </div>
+          <div id="deployRoster"></div>
+          <p class="app-hint" style="margin:14px 0;">Pick a ship, then click a square to berth it. Click a berthed ship to pull it back. Press <strong>R</strong> to change heading.</p>
+          <div class="app-row">
+            <button class="app-btn app-btn--sm" id="btnAutoDeploy" type="button">Scatter Fleet</button>
+            <button class="app-btn app-btn--sm" id="btnClearDeploy" type="button">Clear Grid</button>
+          </div>
+          <button class="app-btn app-btn--primary app-btn--wide" id="btnConfirmDeploy" type="button" style="margin-top:14px;" disabled>Confirm Deployment</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SCREEN: HANDOFF ============ -->
+  <section class="app-screen" id="screenHandoff">
+    <div class="app-curtain">
+      <div class="app-curtain-eyebrow">Pass the device to</div>
+      <div class="app-curtain-name" id="handoffName">Fleet Two</div>
+      <p class="app-curtain-text" id="handoffText">Eyes off the screen, other captain.</p>
+      <button class="app-btn app-btn--primary" id="btnHandoff" type="button">I Have the Device</button>
+    </div>
+  </section>
+
+  <!-- ============ SCREEN: BATTLE ============ -->
+  <section class="app-screen" id="screenBattle">
+    <div class="app-layout">
+      <div class="app-stack">
+        <div class="app-panel" id="panelOffense">
+          <div class="app-board-label">Offense Grid <span id="offenseSub">Your shots on the enemy</span></div>
+          <div class="app-grid" id="offenseGrid"></div>
+        </div>
+        <div class="app-panel" id="panelDefense">
+          <div class="app-board-label">Defense Grid <span>Your fleet and its damage</span></div>
+          <div class="app-grid is-mini" id="defenseGrid"></div>
+        </div>
+      </div>
+
+      <div class="app-stack">
+        <div class="app-panel" id="firePanel">
+          <div class="app-panel-title" id="firePanelTitle">Fire!</div>
+          <p class="app-hint" id="fireText">Choose a coordinate on the offense grid.</p>
+          <div id="alphaKeys" hidden style="margin-top:14px;">
+            <div class="app-keys" id="keyRow"></div>
+            <p class="app-hint" style="margin-top:10px;">Small red numbers are letter tallies already reported across the enemy fleet.</p>
+          </div>
+          <button class="app-btn app-btn--primary app-btn--wide" id="btnFire" type="button" style="margin-top:14px;" disabled>Fire</button>
+          <button class="app-btn app-btn--danger app-btn--wide" id="btnSurrender" type="button" style="margin-top:8px;">Demand Surrender</button>
+        </div>
+
+        <div class="app-panel" id="panelTally">
+          <div class="app-panel-title">Letter Tallies</div>
+          <p class="app-hint" id="tallyText">No tallies reported yet.</p>
+        </div>
+
+        <div class="app-panel" id="panelLog">
+          <div class="app-panel-title">Battle Log</div>
+          <div class="app-log" id="battleLog"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SCREEN: DEMAND SURRENDER ============ -->
+  <section class="app-screen" id="screenSurrender">
+    <div class="app-panel">
+      <div class="app-panel-title">Decisive Strike</div>
+      <p class="app-hint" style="margin-bottom:18px;">Name every enemy word-ship and its exact berth. All five correct and you take the fleet. One letter or one coordinate wrong and you surrender instead. <strong id="surrenderWho">&nbsp;</strong></p>
+      <div id="claimRows"></div>
+      <p class="app-note" id="surrenderNote"></p>
+      <div class="app-row" style="margin-top:14px;">
+        <button class="app-btn app-btn--danger" id="btnDemand" type="button">I Demand Your Surrender!</button>
+        <button class="app-btn" id="btnCancelDemand" type="button">Belay That</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SCREEN: GAME OVER ============ -->
+  <section class="app-screen" id="screenOver">
+    <div class="app-curtain">
+      <div class="app-curtain-eyebrow" id="overEyebrow">Total Victory</div>
+      <div class="app-curtain-name" id="overName">Fleet One</div>
+      <p class="app-curtain-text app-quote" id="overQuote">"You have won."</p>
+      <button class="app-btn app-btn--primary" id="btnNewGame" type="button">New Game</button>
+      <div class="app-reveal" id="overReveal"></div>
+    </div>
+  </section>
+
+</main>
+<script src="scripts.js"></script>
+<script>
+/* ============================================================
+   WORD FLEET - pass-and-play battle engine
+   Grid: A-J across, 1-10 down. Five word-ships per fleet.
+   ============================================================ */
+(function () {
+  'use strict';
+
+  var COLS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+  var NATO = {
+    A: 'Alpha', B: 'Bravo', C: 'Charlie', D: 'Delta', E: 'Echo', F: 'Foxtrot', G: 'Golf',
+    H: 'Hotel', I: 'India', J: 'Juliett', K: 'Kilo', L: 'Lima', M: 'Mike', N: 'November',
+    O: 'Oscar', P: 'Papa', Q: 'Quebec', R: 'Romeo', S: 'Sierra', T: 'Tango', U: 'Uniform',
+    V: 'Victor', W: 'Whiskey', X: 'X-ray', Y: 'Yankee', Z: 'Zulu'
+  };
+  var NUMBERS = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'];
+  var SPECS = [
+    { cls: 'KETCH', len: 5 },
+    { cls: 'SHIP', len: 4 },
+    { cls: 'SUB', len: 3 },
+    { cls: 'ARK', len: 3 },
+    { cls: 'PT', len: 2 }
+  ];
+  var LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  var SAVE_KEY = 'wordfleet.battle.v1';
+
+  /* Used when the dictionary file cannot be fetched (offline, file://). */
+  var FALLBACK = {
+    2: ['IF', 'OX', 'UP', 'MY', 'AT', 'GO', 'NO', 'BE', 'OR', 'WE', 'AM', 'ON', 'IT', 'SO'],
+    3: ['BED', 'RUN', 'SKY', 'JAM', 'FOG', 'OWL', 'TUG', 'ZIP', 'MAP', 'CUB', 'HEN', 'VAN', 'ORE', 'DIG'],
+    4: ['JUMP', 'REEF', 'GLOW', 'MAST', 'QUIZ', 'HAWK', 'DUSK', 'VINE', 'FOAM', 'KILN', 'TIDE', 'BARN'],
+    5: ['PIANO', 'FJORD', 'CRANE', 'BLIMP', 'QUART', 'MOTOR', 'WHALE', 'SUGAR', 'DRIFT', 'LEMON', 'VAULT', 'GHOST']
+  };
+
+  var dict = null;
+  var state = null;
+  var ui = { sel: 0, dir: 'H', target: null };
+
+  function $(id) { return document.getElementById(id); }
+  function key(r, c) { return r + ':' + c; }
+  function coord(r, c) { return COLS[c] + r; }
+  function callOut(r, c) { return NATO[COLS[c]] + '-' + NUMBERS[r]; }
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+  /* ---------- dictionary ---------- */
+
+  function loadDictionary() {
+    fetch('src/dictionary/words.xml')
+      .then(function (res) { return res.ok ? res.text() : Promise.reject(); })
+      .then(function (text) {
+        var xml = new DOMParser().parseFromString(text, 'text/xml');
+        var groups = xml.getElementsByTagName('WordLength');
+        if (!groups.length) throw new Error('empty');
+        var out = {};
+        for (var i = 0; i < groups.length; i++) {
+          var len = parseInt(groups[i].getAttribute('length'), 10);
+          var words = groups[i].getElementsByTagName('Word');
+          out[len] = [];
+          for (var j = 0; j < words.length; j++) {
+            out[len].push(words[j].textContent.trim().toUpperCase());
+          }
+        }
+        dict = out;
+      })
+      .catch(function () { dict = null; });
+  }
+
+  function wordPool(len) {
+    if (dict && dict[len] && dict[len].length) return dict[len];
+    return FALLBACK[len] || [];
+  }
+
+  function inDictionary(word) {
+    var pool = dict && dict[word.length];
+    return pool ? pool.indexOf(word) !== -1 : true;
+  }
+
+  function autoWords() {
+    var used = {};
+    return SPECS.map(function (spec) {
+      var pool = wordPool(spec.len);
+      var word, guard = 0;
+      do {
+        word = pool[Math.floor(Math.random() * pool.length)];
+        guard++;
+      } while (used[word] && guard < 60);
+      used[word] = true;
+      return word;
+    });
+  }
+
+  /* ---------- state ---------- */
+
+  function newPlayer(name) {
+    return { name: name, ships: [], locked: false, shots: {}, tallies: {} };
+  }
+
+  function save() {
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) { /* private mode */ }
+  }
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) return null;
+      var s = JSON.parse(raw);
+      return s && s.players && s.players.length === 2 ? s : null;
+    } catch (e) { return null; }
+  }
+
+  function wipe() {
+    try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* private mode */ }
+  }
+
+  /* ---------- ships ---------- */
+
+  function cellsOf(ship) {
+    var out = [];
+    for (var i = 0; i < ship.len; i++) {
+      out.push(ship.dir === 'H' ? [ship.r, ship.c + i] : [ship.r + i, ship.c]);
+    }
+    return out;
+  }
+
+  function occupancy(player, skipIdx) {
+    var map = {};
+    player.ships.forEach(function (ship, idx) {
+      if (idx === skipIdx || ship.r == null) return;
+      cellsOf(ship).forEach(function (p, i) {
+        map[key(p[0], p[1])] = { ship: idx, letter: ship.word.charAt(i) };
+      });
+    });
+    return map;
+  }
+
+  function fits(player, idx, r, c, dir, len) {
+    if (dir === 'H' && c + len > 10) return false;
+    if (dir === 'V' && r + len > 10) return false;
+    if (r < 1 || c < 0) return false;
+    var taken = occupancy(player, idx);
+    for (var i = 0; i < len; i++) {
+      var rr = dir === 'H' ? r : r + i;
+      var cc = dir === 'H' ? c + i : c;
+      if (taken[key(rr, cc)]) return false;
+    }
+    return true;
+  }
+
+  function scatter(player) {
+    var guard = 0;
+    while (guard++ < 400) {
+      player.ships.forEach(function (s) { s.r = null; s.c = null; });
+      var ok = player.ships.every(function (ship, idx) {
+        for (var tries = 0; tries < 200; tries++) {
+          var dir = Math.random() < 0.5 ? 'H' : 'V';
+          var r = 1 + Math.floor(Math.random() * 10);
+          var c = Math.floor(Math.random() * 10);
+          if (fits(player, idx, r, c, dir, ship.len)) {
+            ship.r = r; ship.c = c; ship.dir = dir;
+            return true;
+          }
+        }
+        return false;
+      });
+      if (ok) return true;
+    }
+    return false;
+  }
+
+  function allPlaced(player) {
+    return player.ships.length === 5 && player.ships.every(function (s) { return s.r != null; });
+  }
+
+  function berth(ship) {
+    var cells = cellsOf(ship);
+    var a = cells[0], b = cells[cells.length - 1];
+    return coord(a[0], a[1]) + '-' + coord(b[0], b[1]);
+  }
+
+  function tallyOf(player, letter) {
+    return player.ships.reduce(function (sum, ship) {
+      return sum + ship.word.split('').filter(function (ch) { return ch === letter; }).length;
+    }, 0);
+  }
+
+  /* ---------- rendering: grids ---------- */
+
+  function paint(el, mini, cellFn) {
+    var html = '<div class="app-cell is-label"></div>';
+    for (var c = 0; c < 10; c++) html += '<div class="app-cell is-label">' + COLS[c] + '</div>';
+    for (var r = 1; r <= 10; r++) {
+      html += '<div class="app-cell is-label">' + r + '</div>';
+      for (var c2 = 0; c2 < 10; c2++) {
+        var info = cellFn(r, c2) || {};
+        html += '<div class="app-cell ' + (info.cls || '') + '" data-r="' + r + '" data-c="' + c2 + '">' + (info.text || '') + '</div>';
+      }
+    }
+    el.className = 'app-grid' + (mini ? ' is-mini' : '');
+    el.innerHTML = html;
+  }
+
+  /* Own fleet, with whatever the enemy has managed to shoot off it. */
+  function defenseCell(me, foe) {
+    var mine = occupancy(me, -1);
+    return function (r, c) {
+      var k = key(r, c);
+      var here = mine[k];
+      var shot = foe.shots[k];
+      if (here) {
+        if (shot && shot.letter) return { cls: 'is-lost', text: here.letter };
+        if (shot && shot.hit) return { cls: 'is-ship is-down', text: here.letter };
+        return { cls: 'is-ship', text: here.letter };
+      }
+      return shot ? { cls: 'is-miss' } : {};
+    };
+  }
+
+  /* Enemy waters, as far as this captain knows them. */
+  function offenseCell(me) {
+    return function (r, c) {
+      var k = key(r, c);
+      var shot = me.shots[k];
+      if (shot && shot.letter) return { cls: 'is-revealed', text: shot.letter };
+      if (ui.target === k) return { cls: 'is-target is-open', text: shot && shot.hit ? '?' : '' };
+      if (shot && shot.hit) return { cls: 'is-hit is-open', text: '?' };
+      if (shot) return { cls: 'is-miss' };
+      return { cls: 'is-open', text: '' };
+    };
+  }
+
+  /* ---------- rendering: screens ---------- */
+
+  var SCREENS = {
+    briefing: 'screenBriefing', deploy: 'screenDeploy', handoff: 'screenHandoff',
+    battle: 'screenBattle', surrender: 'screenSurrender', over: 'screenOver'
+  };
+
+  function render() {
+    var stage = state ? state.stage : 'briefing';
+    Object.keys(SCREENS).forEach(function (name) {
+      $(SCREENS[name]).classList.toggle('active', name === stage);
+    });
+    $('btnAbandon').hidden = !state || stage === 'briefing';
+    if (stage === 'deploy') renderDeploy();
+    else if (stage === 'handoff') renderHandoff();
+    else if (stage === 'battle') renderBattle();
+    else if (stage === 'surrender') renderSurrender();
+    else if (stage === 'over') renderOver();
+    else renderBar('Word Fleet', 'Where words wage war', 'Briefing');
+    window.scrollTo(0, 0);
+  }
+
+  function renderBar(title, sub, chip, quiet) {
+    $('barTitle').textContent = title;
+    $('barSub').textContent = sub;
+    $('barChip').textContent = chip;
+    $('barChip').classList.toggle('is-quiet', !!quiet);
+  }
+
+  /* --- deployment --- */
+
+  function renderDeploy() {
+    var me = state.players[state.deployIdx];
+    renderBar(me.name, 'Deployment', 'Deploying');
+
+    var needWords = state.mode === 'manual' && !me.locked;
+    $('wordEntry').hidden = !needWords;
+    $('deployPanel').hidden = needWords;
+
+    if (needWords) {
+      $('wordRows').innerHTML = SPECS.map(function (spec, i) {
+        return '<div class="app-wordrow">' +
+          '<span class="app-ship-class">' + spec.cls + '</span>' +
+          '<input class="app-input" id="w' + i + '" maxlength="' + spec.len + '" autocomplete="off" ' +
+          'placeholder="' + new Array(spec.len + 1).join('_') + '"></div>';
+      }).join('');
+      $('wordNote').textContent = '';
+      paint($('deployGrid'), false, function () { return {}; });
+      $('deployBoardLabel').innerHTML = 'Defense Grid <span>Awaiting word-ships</span>';
+      return;
+    }
+
+    $('deployBoardLabel').innerHTML = 'Defense Grid <span>' +
+      me.ships.filter(function (s) { return s.r != null; }).length + ' of 5 berthed</span>';
+
+    $('deployRoster').innerHTML = me.ships.map(function (ship, i) {
+      var placed = ship.r != null;
+      return '<button type="button" class="app-ship' + (i === ui.sel ? ' is-active' : '') +
+        (placed ? ' is-placed' : '') + '" data-ship="' + i + '">' +
+        '<span class="app-ship-class">' + ship.cls + '</span>' +
+        '<span class="app-ship-word">' + esc(ship.word) + '</span>' +
+        '<span class="app-ship-at">' + (placed ? berth(ship) : 'unberthed') + '</span></button>';
+    }).join('');
+
+    Array.prototype.forEach.call($('orientChoice').children, function (b) {
+      b.classList.toggle('is-on', b.dataset.dir === ui.dir);
+    });
+
+    var mine = occupancy(me, -1);
+    paint($('deployGrid'), false, function (r, c) {
+      var here = mine[key(r, c)];
+      return here ? { cls: 'is-ship is-open', text: here.letter } : { cls: 'is-open', text: '' };
+    });
+    $('btnConfirmDeploy').disabled = !allPlaced(me);
+  }
+
+  function previewCells(r, c) {
+    var me = state.players[state.deployIdx];
+    var ship = me.ships[ui.sel];
+    if (!ship) return null;
+    var ok = fits(me, ui.sel, r, c, ui.dir, ship.len);
+    var cells = cellsOf({ r: r, c: c, dir: ui.dir, len: ship.len });
+    return { ok: ok, cells: cells };
+  }
+
+  function paintPreview(r, c) {
+    clearPreview();
+    var pv = previewCells(r, c);
+    if (!pv) return;
+    pv.cells.forEach(function (p) {
+      var el = $('deployGrid').querySelector('[data-r="' + p[0] + '"][data-c="' + p[1] + '"]');
+      if (el) el.classList.add(pv.ok ? 'is-preview' : 'is-bad');
+    });
+  }
+
+  function clearPreview() {
+    Array.prototype.forEach.call($('deployGrid').querySelectorAll('.is-preview, .is-bad'), function (el) {
+      el.classList.remove('is-preview', 'is-bad');
+    });
+  }
+
+  /* --- handoff --- */
+
+  function renderHandoff() {
+    var who = state.players[state.handoffTo];
+    renderBar('Stand By', 'Device handoff', 'Handoff', true);
+    $('handoffName').textContent = who.name;
+    $('handoffText').textContent = state.after === 'deploy'
+      ? 'Deployment orders are sealed. Every other captain, eyes off the screen.'
+      : 'Your grids are hidden until you confirm you are holding the device.';
+    $('btnHandoff').textContent = state.after === 'deploy' ? 'Deploy My Fleet' : 'Take My Turn';
+  }
+
+  /* --- battle --- */
+
+  function renderBattle() {
+    var me = state.players[state.turn];
+    var foe = state.players[1 - state.turn];
+    renderBar(me.name, 'Firing on ' + foe.name, 'Your Turn');
+
+    paint($('offenseGrid'), false, offenseCell(me));
+    paint($('defenseGrid'), true, defenseCell(me, foe));
+    $('offenseSub').textContent = 'Your shots on ' + foe.name;
+
+    var pending = state.pending;
+    $('alphaKeys').hidden = !pending;
+    $('btnFire').hidden = !!pending;
+    $('btnSurrender').hidden = !!pending;
+
+    if (pending) {
+      var shot = me.shots[key(pending.r, pending.c)];
+      $('firePanelTitle').textContent = 'Alpha Strike';
+      $('fireText').innerHTML = 'Hit at <strong>' + coord(pending.r, pending.c) +
+        '</strong>. Name the letter berthed there.';
+      $('keyRow').innerHTML = LETTERS.map(function (L) {
+        var tried = shot.tried[L] !== undefined;
+        var known = me.tallies[L];
+        var dead = known === 0;
+        var tag = known !== undefined ? '<span class="app-key-tally">' + known + '</span>' : '';
+        return '<button type="button" class="app-key" data-letter="' + L + '"' +
+          (tried || dead ? ' disabled' : '') + '>' + L + tag + '</button>';
+      }).join('');
+    } else {
+      $('firePanelTitle').textContent = 'Fire!';
+      $('fireText').innerHTML = ui.target
+        ? '<span class="app-quote">"Fire on coordinate ' + callOut(+ui.target.split(':')[0], +ui.target.split(':')[1]) + '!"</span>'
+        : 'Choose a coordinate on the offense grid. Squares already resolved are closed.';
+      $('btnFire').disabled = !ui.target;
+    }
+
+    var tallies = Object.keys(me.tallies).sort();
+    $('tallyText').innerHTML = tallies.length
+      ? tallies.map(function (L) {
+          return '<strong>' + L + '</strong> &times;' + me.tallies[L];
+        }).join(' &nbsp; ')
+      : 'No tallies reported yet.';
+
+    $('battleLog').innerHTML = state.log.length
+      ? state.log.slice(0, 40).map(function (entry) {
+          return '<div class="app-log-item"><span class="app-log-who">' + esc(entry.who) + '</span>' + entry.text + '</div>';
+        }).join('')
+      : '<p class="app-log-empty">No shots fired yet.</p>';
+  }
+
+  function logIt(who, text) {
+    state.log.unshift({ who: who, text: text });
+  }
+
+  function fire() {
+    if (!ui.target) return;
+    var parts = ui.target.split(':');
+    var r = +parts[0], c = +parts[1];
+    var me = state.players[state.turn];
+    var foe = state.players[1 - state.turn];
+    var k = key(r, c);
+    var hit = !!occupancy(foe, -1)[k];
+
+    if (!me.shots[k]) me.shots[k] = { hit: hit, tried: {}, letter: null };
+
+    logIt(me.name, '<span class="app-quote">"Fire on coordinate ' + callOut(r, c) + '!"</span> &mdash; ' +
+      foe.name + ': <span class="app-quote">"' + (hit ? 'Hit.' : 'Miss!') + '"</span>');
+
+    if (hit) {
+      state.pending = { r: r, c: c };
+    } else {
+      endTurn();
+      return;
+    }
+    ui.target = null;
+    save();
+    render();
+  }
+
+  function alphaStrike(letter) {
+    var pending = state.pending;
+    if (!pending) return;
+    var me = state.players[state.turn];
+    var foe = state.players[1 - state.turn];
+    var k = key(pending.r, pending.c);
+    var shot = me.shots[k];
+    var actual = occupancy(foe, -1)[k].letter;
+
+    if (actual === letter) {
+      shot.letter = letter;
+      logIt(me.name, '<span class="app-quote">"Alpha Strike ' + NATO[letter] + '!"</span> &mdash; ' + foe.name +
+        ': <span class="app-quote">"Bullseye."</span> ' + letter + ' confirmed at ' + coord(pending.r, pending.c) + '.');
+    } else {
+      var count = tallyOf(foe, letter);
+      shot.tried[letter] = count;
+      me.tallies[letter] = count;
+      logIt(me.name, '<span class="app-quote">"Alpha Strike ' + NATO[letter] + '!"</span> &mdash; ' + foe.name +
+        ': <span class="app-quote">"' + letter + ' tally ' + count + '."</span>');
+    }
+    endTurn();
+  }
+
+  function endTurn() {
+    state.pending = null;
+    ui.target = null;
+    state.turn = 1 - state.turn;
+    state.handoffTo = state.turn;
+    state.after = 'battle';
+    state.stage = 'handoff';
+    save();
+    render();
+  }
+
+  /* --- demand surrender --- */
+
+  function renderSurrender() {
+    var me = state.players[state.turn];
+    var foe = state.players[1 - state.turn];
+    renderBar(me.name, 'Decisive strike on ' + foe.name, 'Surrender', true);
+    $('surrenderWho').textContent = 'Target: ' + foe.name + '.';
+    $('claimRows').innerHTML = SPECS.map(function (spec, i) {
+      var cols = COLS.map(function (L, ci) { return '<option value="' + ci + '">' + L + '</option>'; }).join('');
+      var rows = NUMBERS.slice(1).map(function (n, ri) { return '<option value="' + (ri + 1) + '">' + (ri + 1) + '</option>'; }).join('');
+      return '<div class="app-claim">' +
+        '<span class="app-ship-class">' + spec.cls + '</span>' +
+        '<input class="app-input" id="c' + i + '" maxlength="' + spec.len + '" autocomplete="off" placeholder="' + new Array(spec.len + 1).join('_') + '">' +
+        '<select class="app-select" id="cc' + i + '">' + cols + '</select>' +
+        '<select class="app-select" id="cr' + i + '">' + rows + '</select>' +
+        '<select class="app-select" id="cd' + i + '"><option value="H">Across</option><option value="V">Down</option></select>' +
+        '</div>';
+    }).join('');
+    $('surrenderNote').textContent = '';
+  }
+
+  function signature(word, cells) {
+    return word + '@' + cells.map(function (p) { return p[0] + ':' + p[1]; }).join('-');
+  }
+
+  function demandSurrender() {
+    var me = state.players[state.turn];
+    var foe = state.players[1 - state.turn];
+    var claims = [];
+
+    for (var i = 0; i < SPECS.length; i++) {
+      var word = ($('c' + i).value || '').toUpperCase().replace(/[^A-Z]/g, '');
+      if (word.length !== SPECS[i].len) {
+        $('surrenderNote').textContent = 'The ' + SPECS[i].cls + ' needs a ' + SPECS[i].len + '-letter word.';
+        return;
+      }
+      var c = +$('cc' + i).value;
+      var r = +$('cr' + i).value;
+      var dir = $('cd' + i).value;
+      if ((dir === 'H' && c + word.length > 10) || (dir === 'V' && r + word.length > 10)) {
+        $('surrenderNote').textContent = 'The ' + SPECS[i].cls + ' will not fit on the grid from ' + coord(r, c) + '.';
+        return;
+      }
+      claims.push(signature(word, cellsOf({ r: r, c: c, dir: dir, len: word.length })));
+    }
+
+    var truth = foe.ships.map(function (s) { return signature(s.word, cellsOf(s)); }).sort().join('|');
+    var correct = claims.sort().join('|') === truth;
+
+    logIt(me.name, '<span class="app-quote">"I demand your surrender!"</span> &mdash; ' + foe.name +
+      ': <span class="app-quote">"' + (correct ? 'You have won.' : 'Victory is mine! You lose! Good day sir!') + '"</span>');
+
+    state.winner = correct ? state.turn : 1 - state.turn;
+    state.byDemand = correct;
+    state.stage = 'over';
+    save();
+    render();
+  }
+
+  /* --- game over --- */
+
+  function renderOver() {
+    var winner = state.players[state.winner];
+    renderBar('Engagement Over', winner.name + ' takes the water', 'Complete', true);
+    $('overEyebrow').textContent = state.byDemand ? 'Total Victory' : 'Surrender Accepted';
+    $('overName').textContent = winner.name;
+    $('overQuote').textContent = state.byDemand
+      ? '"You have won."'
+      : '"Victory is mine! You lose! Good day sir!"';
+    $('overReveal').innerHTML = '';
+    state.players.forEach(function (p, idx) {
+      var wrap = document.createElement('div');
+      wrap.className = 'app-board';
+      var label = document.createElement('div');
+      label.className = 'app-board-label';
+      label.innerHTML = esc(p.name) + ' <span>' + p.ships.map(function (s) { return esc(s.word); }).join(' &middot; ') + '</span>';
+      var grid = document.createElement('div');
+      wrap.appendChild(label);
+      wrap.appendChild(grid);
+      $('overReveal').appendChild(wrap);
+      paint(grid, true, defenseCell(p, state.players[1 - idx]));
+    });
+  }
+
+  /* ---------- flow ---------- */
+
+  function beginGame() {
+    var nameA = ($('fleetA').value || '').trim().toUpperCase() || 'FLEET ONE';
+    var nameB = ($('fleetB').value || '').trim().toUpperCase() || 'FLEET TWO';
+    if (nameA === nameB) {
+      $('briefNote').textContent = 'Two fleets, two names. Give them something to shout.';
+      return;
+    }
+    var mode = $('modeChoice').querySelector('.is-on').dataset.mode;
+    var first = +$('firstChoice').querySelector('.is-on').dataset.first;
+
+    state = {
+      stage: 'handoff', mode: mode, turn: first, deployIdx: 0,
+      handoffTo: 0, after: 'deploy', pending: null, winner: null, byDemand: false,
+      players: [newPlayer(nameA), newPlayer(nameB)], log: []
+    };
+    state.players.forEach(function (p) {
+      p.ships = SPECS.map(function (spec) {
+        return { cls: spec.cls, len: spec.len, word: new Array(spec.len + 1).join('_'), r: null, c: null, dir: 'H' };
+      });
+    });
+    if (mode === 'auto') {
+      state.players.forEach(function (p) {
+        var words = autoWords();
+        p.ships.forEach(function (s, i) { s.word = words[i]; });
+        p.locked = true;
+      });
+    }
+    ui.sel = 0; ui.dir = 'H'; ui.target = null;
+    save();
+    render();
+  }
+
+  function lockWords() {
+    var me = state.players[state.deployIdx];
+    var words = [];
+    for (var i = 0; i < SPECS.length; i++) {
+      var word = ($('w' + i).value || '').toUpperCase().replace(/[^A-Z]/g, '');
+      if (word.length !== SPECS[i].len) {
+        $('wordNote').textContent = 'The ' + SPECS[i].cls + ' needs exactly ' + SPECS[i].len + ' letters.';
+        return;
+      }
+      words.push(word);
+    }
+    var unknown = words.filter(function (w) { return !inDictionary(w); });
+    if (unknown.length && !me.warned) {
+      me.warned = true;
+      $('wordNote').textContent = 'Not in the fleet dictionary: ' + unknown.join(', ') +
+        '. Legal by captain’s agreement? Lock in again to confirm.';
+      return;
+    }
+    me.ships.forEach(function (s, i) { s.word = words[i]; });
+    me.locked = true;
+    save();
+    render();
+  }
+
+  function confirmDeploy() {
+    var me = state.players[state.deployIdx];
+    if (!allPlaced(me)) return;
+    if (state.deployIdx === 0) {
+      state.deployIdx = 1;
+      state.handoffTo = 1;
+      state.after = 'deploy';
+      state.stage = 'handoff';
+    } else {
+      state.handoffTo = state.turn;
+      state.after = 'battle';
+      state.stage = 'handoff';
+    }
+    ui.sel = 0; ui.dir = 'H';
+    save();
+    render();
+  }
+
+  function newGame() {
+    state = null;
+    wipe();
+    ui = { sel: 0, dir: 'H', target: null };
+    render();
+  }
+
+  /* ---------- events ---------- */
+
+  function bindChoice(id) {
+    $(id).addEventListener('click', function (e) {
+      var btn = e.target.closest('button');
+      if (!btn) return;
+      Array.prototype.forEach.call(this.children, function (b) { b.classList.remove('is-on'); });
+      btn.classList.add('is-on');
+      if (id === 'orientChoice') { ui.dir = btn.dataset.dir; renderDeploy(); }
+    });
+  }
+
+  bindChoice('modeChoice');
+  bindChoice('firstChoice');
+  bindChoice('orientChoice');
+
+  $('btnBrief').addEventListener('click', beginGame);
+  $('btnLockWords').addEventListener('click', lockWords);
+  $('btnAutoDeploy').addEventListener('click', function () {
+    scatter(state.players[state.deployIdx]);
+    save();
+    renderDeploy();
+  });
+  $('btnClearDeploy').addEventListener('click', function () {
+    state.players[state.deployIdx].ships.forEach(function (s) { s.r = null; s.c = null; });
+    ui.sel = 0;
+    save();
+    renderDeploy();
+  });
+  $('btnConfirmDeploy').addEventListener('click', confirmDeploy);
+
+  $('deployRoster').addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-ship]');
+    if (!btn) return;
+    ui.sel = +btn.dataset.ship;
+    renderDeploy();
+  });
+
+  $('deployGrid').addEventListener('click', function (e) {
+    var cell = e.target.closest('[data-r]');
+    if (!cell) return;
+    var r = +cell.dataset.r, c = +cell.dataset.c;
+    var me = state.players[state.deployIdx];
+    if (!me.locked) return;
+    var occupied = occupancy(me, -1)[key(r, c)];
+    if (occupied) {
+      var ship = me.ships[occupied.ship];
+      ship.r = null; ship.c = null;
+      ui.sel = occupied.ship;
+      ui.dir = ship.dir;
+    } else {
+      var sel = me.ships[ui.sel];
+      if (!sel || !fits(me, ui.sel, r, c, ui.dir, sel.len)) return;
+      sel.r = r; sel.c = c; sel.dir = ui.dir;
+      var next = me.ships.findIndex(function (s) { return s.r == null; });
+      if (next !== -1) ui.sel = next;
+    }
+    save();
+    renderDeploy();
+  });
+
+  $('deployGrid').addEventListener('mouseover', function (e) {
+    var cell = e.target.closest('[data-r]');
+    if (!cell) return;
+    var me = state.players[state.deployIdx];
+    if (!me.locked) return;
+    if (occupancy(me, -1)[key(+cell.dataset.r, +cell.dataset.c)]) { clearPreview(); return; }
+    paintPreview(+cell.dataset.r, +cell.dataset.c);
+  });
+  $('deployGrid').addEventListener('mouseleave', clearPreview);
+
+  $('btnHandoff').addEventListener('click', function () {
+    state.stage = state.after;
+    save();
+    render();
+  });
+
+  $('offenseGrid').addEventListener('click', function (e) {
+    var cell = e.target.closest('[data-r]');
+    if (!cell || state.pending) return;
+    var k = key(+cell.dataset.r, +cell.dataset.c);
+    var shot = state.players[state.turn].shots[k];
+    if (shot && (!shot.hit || shot.letter)) return;
+    ui.target = ui.target === k ? null : k;
+    renderBattle();
+  });
+
+  $('btnFire').addEventListener('click', fire);
+  $('keyRow').addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-letter]');
+    if (btn && !btn.disabled) alphaStrike(btn.dataset.letter);
+  });
+
+  $('btnSurrender').addEventListener('click', function () {
+    state.stage = 'surrender';
+    save();
+    render();
+  });
+  $('btnCancelDemand').addEventListener('click', function () {
+    state.stage = 'battle';
+    save();
+    render();
+  });
+  $('btnDemand').addEventListener('click', demandSurrender);
+
+  $('btnNewGame').addEventListener('click', newGame);
+  $('btnAbandon').addEventListener('click', function () {
+    if (confirm('Scuttle this battle and start over?')) newGame();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (!state || e.metaKey || e.ctrlKey || e.altKey) return;
+    var tag = (e.target.tagName || '').toLowerCase();
+    if (tag === 'input' || tag === 'select' || tag === 'textarea') return;
+    if (state.stage === 'deploy') {
+      if (e.key === 'r' || e.key === 'R') {
+        ui.dir = ui.dir === 'H' ? 'V' : 'H';
+        renderDeploy();
+      }
+    } else if (state.stage === 'battle') {
+      if (state.pending && /^[a-zA-Z]$/.test(e.key)) {
+        var btn = $('keyRow').querySelector('[data-letter="' + e.key.toUpperCase() + '"]');
+        if (btn && !btn.disabled) alphaStrike(e.key.toUpperCase());
+      } else if (!state.pending && e.key === 'Enter' && ui.target) {
+        fire();
+      }
+    }
+  });
+
+  /* ---------- boot ---------- */
+
+  loadDictionary();
+  state = load();
+  if (state && state.stage === 'deploy') {
+    ui.sel = Math.max(0, state.players[state.deployIdx].ships.findIndex(function (s) { return s.r == null; }));
+  }
+  render();
+})();
+</script>
+</body>
+</html>
