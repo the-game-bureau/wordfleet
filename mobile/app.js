@@ -27,13 +27,13 @@
   var LEVELS = {
     ensign:    { name: 'Ensign',    tiers: ['common'],   example: 'PIANO \u2022 JUMP \u2022 BED',
                  hint: 'Everyday words anyone knows. The AI Captain fires wide and guesses letters by gut.',
-                 adj: 0.5, pattern: false, density: false, bluff: 0.15 },
+                 adj: 0.5, pattern: false, density: false },
     commander: { name: 'Commander', tiers: ['everyday'], example: 'WHARF \u2022 HOOF \u2022 KEG',
                  hint: 'Familiar but less frequent words. The AI Captain follows up hits and reads the grid for likely words.',
-                 adj: 1, pattern: true, density: false, bluff: 0.25 },
+                 adj: 1, pattern: true, density: false },
     admiral:   { name: 'Admiral',   tiers: ['rare'],     example: 'GLYPH \u2022 YURT \u2022 ASP',
                  hint: 'Uncommon words that hide well. The AI Captain hunts by probability and cracks words from every tally.',
-                 adj: 1, pattern: true, density: true, bluff: 0.35 }
+                 adj: 1, pattern: true, density: true }
   };
 
   var FLEET_ADJ = ['Salty', 'Barnacle-Crusted', 'Rum-Soaked', 'Royal', 'Crabby', 'Peg-Legged', 'Stormy', 'Treacherous', 'Cursed', 'Ghostly', 'Iron-Bound', 'Sea-Worn', 'Soggy-Bottom', 'Windswept', 'Ironclad', 'Thunderhead', 'Bloodwake', 'Scurvy', "Admiral's", "Commodore's", 'Steel-Hulled', 'Storm-Battered', 'Salt-Crusted', 'Rust-Stained', 'Sun-Bleached', 'Cannon-Heavy', 'Torpedo-Laden', 'Merciless', 'Grog-Fueled', 'Hook-Handed', "Kraken's", "Siren's", "Neptune's", 'Abyssal', 'Phantom', 'Half-Sunk', 'Creaking', 'Patched-Up', 'Battle-Scarred'];
@@ -196,15 +196,6 @@
     return out;
   }
 
-  function codes5() {
-    var seen = {}, out = [];
-    while (out.length < 5) {
-      var n = rnd(1000);
-      if (!seen[n]) { seen[n] = true; out.push(n); }
-    }
-    return out.sort(function (a, b) { return a - b; });
-  }
-
   // ------------------------------------------------------------
   // state
   // ------------------------------------------------------------
@@ -235,13 +226,13 @@
       lang: (S && S.lang) || (lang && lang.code) || 'en-US',
       offensiveOk: !!(S && S.offensiveOk),
       mode: (S && S.mode) || 'auto',
-      me: { name: '', words: randomWords(), ships: null, codes: codes5() },
+      me: { name: '', words: randomWords(), ships: null },
       foe: null,
       myShots: {}, myTallies: {},
       foeShots: {}, foeTallies: {},
       bubbles: [false, false, false, false, false],
       turn: null, alpha: null, incoming: null, lastFoe: null,
-      wfg: null, claims: null, log: [], turns: 0,
+      claims: null, log: [], turns: 0,
       winner: null, reason: null
     };
     ui.sel = null; ui.tab = 'Attack'; ui.pick = 0;
@@ -256,7 +247,7 @@
   // ------------------------------------------------------------
   // screens + chrome
   // ------------------------------------------------------------
-  var SCREENS = { home: 'scrHome', setup: 'scrSetup', deploy: 'scrDeploy', codes: 'scrCodes', battle: 'scrBattle', over: 'scrOver' };
+  var SCREENS = { home: 'scrHome', setup: 'scrSetup', deploy: 'scrDeploy', battle: 'scrBattle', over: 'scrOver' };
   var current = 'home';
 
   function show(name) {
@@ -278,7 +269,6 @@
     if (current === 'home') renderHome();
     else if (current === 'setup') renderSetup();
     else if (current === 'deploy') renderDeploy();
-    else if (current === 'codes') renderCodes();
     else if (current === 'battle') renderBattle();
     else if (current === 'over') renderOver();
   }
@@ -341,7 +331,6 @@
     if (!S) return show('home');
     if (S.phase === 'setup') show('setup');
     else if (S.phase === 'deploy') show('deploy');
-    else if (S.phase === 'codes') show('codes');
     else if (S.phase === 'battle') show('battle');
     else show('over');
   }
@@ -489,148 +478,9 @@
 
   function confirmDeploy() {
     var foeWords = randomWords();
-    S.foe = { name: randomFleetName(), words: foeWords, ships: scatter(foeWords), codes: codes5() };
-    S.phase = 'codes';
-    S.wfg = { calls: [], done: false, first: null, lines: [] };
-    save();
-    show('codes');
-  }
-
-  // ------------------------------------------------------------
-  // WHO GOES FIRST? (launch codes)
-  // ------------------------------------------------------------
-  function wfgLine(who, text) { S.wfg.lines.push({ who: who, text: text }); }
-
-  function renderCodes() {
-    setBar(S.me.name, 'Who Goes First?', 'is-quiet');
-    $('myCodes').textContent = S.me.codes.map(pad3).join(' ');
-    var w = S.wfg;
-    $('codesRadio').innerHTML = w.lines.length ? w.lines.map(function (l) {
-      return '<div class="radio-line' + (l.who === 'foe' ? ' is-foe' : '') + '"><span class="radio-who">' +
-        (l.who === 'foe' ? 'AI Captain' : l.who === 'me' ? 'Human Captain' : 'Radio') + '</span><span>' + l.text + '</span></div>';
-    }).join('') : '<div class="radio-line"><span class="radio-who">Radio</span><span>Channel open. Who hails first?</span></div>';
-
-    var last = w.calls[w.calls.length - 1];
-    var html = '';
-    if (w.done) {
-      html = '<button class="btn btn--primary btn--wide" type="button" data-act="toBattle">Battle Stations!</button>';
-    } else if (w.thinking) {
-      html = '<p class="waiting">AI Captain is deciding…</p>';
-    } else if (!last) {
-      html = '<div class="row" style="display:grid;grid-template-columns:1fr 1fr;">' +
-        '<button class="btn btn--primary" type="button" data-act="iHail">I\'ll Hail</button>' +
-        '<button class="btn" type="button" data-act="theyHail">Let Them Hail</button></div>';
-    } else if (last.who === 'foe') {
-      html = '<div class="row" style="display:grid;grid-template-columns:1fr 1fr;margin-bottom:12px;">' +
-        '<button class="btn" type="button" data-act="concede">Concede</button>' +
-        '<button class="btn btn--danger" type="button" data-act="challenge">Challenge!</button></div>' +
-        '<span class="label">Or counter with ' + pad3(last.code) + ' or higher</span>' + codePad(last.code);
-    } else {
-      html = '<span class="label">Hail a launch code</span>' + codePad(0);
-    }
-    $('codesActions').innerHTML = html;
-  }
-
-  function codePad(min) {
-    var html = '<div class="codepad">' + S.me.codes.map(function (n) {
-      return '<button class="btn" type="button" data-code="' + n + '"' + (n < min ? ' disabled' : '') + '>' + pad3(n) + '</button>';
-    }).join('') + '</div>' +
-      '<div class="bluff"><input class="input" id="bluffCode" inputmode="numeric" maxlength="3" placeholder="' + pad3(min) + '" autocomplete="off">' +
-      '<button class="btn" type="button" data-act="bluff">Bluff</button></div>' +
-      '<p class="hint">Any three digits. Real codes are safe; fake ones are only safe if nobody challenges.</p>';
-    return html;
-  }
-
-  function myCall(code) {
-    var w = S.wfg;
-    var last = w.calls[w.calls.length - 1];
-    var min = last ? last.code : 0;
-    if (code < min) { toast('Counter must be ' + pad3(min) + ' or higher.'); return; }
-    w.calls.push({ who: 'me', code: code });
-    wfgLine('me', last ? 'Counter: <span class="radio-say">"' + pad3(code) + '"</span>' : 'Hail: <span class="radio-say">"' + pad3(code) + '"</span>');
-    w.thinking = true;
-    save(); renderCodes();
-    setTimeout(foeRespondCode, 900 + rnd(700));
-  }
-
-  function foeHail() {
-    var w = S.wfg;
-    var codes = S.foe.codes;
-    var top = codes[codes.length - 1];
-    var code = top;
-    if (Math.random() < LEVELS[S.level].bluff && top < 990) code = top + 1 + rnd(Math.min(80, 999 - top));
-    w.calls.push({ who: 'foe', code: code });
-    wfgLine('foe', 'Hail: <span class="radio-say">"' + pad3(code) + '"</span>');
-  }
-
-  function foeRespondCode() {
-    var w = S.wfg;
-    w.thinking = false;
-    var last = w.calls[w.calls.length - 1];
-    var x = last.code;
-    var codes = S.foe.codes;
-    var honest = codes.filter(function (n) { return n >= x; })[0];
-    var rounds = w.calls.length;
-    var suspicion = Math.max(0, (x - 600) / 400) * 0.85 + (rounds >= 4 ? 0.25 : 0);
-    if (honest != null && rounds < 12) {
-      w.calls.push({ who: 'foe', code: honest });
-      wfgLine('foe', 'Counter: <span class="radio-say">"' + pad3(honest) + '"</span>');
-    } else if (Math.random() < suspicion || rounds >= 12) {
-      wfgLine('foe', '<span class="radio-say">"Challenge!"</span>');
-      resolveChallenge('foe');
-    } else if (Math.random() < LEVELS[S.level].bluff && x < 999) {
-      var b = x + 1 + rnd(Math.min(40, 999 - x));
-      w.calls.push({ who: 'foe', code: b });
-      wfgLine('foe', 'Counter: <span class="radio-say">"' + pad3(b) + '"</span>');
-    } else {
-      wfgLine('foe', '<span class="radio-say">"We concede."</span>');
-      settleFirst('me', 'The AI Captain conceded.');
-    }
-    save(); renderCodes();
-  }
-
-  function resolveChallenge(challenger) {
-    var last = S.wfg.calls[S.wfg.calls.length - 1];
-    var caller = last.who;
-    var owner = caller === 'me' ? S.me : S.foe;
-    var real = owner.codes.indexOf(last.code) !== -1;
-    if (real) {
-      settleFirst(caller, (caller === 'me' ? 'Your' : 'The AI Captain\'s') + ' code ' + pad3(last.code) + ' is verified.');
-    } else {
-      settleFirst(challenger, (caller === 'me' ? 'Your' : 'The AI Captain\'s') + ' code ' + pad3(last.code) + ' was a bluff!');
-    }
-  }
-
-  function settleFirst(who, why) {
-    S.wfg.done = true;
-    S.wfg.first = who;
-    wfgLine('sys', why + ' <strong>' + (who === 'me' ? 'You strike first.' : 'The AI Captain strikes first.') + '</strong>');
-  }
-
-  function codesAct(act) {
-    var w = S.wfg;
-    if (act === 'iHail') { renderCodesHail(); return; }
-    if (act === 'theyHail') { foeHail(); save(); renderCodes(); return; }
-    if (act === 'concede') {
-      wfgLine('me', '<span class="radio-say">"We concede."</span>');
-      settleFirst('foe', 'You conceded.');
-    } else if (act === 'challenge') {
-      wfgLine('me', '<span class="radio-say">"Challenge!"</span>');
-      resolveChallenge('me');
-    } else if (act === 'bluff') {
-      var v = $('bluffCode').value.replace(/\D/g, '');
-      if (!v) { $('bluffCode').focus(); return; }
-      myCall(Math.min(999, +v));
-      return;
-    } else if (act === 'toBattle') {
-      startBattle(w.first);
-      return;
-    }
-    save(); renderCodes();
-  }
-
-  function renderCodesHail() {
-    $('codesActions').innerHTML = '<span class="label">Hail a launch code</span>' + codePad(0);
+    S.foe = { name: randomFleetName(), words: foeWords, ships: scatter(foeWords) };
+    // Against the AI Captain, the Human Captain always fires first.
+    startBattle('me');
   }
 
   // ------------------------------------------------------------
@@ -639,7 +489,7 @@
   function startBattle(first) {
     S.phase = 'battle';
     S.turn = first;
-    log('sys', (first === 'me' ? S.me.name : S.foe.name) + ' won the first strike. The Human Captain\'s ' + S.me.name + ' versus the AI Captain\'s ' + S.foe.name + '.');
+    log('sys', 'The Human Captain\'s ' + S.me.name + ' versus the AI Captain\'s ' + S.foe.name + '. The Human Captain fires first.');
     ui.tab = 'Attack';
     save();
     show('battle');
@@ -1177,7 +1027,7 @@
       '<li>Five word-ships: KETCH (5), SHIP (4), SUB (3), ARK (3), PT (2).</li>' +
       '<li>Place them left-to-right or top-to-bottom. No diagonals or backwards.</li>' +
       '<li>Ships may touch but not overlap. No proper nouns, abbreviations, or suffixes.</li></ul>' +
-      '<h3>Who Goes First?</h3><p>Hail a launch code, real or fake. Your opponent concedes, challenges, or counters with an equal or higher code. A challenged real code wins the first strike; a challenged bluff loses it.</p>' +
+      '<h3>Who Goes First?</h3><p>Against the AI Captain, the Human Captain always fires first.</p>' +
       '<h3>Standard Attack</h3><ul>' +
       '<li><strong>Initial Strike:</strong> fire on a coordinate. <span class="say">"Miss!"</span> ends your turn. <span class="say">"Hit."</span> earns an Alpha Strike.</li>' +
       '<li><strong>Alpha Strike:</strong> guess the letter there. <span class="say">"Bullseye."</span> writes it in. A wrong letter gets a tally: how many times that letter appears across the opponent\'s whole fleet. Either way your turn ends.</li>' +
@@ -1273,18 +1123,6 @@
   on($('btnDeployDone'), 'click', confirmDeploy);
   on($('btnDeployBack'), 'click', function () { S.phase = 'setup'; save(); show('setup'); });
 
-  // codes
-  on($('codesActions'), 'click', function (e) {
-    var b = e.target.closest('button');
-    if (!b || b.disabled) return;
-    if (b.hasAttribute('data-code')) { myCall(+b.getAttribute('data-code')); return; }
-    var act = b.getAttribute('data-act');
-    if (act) codesAct(act);
-  });
-  on($('codesActions'), 'input', function (e) {
-    if (e.target.id === 'bluffCode') e.target.value = e.target.value.replace(/\D/g, '').slice(0, 3);
-  });
-
   // battle
   on($('gridAttack'), 'click', function (e) {
     var c = e.target.closest('[data-k]');
@@ -1329,7 +1167,7 @@
     else if (act === 'home') { closeSheet(); show('home'); }
     else if (act === 'abandon') {
       if (!confirm('Abandon this battle? It counts as a loss.')) return;
-      if (S.phase === 'battle' || S.phase === 'codes') bumpRecord(false);
+      if (S.phase === 'battle') bumpRecord(false);
       closeSheet(); S = null; try { localStorage.removeItem(STORE); } catch (err) { /* ignore */ }
       show('home');
     }
@@ -1358,6 +1196,8 @@
   // ------------------------------------------------------------
   S = load();
   if (S && (S.v !== 1 || !LEVELS[S.level])) S = null;
+  // Games saved while the launch-codes screen still existed go straight to battle.
+  if (S && S.phase === 'codes') { S.phase = 'battle'; S.turn = 'me'; }
   loadDictionary(S && S.lang).then(function () {
     if (S && S.phase === 'setup' && S.mode === 'auto' && !S.me.words.every(inDictionary)) {
       S.me.words = randomWords(); save();

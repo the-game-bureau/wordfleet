@@ -7,7 +7,7 @@ Sink or Spell
 
 ## Mobile app
 
-`mobile/` is the printed Battle Tracker turned into a phone app. You play against an AI Captain, and every part of the paper game is there: Who Goes First? launch codes, attack and defense grids, alpha strikes, letter tallies, the attack and defense manifests, and Demand Surrender.
+`mobile/` is the printed Battle Tracker turned into a phone app. You play against an AI Captain, and the paper game is all there: attack and defense grids, alpha strikes, letter tallies, the attack and defense manifests, and Demand Surrender. Against the AI Captain, the Human Captain always fires first, so there's no launch-code round.
 
 - Installable: open it on a phone and choose *Add to Home Screen*. It runs full screen and works offline after the first visit.
 - The AI Captain's rank sets how common its words are (Ensign → common, Commander → everyday, Admiral → rare) and how sharply it hunts.
