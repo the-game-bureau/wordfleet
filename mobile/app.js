@@ -1232,6 +1232,7 @@
       (current !== 'home' ? '<button class="btn btn--wide" type="button" data-act="home">Main Menu</button>' : '') +
       (ui.installEvt ? '<button class="btn btn--wide" type="button" data-act="install">Install Word Fleet</button>' : '') +
       '<a class="btn btn--wide" href="https://thegamebureau.com/wordfleet/">HOME PORT</a>' +
+      '<a class="btn btn--wide" href="https://thegamebureau.com/">by The Game Bureau</a>' +
       (live ? '<button class="btn btn--danger btn--wide" type="button" data-act="abandon">Abandon Battle</button>' : '') +
       '<button class="btn btn--ghost btn--wide" type="button" data-act="close">Close</button></div>');
   }
