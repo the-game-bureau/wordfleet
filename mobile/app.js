@@ -580,7 +580,7 @@
         '<button class="btn btn--danger btn--wide" type="button" data-act="demand">Demand Surrender</button>';
     } else {
       fp.innerHTML = '<div class="card-title">Your Turn &middot; ' + found + ' of ' + FLEET_CELLS + ' letters found</div>' +
-        '<p class="hint" style="margin-top:0">Tap a coordinate to target it. Tap a gold hit to fire again and try a different letter.</p>' +
+        '<p class="hint" style="margin-top:0">Tap a coordinate to target it, or double-tap to fire at once. Tap a gold hit to fire again and try a different letter.</p>' +
         '<button class="btn btn--danger btn--wide" type="button" data-act="demand">Demand Surrender</button>';
     }
 
@@ -638,10 +638,16 @@
     if (S.turn !== 'me' || S.alpha) return;
     var s = S.myShots[k];
     if (s && (!s.hit || s.letter)) return;
+    // Double tap fires straight away.
+    if (ui.sel === k && Date.now() - (ui.selAt || 0) < 400) { fire(); return; }
     ui.sel = ui.sel === k ? null : k;
+    ui.selAt = ui.sel ? Date.now() : 0;
     ui.flash = null;
     renderAttack();
-    if (ui.sel) $('firePanel').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    // Bring the Fire button into view, but not mid double tap (it would move the grid).
+    if (ui.sel) setTimeout(function () {
+      if (ui.sel === k && S.turn === 'me') $('firePanel').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }, 400);
   }
 
   function fire() {
@@ -968,7 +974,7 @@
       (ev.filled ? fillNote(ev.letter, ev.filled, 'your') : '') +
       (ev.solve ? '<div class="report ' + (ev.solve.ok ? 'is-bad' : 'is-good') + '"><div class="report-q">"Solve: ' + ev.solve.word + '!"</div><div class="report-a">' + (ev.solve.ok ? '"Correct."' : '"Negative."') + '</div></div>' +
         (ev.solve.ok ? '<p class="hint">Your word-ship <strong>' + ev.solve.word + '</strong> is fully exposed.</p>' : '') : '') +
-      lines + '<div class="mini-wrap"><div class="grid" id="gridIncoming"></div></div>' +
+      lines + '<div class="mini-wrap"><div class="grid-label">DEFENSE GRID <span>' + esc(S.me.name) + '</span></div><div class="grid" id="gridIncoming"></div></div>' +
       '<button class="btn btn--primary btn--wide" type="button" data-act="returnFire">Return Fire</button>', false);
     paint($('gridIncoming'), function (r, c) {
       var k = key(r, c);
