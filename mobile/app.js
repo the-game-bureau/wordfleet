@@ -51,6 +51,7 @@
   // helpers
   // ------------------------------------------------------------
   function $(id) { return document.getElementById(id); }
+  function sfx(name, delay) { if (window.WFAudio) window.WFAudio.play(name, delay); }
   function key(r, c) { return r + ':' + c; }
   function unkey(k) { var p = k.split(':'); return { r: +p[0], c: +p[1] }; }
   function coord(r, c) { return COLS[c] + (r + 1); }
@@ -257,7 +258,7 @@
   }
 
   function setBar(sub, chip, cls) {
-    $('barSub').textContent = sub || 'Sink or Spell';
+    $('barSub').textContent = sub || 'Mobile Mode';
     var el = $('barChip');
     el.hidden = !chip;
     el.textContent = chip || '';
@@ -318,7 +319,7 @@
   // HOME
   // ------------------------------------------------------------
   function renderHome() {
-    setBar('Sink or Spell', null);
+    setBar('Mobile Mode', null);
     var live = S && S.phase !== 'over' && S.phase !== 'setup';
     $('btnContinue').hidden = !live;
     $('btnNew').className = 'btn btn--wide ' + (live ? '' : 'btn--primary');
@@ -449,6 +450,7 @@
     if (ship.r == null) return;
     ship.r = null; ship.c = null;
     ui.pick = idx;
+    sfx('select');
     save(); renderDeploy();
   }
 
@@ -474,8 +476,8 @@
           clearTimeout(ui.firstTap.timer);
           ui.firstTap = null;
           var dir = ship.dir === 'H' ? 'V' : 'H';
-          if (fits(ships, idx, ship.r, ship.c, dir)) { ship.dir = dir; save(); renderDeploy(); }
-          else toast(ship.word + " won't fit " + (dir === 'H' ? 'across' : 'down') + ' from ' + coord(ship.r, ship.c));
+          if (fits(ships, idx, ship.r, ship.c, dir)) { ship.dir = dir; sfx('rotate'); save(); renderDeploy(); }
+          else { sfx('error'); toast(ship.word + " won't fit " + (dir === 'H' ? 'across' : 'down') + ' from ' + coord(ship.r, ship.c)); }
           return;
         }
         if (ui.firstTap) clearTimeout(ui.firstTap.timer);
@@ -488,11 +490,13 @@
     if (ui.pick < 0 || ships[ui.pick].r != null) ui.pick = nextUnplaced(0);
     if (ui.pick < 0) { toast('All five word-ships are deployed.'); return; }
     if (!fits(ships, ui.pick, p.r, p.c, ui.dir)) {
+      sfx('error');
       toast(ships[ui.pick].word + " won't fit " + (ui.dir === 'H' ? 'across' : 'down') + ' from ' + coord(p.r, p.c));
       return;
     }
     var s = ships[ui.pick];
     s.r = p.r; s.c = p.c; s.dir = ui.dir;
+    sfx('place');
     ui.pick = nextUnplaced(ui.pick);
     save(); renderDeploy();
   }
@@ -642,6 +646,7 @@
     if (ui.sel === k && Date.now() - (ui.selAt || 0) < 400) { fire(); return; }
     ui.sel = ui.sel === k ? null : k;
     ui.selAt = ui.sel ? Date.now() : 0;
+    if (ui.sel) sfx('select');
     ui.flash = null;
     renderAttack();
     // Bring the Fire button into view, but not mid double tap (it would move the grid).
@@ -659,6 +664,7 @@
     if (!cell) {
       S.myShots[k] = { hit: false };
       log('me', '"Fire on ' + callK(k) + '!" &mdash; <span class="say">"Miss!"</span>');
+      sfx('fire'); sfx('miss', 0.3);
       toast(coordK(k) + ': Miss!');
       endMyTurn();
       return;
@@ -668,11 +674,13 @@
       S.myShots[k].letter = cell.letter;
       ui.flash = [k];
       log('me', '"Fire on ' + callK(k) + '!" &mdash; <span class="say">"Hit."</span> ' + cell.letter + ' was already called, so it fills in.');
+      sfx('fire'); sfx('hit', 0.3); sfx('fill', 0.9);
       toast(coordK(k) + ': Hit! ' + cell.letter + ' fills in.');
       endMyTurn();
       return;
     }
     S.alpha = k;
+    sfx('fire'); sfx('hit', 0.3);
     log('me', '"Fire on ' + callK(k) + '!" &mdash; <span class="say">"Hit."</span>');
     save();
     renderBattle();
@@ -708,16 +716,19 @@
       shot.letter = L;
       log('me', '"Alpha Strike ' + NATO[L] + '!" &mdash; <span class="say">"Bullseye."</span>');
       report = '<div class="report is-good"><div class="report-q">"Alpha Strike ' + NATO[L] + '!"</div><div class="report-a">"Bullseye."</div></div>';
+      sfx('bull');
     } else {
       var t = countOf(S.foe.words.join(''), L);
       S.myTallies[L] = t;
       if (shot.wrong.indexOf(L) === -1) shot.wrong.push(L);
       log('me', '"Alpha Strike ' + NATO[L] + '!" &mdash; <span class="say">"' + L + ' tally ' + t + '."</span>');
+      sfx(t ? 'tally' : 'zero');
       report = '<div class="report is-warn"><div class="report-q">"Alpha Strike ' + NATO[L] + '!"</div><div class="report-a">"' + L + ' tally ' + t + '."</div></div>' +
         '<p class="hint">' + (t === 0 ? L + ' is nowhere in the AI Captain\'s fleet.' : L + ' appears ' + t + (t === 1 ? ' time' : ' times') + ' across the AI Captain\'s fleet \u2014 just not at ' + coordK(k) + '.') + '</p>';
     }
     S.alpha = null;
     var filled = fillLetter(S.myShots, foeBoard(), L);
+    if (filled.length) sfx('fill', 0.45);
     ui.flash = [k].concat(filled);
     renderAttack();
     report += fillNote(L, filled, 'the AI Captain\'s');
@@ -760,6 +771,7 @@
     if (word.length < 2) { $('solveIn').focus(); return; }
     var res = solveWord(S.myShots, S.foe.ships, word);
     var html;
+    sfx(res ? 'solveOk' : 'solveBad');
     if (res) {
       ui.flash = res.cells;
       log('me', '"Solve: ' + word + '!" &mdash; <span class="say">"Correct."</span>');
@@ -949,6 +961,12 @@
         log('foe', '"Solve: ' + guess + '!" &mdash; <span class="say">' + (res ? '"Correct."' : '"Negative."') + '</span>');
       }
     }
+    sfx('incoming');
+    sfx(ev.hit ? 'hit' : 'miss', 0.5);
+    if (ev.auto) sfx('fill', 1.1);
+    else if (ev.letter) sfx(ev.bull ? 'bull' : ev.tally ? 'tally' : 'zero', 1.1);
+    if (ev.filled && ev.filled.length) sfx('fill', 1.5);
+    if (ev.solve) sfx(ev.solve.ok ? 'solveOk' : 'solveBad', 1.9);
     ev.unseen = true;
     S.lastFoe = ev;
     S.incoming = ev;
@@ -1207,6 +1225,7 @@
     S.turn = null; S.alpha = null; S.incoming = null;
     if (ui.aiTimer) { clearTimeout(ui.aiTimer); ui.aiTimer = null; }
     bumpRecord(winner === 'me');
+    sfx(winner === 'me' ? 'win' : 'lose', 0.2);
     save();
     show('over');
   }
@@ -1252,9 +1271,13 @@
       '<button class="btn btn--wide" type="button" data-act="rules">Rules of Engagement</button>' +
       (current !== 'home' ? '<button class="btn btn--wide" type="button" data-act="home">Main Menu</button>' : '') +
       (ui.installEvt ? '<button class="btn btn--wide" type="button" data-act="install">Install Word Fleet</button>' : '') +
-      '<a class="btn btn--wide" href="https://thegamebureau.com/wordfleet/">HOME PORT</a>' +
-      '<a class="btn btn--wide" href="https://thegamebureau.com/">by The Game Bureau</a>' +
+      '<a class="btn btn--wide" href="https://thegamebureau.com/wordfleet/">Home Port</a>' +
+      '<a class="btn btn--wide" href="https://thegamebureau.com/">By The Game Bureau</a>' +
       (live ? '<button class="btn btn--danger btn--wide" type="button" data-act="abandon">Abandon Battle</button>' : '') +
+      (window.WFAudio ? '<div class="switches">' +
+        '<label class="switch-row"><span>Sound Effects</span><input type="checkbox" class="switch" data-audio="sfx"' + (window.WFAudio.sfxOn() ? ' checked' : '') + '></label>' +
+        '<label class="switch-row"><span>Music</span><input type="checkbox" class="switch" data-audio="music"' + (window.WFAudio.musicOn() ? ' checked' : '') + '></label>' +
+        '</div>' : '') +
       '<button class="btn btn--ghost btn--wide" type="button" data-act="close">Close</button></div>');
   }
 
@@ -1407,8 +1430,10 @@
     if (d.target) {
       var ship = S.me.ships[d.idx];
       ship.r = d.target.r; ship.c = d.target.c;
+      sfx('place');
       save();
     } else if (e.type === 'pointerup') {
+      sfx('error');
       toast("Won't fit there.");
     }
     renderDeploy();
@@ -1428,7 +1453,7 @@
     ui.pick = i;
     renderDeploy();
   });
-  on($('btnScatter'), 'click', function () { S.me.ships = scatter(S.me.words); ui.pick = -1; save(); renderDeploy(); });
+  on($('btnScatter'), 'click', function () { S.me.ships = scatter(S.me.words); ui.pick = -1; sfx('place'); save(); renderDeploy(); });
   on($('btnClear'), 'click', function () { S.me.ships.forEach(function (s) { s.r = null; s.c = null; }); ui.pick = 0; save(); renderDeploy(); });
   on($('btnDeployDone'), 'click', confirmDeploy);
   on($('btnDeployBack'), 'click', function () { S.phase = 'setup'; save(); show('setup'); });
@@ -1486,7 +1511,12 @@
     }
   });
   on($('sheetBody'), 'input', function (e) { if (e.target.hasAttribute('data-claim')) claimInput(e.target); });
-  on($('sheetBody'), 'change', function (e) { if (e.target.hasAttribute('data-claim')) claimInput(e.target); });
+  on($('sheetBody'), 'change', function (e) {
+    if (e.target.hasAttribute('data-claim')) claimInput(e.target);
+    var which = e.target.getAttribute('data-audio');
+    if (which === 'sfx') window.WFAudio.setSfx(e.target.checked);
+    if (which === 'music') window.WFAudio.setMusic(e.target.checked);
+  });
   on(document, 'keydown', function (e) {
     if (e.key === 'Escape' && !$('sheet').hidden && sheetDismissible) closeSheet();
     if ((e.key === 'r' || e.key === 'R') && current === 'deploy' && document.activeElement.tagName !== 'INPUT') {

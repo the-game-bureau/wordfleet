@@ -14,6 +14,7 @@ Sink or Spell
 - Wheel of Fortune letter fill: whatever letter a captain calls in an Alpha Strike fills in on every square of the opponent's fleet that has already been hit and holds it. Unhit squares stay hidden; when one is hit later, a called letter shows at once (no Alpha Strike needed). This works for both captains.
 - The AI Captain's rank sets how common its words are (Ensign → common, Commander → everyday, Admiral → rare) and how sharply it hunts, from random shots (Ensign), through Battleship-style hunt-and-target on a checkerboard (Commander), to probability-density targeting that also rules out placements no dictionary word fits (Admiral).
 - The Human Captain can use auto-generated words or their own. Their own words must be in the chosen language's dictionary.
+- Sound effects and background music, all synthesized in the browser (no audio files). Each can be switched on or off in the menu.
 - Games save on the device, so a battle can be resumed later.
 
 To run it locally, serve the repo root, e.g. `npx http-server .`, then open `/mobile/`.
