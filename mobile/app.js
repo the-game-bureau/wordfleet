@@ -1228,9 +1228,9 @@
     var live = S && S.phase !== 'over' && S.phase !== 'setup';
     openSheet('<h2>Word Fleet</h2><div class="menu-list">' +
       '<button class="btn btn--wide" type="button" data-act="rules">Rules of Engagement</button>' +
-      (current !== 'home' ? '<button class="btn btn--wide" type="button" data-act="home">Home Port</button>' : '') +
+      (current !== 'home' ? '<button class="btn btn--wide" type="button" data-act="home">Main Menu</button>' : '') +
       (ui.installEvt ? '<button class="btn btn--wide" type="button" data-act="install">Install Word Fleet</button>' : '') +
-      '<a class="btn btn--wide" href="../pandp.html">Print a Paper Battle Tracker</a>' +
+      '<a class="btn btn--wide" href="https://thegamebureau.com/wordfleet/">HOME PORT</a>' +
       (live ? '<button class="btn btn--danger btn--wide" type="button" data-act="abandon">Abandon Battle</button>' : '') +
       '<button class="btn btn--ghost btn--wide" type="button" data-act="close">Close</button></div>');
   }
