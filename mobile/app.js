@@ -1227,6 +1227,7 @@
   function openMenu() {
     var live = S && S.phase !== 'over' && S.phase !== 'setup';
     openSheet('<h2>Word Fleet</h2><div class="menu-list">' +
+      '<button class="btn btn--primary btn--wide" type="button" data-act="newBattle">New Battle</button>' +
       '<button class="btn btn--wide" type="button" data-act="rules">Rules of Engagement</button>' +
       (current !== 'home' ? '<button class="btn btn--wide" type="button" data-act="home">Main Menu</button>' : '') +
       (ui.installEvt ? '<button class="btn btn--wide" type="button" data-act="install">Install Word Fleet</button>' : '') +
@@ -1261,10 +1262,13 @@
   function on(el, type, fn) { el.addEventListener(type, fn); }
 
   on($('btnMenu'), 'click', openMenu);
-  on($('btnNew'), 'click', function () {
-    if (S && S.phase !== 'over' && S.phase !== 'setup' && !confirm('Abandon the current battle?')) return;
+  function newBattle() {
+    if (S && S.phase !== 'over' && S.phase !== 'setup' && !confirm('Abandon the current battle?')) return false;
+    if (ui.aiTimer) { clearTimeout(ui.aiTimer); ui.aiTimer = null; }
     newGame(); show('setup');
-  });
+    return true;
+  }
+  on($('btnNew'), 'click', newBattle);
   on($('btnContinue'), 'click', resume);
   on($('btnHowTo'), 'click', openRules);
 
@@ -1441,6 +1445,7 @@
     if (act === 'close') closeSheet();
     else if (act === 'rules') openRules();
     else if (act === 'home') { closeSheet(); show('home'); }
+    else if (act === 'newBattle') { if (newBattle()) closeSheet(); }
     else if (act === 'abandon') {
       if (!confirm('Abandon this battle? It counts as a loss.')) return;
       if (S.phase === 'battle') bumpRecord(false);
