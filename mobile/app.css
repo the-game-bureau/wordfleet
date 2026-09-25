@@ -209,7 +209,7 @@ button.cell { cursor: pointer; }
 }
 .mf-l { font-size: 17px; font-weight: 700; }
 .mf-n { font-size: 11px; color: var(--muted); min-height: 12px; }
-.mf.is-vowel { background: #fafaf0; }
+.mf.is-vowel { background: #e4e4e4; }
 .mf.is-known { background: var(--gold-wash); }
 .mf.is-done { background: var(--green); }
 .mf.is-done .mf-n { color: var(--ink); }
