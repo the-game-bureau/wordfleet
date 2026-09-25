@@ -426,7 +426,7 @@
     setBar(S.me.name, 'Deploy', 'is-quiet');
     var ships = S.me.ships;
     var placed = ships.filter(function (s) { return s.r != null; }).length;
-    $('deployCount').textContent = placed + ' of 5 berthed';
+    $('deployCount').textContent = placed + ' of 5 deployed';
     setSeg('segDir', ui.dir);
     var b = boardOf(ships);
     paint($('gridDeploy'), function (r, c) {
@@ -456,15 +456,22 @@
     var p = unkey(k);
     var ships = S.me.ships;
     var b = boardOf(ships);
-    if (b[k]) {                       // lift a berthed ship back into port
-      var idx = b[k].ship;
-      ships[idx].r = null; ships[idx].c = null;
+    if (b[k]) {
+      var idx = b[k].ship, ship = ships[idx];
+      if (ship.r === p.r && ship.c === p.c) {   // first letter: swing between across and down
+        var dir = ship.dir === 'H' ? 'V' : 'H';
+        if (fits(ships, idx, ship.r, ship.c, dir)) { ship.dir = dir; save(); renderDeploy(); }
+        else toast(ship.word + " won't fit " + (dir === 'H' ? 'across' : 'down') + ' from ' + coord(ship.r, ship.c));
+        return;
+      }
+      // any other letter: lift the ship back into port
+      ship.r = null; ship.c = null;
       ui.pick = idx;
       save(); renderDeploy();
       return;
     }
     if (ui.pick < 0 || ships[ui.pick].r != null) ui.pick = nextUnplaced(0);
-    if (ui.pick < 0) { toast('All five word-ships are berthed.'); return; }
+    if (ui.pick < 0) { toast('All five word-ships are deployed.'); return; }
     if (!fits(ships, ui.pick, p.r, p.c, ui.dir)) {
       toast(ships[ui.pick].word + " won't fit " + (ui.dir === 'H' ? 'across' : 'down') + ' from ' + coord(p.r, p.c));
       return;
