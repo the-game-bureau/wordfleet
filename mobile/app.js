@@ -443,6 +443,15 @@
     $('btnDeployDone').disabled = placed < 5;
   }
 
+  // Pull a deployed ship back into port and select it.
+  function liftShip(idx) {
+    var ship = S.me.ships[idx];
+    if (ship.r == null) return;
+    ship.r = null; ship.c = null;
+    ui.pick = idx;
+    save(); renderDeploy();
+  }
+
   function nextUnplaced(from) {
     var ships = S.me.ships;
     for (var n = 0; n < 5; n++) {
@@ -458,16 +467,22 @@
     var b = boardOf(ships);
     if (b[k]) {
       var idx = b[k].ship, ship = ships[idx];
-      if (ship.r === p.r && ship.c === p.c) {   // first letter: swing between across and down
-        var dir = ship.dir === 'H' ? 'V' : 'H';
-        if (fits(ships, idx, ship.r, ship.c, dir)) { ship.dir = dir; save(); renderDeploy(); }
-        else toast(ship.word + " won't fit " + (dir === 'H' ? 'across' : 'down') + ' from ' + coord(ship.r, ship.c));
+      if (ship.r === p.r && ship.c === p.c) {
+        // First letter: a double tap swings it between across and down;
+        // a single tap (no second tap in time) lifts it like any other letter.
+        if (ui.firstTap && ui.firstTap.k === k) {
+          clearTimeout(ui.firstTap.timer);
+          ui.firstTap = null;
+          var dir = ship.dir === 'H' ? 'V' : 'H';
+          if (fits(ships, idx, ship.r, ship.c, dir)) { ship.dir = dir; save(); renderDeploy(); }
+          else toast(ship.word + " won't fit " + (dir === 'H' ? 'across' : 'down') + ' from ' + coord(ship.r, ship.c));
+          return;
+        }
+        if (ui.firstTap) clearTimeout(ui.firstTap.timer);
+        ui.firstTap = { k: k, timer: setTimeout(function () { ui.firstTap = null; liftShip(idx); }, 320) };
         return;
       }
-      // any other letter: lift the ship back into port
-      ship.r = null; ship.c = null;
-      ui.pick = idx;
-      save(); renderDeploy();
+      liftShip(idx);
       return;
     }
     if (ui.pick < 0 || ships[ui.pick].r != null) ui.pick = nextUnplaced(0);
@@ -1351,15 +1366,16 @@
     if (!b[k]) return;
     var ship = S.me.ships[b[k].ship], p = unkey(k);
     drag = { idx: b[k].ship, off: ship.dir === 'H' ? p.c - ship.c : p.r - ship.r, from: k, moved: false, target: null };
-    try { $('gridDeploy').setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
   });
-  on($('gridDeploy'), 'pointermove', function (e) {
+  // Listen on the document (no pointer capture) so taps still land on the letter square.
+  on(document, 'pointermove', function (e) {
     if (!drag) return;
     var el = document.elementFromPoint(e.clientX, e.clientY);
     var cell = el && el.closest && el.closest('#gridDeploy [data-k]');
     var k = cell && cell.getAttribute('data-k');
     if (!k || (k === drag.from && !drag.moved)) return;
     drag.moved = true;
+    if (ui.firstTap) { clearTimeout(ui.firstTap.timer); ui.firstTap = null; }
     var ship = S.me.ships[drag.idx], p = unkey(k);
     var r0 = ship.dir === 'V' ? p.r - drag.off : p.r;
     var c0 = ship.dir === 'H' ? p.c - drag.off : p.c;
@@ -1391,8 +1407,8 @@
     }
     renderDeploy();
   }
-  on($('gridDeploy'), 'pointerup', endDrag);
-  on($('gridDeploy'), 'pointercancel', endDrag);
+  on(document, 'pointerup', endDrag);
+  on(document, 'pointercancel', endDrag);
   on($('segDir'), 'click', function (e) {
     var v = e.target.getAttribute('data-v');
     if (v) { ui.dir = v; renderDeploy(); }
