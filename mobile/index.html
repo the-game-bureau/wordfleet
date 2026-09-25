@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Word Fleet</title>
+  <meta name="description" content="Word Fleet: sink or spell. Human Captain versus AI Captain, one letter at a time.">
+  <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="light">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Word Fleet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<header class="bar">
+  <div class="bar-brand">
+    <span class="bar-title">WORD FLEET</span>
+    <span class="bar-sub" id="barSub">Sink or Spell</span>
+  </div>
+  <span class="chip" id="barChip" hidden></span>
+  <button class="icon-btn" id="btnMenu" type="button" aria-label="Menu">
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+  </button>
+</header>
+
+<main class="screens">
+
+  <!-- ============ HOME ============ -->
+  <section class="screen" id="scrHome">
+    <div class="hero">
+      <div class="hero-eyebrow">Battle Tracker</div>
+      <h1 class="hero-title">WORD FLEET</h1>
+      <p class="hero-tag">Sink or Spell</p>
+    </div>
+    <div class="card">
+      <p class="lead">Hide five word-ships on your defense grid. Hunt down the AI Captain's fleet, coordinate by coordinate, letter by letter. Then demand their surrender.</p>
+      <button class="btn btn--primary btn--wide" id="btnContinue" type="button" hidden>Continue Battle</button>
+      <button class="btn btn--primary btn--wide" id="btnNew" type="button">New Battle</button>
+      <button class="btn btn--wide" id="btnHowTo" type="button">Rules of Engagement</button>
+    </div>
+    <p class="fineprint" id="homeRecord"></p>
+  </section>
+
+  <!-- ============ FLEET SETUP ============ -->
+  <section class="screen" id="scrSetup">
+    <div class="card">
+      <div class="card-title">Commission Your Fleet</div>
+      <label class="label" for="inFleet">Fleet Name</label>
+      <div class="input-row">
+        <input class="input" id="inFleet" maxlength="24" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="SALTY ARMADA">
+        <button class="btn btn--sq" id="btnRollName" type="button" aria-label="Random fleet name">&#x1F3B2;</button>
+      </div>
+
+      <label class="label" for="selLang">Language</label>
+      <select class="select" id="selLang"></select>
+      <label class="check"><input type="checkbox" id="chkOffensive"> Possibly Offensive Words OK</label>
+      <p class="hint hint--tight">Unchecked, neither captain may use words that could offend. Applies to both fleets.</p>
+
+      <span class="label">Word-ships</span>
+      <div class="seg" id="segMode">
+        <button type="button" data-v="auto" class="is-on">Auto-Generated</button>
+        <button type="button" data-v="manual">Captain's Choice</button>
+      </div>
+      <p class="hint" id="modeHint">Auto words are drawn from the Word Fleet dictionary. The AI Captain uses the same method.</p>
+
+      <div id="wordList"></div>
+      <p class="note" id="setupNote"></p>
+
+      <span class="label">AI Captain's Rank</span>
+      <div class="seg" id="segLevel">
+        <button type="button" data-v="ensign">Ensign</button>
+        <button type="button" data-v="commander" class="is-on">Commander</button>
+        <button type="button" data-v="admiral">Admiral</button>
+      </div>
+      <p class="hint" id="levelHint"></p>
+
+      <button class="btn btn--primary btn--wide" id="btnToDeploy" type="button">Deploy Fleet</button>
+    </div>
+  </section>
+
+  <!-- ============ DEPLOY ============ -->
+  <section class="screen" id="scrDeploy">
+    <div class="card card--flush">
+      <div class="grid-label">DEFENSE GRID <span id="deployCount">0 of 5 berthed</span></div>
+      <div class="grid" id="gridDeploy"></div>
+    </div>
+    <div class="card">
+      <div class="deploy-head">
+        <div class="seg seg--sm" id="segDir">
+          <button type="button" data-v="H" class="is-on">Across &rarr;</button>
+          <button type="button" data-v="V">Down &darr;</button>
+        </div>
+        <div class="row">
+          <button class="btn btn--sm" id="btnScatter" type="button">Scatter</button>
+          <button class="btn btn--sm" id="btnClear" type="button">Clear</button>
+        </div>
+      </div>
+      <div class="roster" id="roster"></div>
+      <p class="hint">Pick a word-ship, then tap its first square. Ships read left-to-right or top-to-bottom. They may touch but never overlap. Tap a berthed ship to pull it back.</p>
+      <button class="btn btn--primary btn--wide" id="btnDeployDone" type="button" disabled>Confirm Deployment</button>
+      <button class="btn btn--ghost btn--wide" id="btnDeployBack" type="button">&larr; Change Words</button>
+    </div>
+  </section>
+
+  <!-- ============ WHO GOES FIRST ============ -->
+  <section class="screen" id="scrCodes">
+    <div class="card">
+      <div class="card-title">Who Goes First? &#x1F4E1;</div>
+      <p class="hint">Both captains hold five launch codes. Hail a code &mdash; real or fake. Your opponent may <strong>concede</strong>, <strong>challenge</strong>, or <strong>counter</strong> with an equal or higher code. Get caught bluffing and you lose the first strike.</p>
+      <div class="stamp">
+        <div class="stamp-label">Your Launch Codes</div>
+        <div class="stamp-codes" id="myCodes"></div>
+      </div>
+      <div class="radio" id="codesRadio"></div>
+      <div id="codesActions"></div>
+    </div>
+  </section>
+
+  <!-- ============ BATTLE ============ -->
+  <section class="screen screen--tabs" id="scrBattle">
+
+    <div class="tab" id="tabAttack">
+      <div class="card card--flush">
+        <div class="grid-label">ATTACK GRID
+          <span class="bubbles" id="bubbles"></span>
+        </div>
+        <div class="grid" id="gridAttack"></div>
+      </div>
+      <div class="card" id="firePanel"></div>
+      <div class="card">
+        <div class="card-title">Attack Manifest</div>
+        <p class="hint hint--tight">Letter tallies reported by the AI Captain. <span class="mf-key">found / tally</span></p>
+        <div class="manifest" id="attackManifest"></div>
+      </div>
+    </div>
+
+    <div class="tab" id="tabDefense" hidden>
+      <div class="card card--flush">
+        <div class="grid-label">DEFENSE GRID <span id="defenseWords"></span></div>
+        <div class="grid" id="gridDefense"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Defense Manifest</div>
+        <p class="hint hint--tight">How many times each letter sails in your fleet. Dimmed letters have been found by the AI Captain.</p>
+        <div class="manifest" id="defenseManifest"></div>
+      </div>
+    </div>
+
+    <div class="tab" id="tabLog" hidden>
+      <div class="card">
+        <div class="card-title">Captain's Log</div>
+        <div class="log" id="log"></div>
+      </div>
+    </div>
+
+    <nav class="tabbar" id="tabbar">
+      <button type="button" data-tab="Attack" class="is-on">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 1v5M12 18v5M1 12h5M18 12h5"/></svg>
+        Attack
+      </button>
+      <button type="button" data-tab="Defense">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 3v6c0 5-3.5 9.5-8 11-4.5-1.5-8-6-8-11V5z"/></svg>
+        Defense<span class="tab-dot" id="defDot" hidden></span>
+      </button>
+      <button type="button" data-tab="Log">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h11l3 3v15H5z M8 9h8M8 13h8M8 17h5"/></svg>
+        Log
+      </button>
+    </nav>
+  </section>
+
+  <!-- ============ GAME OVER ============ -->
+  <section class="screen" id="scrOver">
+    <div class="card curtain">
+      <div class="curtain-eyebrow" id="overEyebrow">Total Victory</div>
+      <div class="curtain-title" id="overTitle">You have won.</div>
+      <p class="curtain-quote" id="overQuote"></p>
+      <div class="stats" id="overStats"></div>
+      <button class="btn btn--primary btn--wide" id="btnAgain" type="button">New Battle</button>
+    </div>
+    <div class="card card--flush">
+      <div class="grid-label">AI CAPTAIN'S FLEET <span id="overFoeWords"></span></div>
+      <div class="grid" id="gridOverFoe"></div>
+    </div>
+    <div class="card card--flush">
+      <div class="grid-label">HUMAN CAPTAIN'S FLEET <span id="overMyWords"></span></div>
+      <div class="grid" id="gridOverMe"></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ SHEET (modal from bottom) ============ -->
+<div class="scrim" id="scrim" hidden></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" hidden>
+  <div class="sheet-grip"></div>
+  <div class="sheet-body" id="sheetBody"></div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
