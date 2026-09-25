@@ -115,7 +115,7 @@
 
   // Words a fleet may be drawn from at this difficulty.
   function pickPool(len) {
-    var tiers = (LEVELS[S && S.level] || LEVELS.commander).tiers;
+    var tiers = (LEVELS[S && S.level] || LEVELS.ensign).tiers;
     var pool = [];
     tiers.forEach(function (t) {
       var byLen = lang && lang.tiers[t];
@@ -223,7 +223,7 @@
     S = {
       v: 1,
       phase: 'setup',
-      level: (S && S.level) || 'commander',
+      level: (S && S.level) || 'ensign',
       lang: (S && S.lang) || (lang && lang.code) || 'en-US',
       offensiveOk: !!(S && S.offensiveOk),
       mode: (S && S.mode) || 'auto',
@@ -257,8 +257,8 @@
     render();
   }
 
-  function setBar(sub, chip, cls) {
-    $('barSub').textContent = sub || 'Mobile Mode';
+  // Header is always WORD FLEET / Mobile Mode; the chip shows where you are.
+  function setBar(chip, cls) {
     var el = $('barChip');
     el.hidden = !chip;
     el.textContent = chip || '';
@@ -319,7 +319,7 @@
   // HOME
   // ------------------------------------------------------------
   function renderHome() {
-    setBar('Mobile Mode', null);
+    setBar(null);
     var live = S && S.phase !== 'over' && S.phase !== 'setup';
     $('btnContinue').hidden = !live;
     $('btnNew').className = 'btn btn--wide ' + (live ? '' : 'btn--primary');
@@ -339,7 +339,7 @@
   // SETUP
   // ------------------------------------------------------------
   function renderSetup() {
-    setBar('Prepare for Battle', null);
+    setBar(null);
     if (document.activeElement !== $('inFleet')) $('inFleet').value = S.me.name;
     $('selLang').innerHTML = languages.map(function (l) {
       return '<option value="' + esc(l.code) + '"' + (lang && l.code === lang.code ? ' selected' : '') + '>' + esc(l.name) + '</option>';
@@ -424,7 +424,7 @@
   // DEPLOY
   // ------------------------------------------------------------
   function renderDeploy() {
-    setBar(S.me.name, 'Deploy', 'is-quiet');
+    setBar('Deploy', 'is-quiet');
     var ships = S.me.ships;
     var placed = ships.filter(function (s) { return s.r != null; }).length;
     $('deployCount').textContent = placed + ' of 5 deployed';
@@ -529,7 +529,7 @@
 
   function renderBattle() {
     var mine = S.turn === 'me';
-    setBar(S.me.name + ' vs ' + S.foe.name, mine ? (S.alpha ? 'Alpha Strike' : 'Your Turn') : 'AI Captain\'s Turn', mine ? '' : 'is-foe');
+    setBar(mine ? (S.alpha ? 'Alpha Strike' : 'Your Turn') : 'AI Captain\'s Turn', mine ? '' : 'is-foe');
     Array.prototype.forEach.call($('tabbar').children, function (b) { b.classList.toggle('is-on', b.getAttribute('data-tab') === ui.tab); });
     $('tabAttack').hidden = ui.tab !== 'Attack';
     $('tabDefense').hidden = ui.tab !== 'Defense';
@@ -1232,7 +1232,7 @@
 
   function renderOver() {
     var won = S.winner === 'me';
-    setBar(S.me.name + ' vs ' + S.foe.name, won ? 'Victory' : 'Defeat', won ? '' : 'is-foe');
+    setBar(won ? 'Victory' : 'Defeat', won ? '' : 'is-foe');
     var eyebrow, title, quote;
     if (S.reason === 'demand-right') { eyebrow = 'Total Victory'; title = 'The ' + S.foe.name + ' surrenders.'; quote = '"You have won."'; }
     else if (S.reason === 'demand-wrong') { eyebrow = 'Surrender Refused'; title = 'Your demand missed the mark.'; quote = '"Victory is mine! You lose! Good day sir!"'; }
