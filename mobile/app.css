@@ -166,6 +166,8 @@ button.cell { cursor: pointer; }
 .cell.is-ship-lost { background: var(--red); color: #fff; }
 .cell.is-preview { background: #d6ead4; }
 .cell.is-bad { background: var(--red-wash); }
+.cell.is-dragging { opacity: 0.35; }
+#gridDeploy { touch-action: none; }
 .cell.is-flash { animation: flash 0.9s ease-out 2; }
 .cell .q { color: #8a8a8a; }
 @keyframes flash { 0% { outline: 3px solid var(--red); outline-offset: -3px; } 100% { outline: 3px solid transparent; outline-offset: -3px; } }
