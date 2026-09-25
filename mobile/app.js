@@ -227,7 +227,7 @@
       lang: (S && S.lang) || (lang && lang.code) || 'en-US',
       offensiveOk: !!(S && S.offensiveOk),
       mode: (S && S.mode) || 'auto',
-      me: { name: '', words: randomWords(), ships: null },
+      me: { name: randomFleetName(), words: randomWords(), ships: null },
       foe: null,
       myShots: {}, myTallies: {},
       foeShots: {}, foeTallies: {},
@@ -339,7 +339,7 @@
   // SETUP
   // ------------------------------------------------------------
   function renderSetup() {
-    setBar('Fleet Setup', 'Setup', 'is-quiet');
+    setBar('Prepare for Battle', null);
     if (document.activeElement !== $('inFleet')) $('inFleet').value = S.me.name;
     $('selLang').innerHTML = languages.map(function (l) {
       return '<option value="' + esc(l.code) + '"' + (lang && l.code === lang.code ? ' selected' : '') + '>' + esc(l.name) + '</option>';
@@ -1534,6 +1534,7 @@
   // Games saved while the launch-codes screen still existed go straight to battle.
   if (S && S.phase === 'codes') { S.phase = 'battle'; S.turn = 'me'; }
   loadDictionary(S && S.lang).then(function () {
+    if (S && S.phase === 'setup' && !S.me.name) { S.me.name = randomFleetName(); save(); }
     if (S && S.phase === 'setup' && S.mode === 'auto' && !S.me.words.every(inDictionary)) {
       S.me.words = randomWords(); save();
     }

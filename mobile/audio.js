@@ -10,7 +10,17 @@
   var prefs = { sfx: true, music: true };
   try { var saved = JSON.parse(localStorage.getItem(PREFS)); if (saved) prefs = { sfx: saved.sfx !== false, music: saved.music !== false }; } catch (e) { /* defaults */ }
 
-  var ctx = null, master = null, sfxBus = null, musicBus = null, noiseBuf = null;
+  var ctx = null, master = null, sfxBus = null, musicBus = null, noiseBuf = null, oceanBuf = null;
+
+  // Stereo impulse response: decaying noise, for reverb.
+  function impulse(seconds, decay) {
+    var len = Math.floor(ctx.sampleRate * seconds), buf = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (var ch = 0; ch < 2; ch++) {
+      var d = buf.getChannelData(ch);
+      for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+    }
+    return buf;
+  }
 
   function savePrefs() { try { localStorage.setItem(PREFS, JSON.stringify(prefs)); } catch (e) { /* ignore */ } }
 
@@ -23,6 +33,14 @@
     master = ctx.createGain(); master.gain.value = 0.9; master.connect(ctx.destination);
     sfxBus = ctx.createGain(); sfxBus.gain.value = 0.55; sfxBus.connect(master);
     musicBus = ctx.createGain(); musicBus.gain.value = 0; musicBus.connect(master);
+    // A long synthetic hall for the score: open sea, lots of space.
+    var verb = ctx.createConvolver(), wet = ctx.createGain();
+    verb.buffer = impulse(3.5, 2.8);
+    wet.gain.value = 0.55;
+    musicBus.connect(verb); verb.connect(wet); wet.connect(master);
+    oceanBuf = ctx.createBuffer(1, ctx.sampleRate * 8, ctx.sampleRate);
+    var od = oceanBuf.getChannelData(0);
+    for (var n = 0; n < od.length; n++) od[n] = Math.random() * 2 - 1;
     noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 1.5, ctx.sampleRate);
     var d = noiseBuf.getChannelData(0);
     for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
@@ -96,59 +114,114 @@
     SFX[name](ctx.currentTime + 0.01 + (delay || 0));
   }
 
-  // --- background music: a quiet sea march in D minor -------------------
-  // 8 bars of eighth notes (null = rest). Chords: Dm Dm Bb C Dm Dm Bb A.
-  var MELODY = [
-    69, null, 74, null, 69, 65, 62, null,
-    65, 67, 69, null, 69, null, 67, 65,
-    74, null, 72, 70, 69, null, 65, null,
-    67, null, 64, null, 67, 69, 67, 64,
-    69, null, 74, null, 69, 65, 62, null,
-    65, 67, 69, 70, 72, null, 70, 69,
-    70, null, 69, 67, 65, null, 62, null,
-    61, null, 64, null, 69, null, null, null
+  // --- background music: a dark naval score -------------------------------
+  // Slow D minor (Dm - Bb - Gm - A), 16-bar cycle: a sparse opening of drone,
+  // strings and sonar, then a pulsing low-string ostinato and timpani, with a
+  // lonely horn line on alternate passes. Ocean swell underneath throughout.
+  var BPM = 66, EIGHTH = 60 / BPM / 2, BAR = EIGHTH * 8, CYCLE = 16;
+  var PROG = [
+    { root: 38, chord: [50, 53, 57] },   // Dm
+    { root: 34, chord: [50, 53, 58] },   // Bb
+    { root: 31, chord: [50, 55, 58] },   // Gm
+    { root: 33, chord: [49, 52, 57] }    // A
   ];
-  var BASS = [38, 38, 34, 36, 38, 38, 34, 33];
-  var BPM = 84, EIGHTH = 60 / BPM / 2;
-  var step = 0, nextAt = 0, timer = null, loop = 0;
+  var OSTINATO = [0, 0, 7, 0, 0, 7, 8, 7];   // semitones over the bar's root; the 8 is the uneasy minor sixth
+  // Horn line for bars 8-15: [midi, eighths] pairs.
+  var HORN = [
+    [[69, 8]], [[65, 5], [67, 3]], [[70, 6], [69, 2]], [[64, 8]],
+    [[65, 4], [62, 4]], [[62, 8]], [[67, 5], [65, 3]], [[64, 8]]
+  ];
+  var step = 0, nextAt = 0, timer = null, cycle = 0, ocean = null;
+
+  function voice(type, f, t, dur, peak, attack, release, cutoff, detune) {
+    var o = ctx.createOscillator(), g = ctx.createGain(), f1 = ctx.createBiquadFilter();
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    if (detune) o.detune.setValueAtTime(detune, t);
+    f1.type = 'lowpass'; f1.frequency.setValueAtTime(cutoff || 800, t);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + attack);
+    g.gain.setValueAtTime(peak, t + Math.max(attack, dur - release));
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(f1); f1.connect(g); g.connect(musicBus);
+    o.start(t); o.stop(t + dur + 0.1);
+  }
+
+  function pad(chord, root, t) {
+    chord.forEach(function (m) {
+      voice('sawtooth', hz(m), t, BAR * 1.15, 0.035, 1.4, 1.2, 650, -7);
+      voice('sawtooth', hz(m), t, BAR * 1.15, 0.035, 1.4, 1.2, 650, 7);
+    });
+    voice('triangle', hz(root), t, BAR * 1.1, 0.16, 0.8, 1.0, 400);        // low string bass
+    voice('sine', hz(root - 12), t, BAR * 1.1, 0.12, 1.2, 1.0, 200);       // sub drone
+  }
+
+  function sonar(t) {
+    tone(musicBus, 'sine', 1250, 1240, t, 1.6, 0.07, 0.005);
+    tone(musicBus, 'sine', 1250, 1240, t + 0.55, 1.2, 0.025, 0.005);      // faint return echo
+  }
+
+  function timpani(t, peak) {
+    tone(musicBus, 'sine', 95, 48, t, 1.1, peak, 0.005);
+    noise(musicBus, 'lowpass', 400, 120, t, 0.25, peak * 0.5);
+  }
 
   function scheduleStep(i, t) {
-    var bar = Math.floor(i / 8), inBar = i % 8;
-    // Bass on each beat, with a fifth on beat three.
-    if (inBar % 2 === 0) {
-      var root = BASS[bar];
-      tone(musicBus, 'triangle', hz(inBar === 4 ? root + 7 : root), null, t, EIGHTH * 1.8, 0.32, 0.01);
+    var bar = Math.floor(i / 8), inBar = i % 8, chord = PROG[bar % 4];
+    if (inBar === 0) {
+      pad(chord.chord, chord.root, t);
+      if (bar === 4 || bar === 8 || bar === 12) timpani(t, 0.4);
+      if (bar === 1 || bar === 9 || (bar === 13 && cycle % 2)) sonar(t + BAR * 0.4);
+      // Horn on alternate passes, once the ostinato is going.
+      if (bar >= 8 && cycle % 2 === 0) {
+        var at = t;
+        HORN[bar - 8].forEach(function (n) {
+          var d = n[1] * EIGHTH;
+          voice('sawtooth', hz(n[0]), at, d * 1.05, 0.045, 0.35, 0.5, 1100);
+          voice('triangle', hz(n[0] - 12), at, d * 1.05, 0.05, 0.35, 0.5, 900);
+          at += d;
+        });
+      }
     }
-    // Kick on 1 and 3, snare on 2 and 4, a little roll into the next phrase.
-    if (inBar === 0 || inBar === 4) tone(musicBus, 'sine', 110, 45, t, 0.18, 0.35);
-    if (inBar === 2 || inBar === 6) noise(musicBus, 'highpass', 1800, 1800, t, 0.12, 0.09);
-    if (bar === 7 && inBar === 7) { noise(musicBus, 'highpass', 1800, 1800, t, 0.06, 0.06); noise(musicBus, 'highpass', 1800, 1800, t + EIGHTH / 2, 0.06, 0.07); }
-    // Melody: full on odd loops, every other bar on even loops, for some variety.
-    var m = MELODY[i];
-    if (m != null && (loop % 2 === 0 || bar % 2 === 0)) {
-      var len = 1;
-      while (i + len < MELODY.length && MELODY[i + len] == null && len < 3) len++;
-      tone(musicBus, 'square', hz(m), null, t, EIGHTH * len * 0.9, 0.05, 0.02);
-      tone(musicBus, 'triangle', hz(m + 12), null, t, EIGHTH * len * 0.7, 0.03, 0.02);
+    // Pulsing low-string ostinato from bar 4 (every bar after the first pass).
+    if (bar >= 4 || cycle > 0) {
+      var accent = inBar === 0 || inBar === 3 || inBar === 6;
+      voice('sawtooth', hz(chord.root + 12 + OSTINATO[inBar]), t, EIGHTH * 0.8, accent ? 0.07 : 0.045, 0.01, 0.12, accent ? 900 : 650);
     }
+    // Timpani roll into the top of the cycle.
+    if (bar === 15 && inBar >= 4) timpani(t, 0.12 + (inBar - 4) * 0.06);
   }
 
   function tick() {
-    while (nextAt < ctx.currentTime + 0.2) {
+    while (nextAt < ctx.currentTime + 0.25) {
       scheduleStep(step, nextAt);
       nextAt += EIGHTH;
       step++;
-      if (step >= MELODY.length) { step = 0; loop++; }
+      if (step >= CYCLE * 8) { step = 0; cycle++; }
     }
+  }
+
+  // Ocean swell: looped low-passed noise, its volume rolling like waves.
+  function startOcean() {
+    var src = ctx.createBufferSource(), lp = ctx.createBiquadFilter(), g = ctx.createGain();
+    var lfo = ctx.createOscillator(), depth = ctx.createGain();
+    src.buffer = oceanBuf; src.loop = true;
+    lp.type = 'lowpass'; lp.frequency.value = 380;
+    g.gain.value = 0.07;
+    lfo.frequency.value = 0.09; depth.gain.value = 0.05;
+    lfo.connect(depth); depth.connect(g.gain);
+    src.connect(lp); lp.connect(g); g.connect(musicBus);
+    src.start(); lfo.start();
+    ocean = { src: src, lfo: lfo };
   }
 
   function startMusic() {
     if (!prefs.music || timer || !ensure()) return;
-    step = 0; loop = 0;
+    step = 0; cycle = 0;
     nextAt = ctx.currentTime + 0.1;
     musicBus.gain.cancelScheduledValues(ctx.currentTime);
     musicBus.gain.setValueAtTime(0.0001, ctx.currentTime);
-    musicBus.gain.exponentialRampToValueAtTime(0.5, ctx.currentTime + 1.5);
+    musicBus.gain.exponentialRampToValueAtTime(0.6, ctx.currentTime + 3);
+    startOcean();
     timer = setInterval(tick, 50);
     tick();
   }
@@ -158,7 +231,11 @@
     clearInterval(timer); timer = null;
     musicBus.gain.cancelScheduledValues(ctx.currentTime);
     musicBus.gain.setValueAtTime(musicBus.gain.value, ctx.currentTime);
-    musicBus.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.3);
+    musicBus.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
+    if (ocean) {
+      var o = ocean; ocean = null;
+      o.src.stop(ctx.currentTime + 0.5); o.lfo.stop(ctx.currentTime + 0.5);
+    }
   }
 
   // Start once the player first touches the page (browser autoplay rules).

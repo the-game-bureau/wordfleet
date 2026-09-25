@@ -48,7 +48,7 @@ button { font: inherit; color: inherit; touch-action: manipulation; }
   background: var(--paper); border-bottom: 1px solid var(--ink);
 }
 .bar-brand { display: flex; flex-direction: column; line-height: 1.1; flex: 1; min-width: 0; }
-.bar-title { font-weight: 700; font-size: 17px; letter-spacing: 0.04em; }
+.bar-title { font-weight: 700; font-size: 17px; letter-spacing: 0.04em; white-space: nowrap; }
 .bar-sub { font-family: var(--mono); font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; letter-spacing: 0.08em; }
 .chip {
   font-family: var(--mono); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
