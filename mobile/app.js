@@ -426,7 +426,7 @@
     setBar(S.me.name, 'Deploy', 'is-quiet');
     var ships = S.me.ships;
     var placed = ships.filter(function (s) { return s.r != null; }).length;
-    $('deployCount').textContent = placed + ' of 5 berthed';
+    $('deployCount').textContent = placed + ' of 5 deployed';
     setSeg('segDir', ui.dir);
     var b = boardOf(ships);
     paint($('gridDeploy'), function (r, c) {
@@ -471,7 +471,7 @@
       return;
     }
     if (ui.pick < 0 || ships[ui.pick].r != null) ui.pick = nextUnplaced(0);
-    if (ui.pick < 0) { toast('All five word-ships are berthed.'); return; }
+    if (ui.pick < 0) { toast('All five word-ships are deployed.'); return; }
     if (!fits(ships, ui.pick, p.r, p.c, ui.dir)) {
       toast(ships[ui.pick].word + " won't fit " + (ui.dir === 'H' ? 'across' : 'down') + ' from ' + coord(p.r, p.c));
       return;
