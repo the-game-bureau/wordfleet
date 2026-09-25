@@ -256,6 +256,19 @@ button.cell { cursor: pointer; }
 .sheet-eyebrow.is-foe { color: var(--red); }
 .sheet .btn--wide { margin-top: 8px; }
 .menu-list .btn { justify-content: flex-start; }
+.switches { border-top: 1px solid var(--faint); margin-top: 12px; padding-top: 4px; }
+.switch-row { display: flex; align-items: center; justify-content: space-between; min-height: 48px; font-size: 15px; font-weight: 600; cursor: pointer; }
+.switch {
+  -webkit-appearance: none; appearance: none; position: relative; flex-shrink: 0; cursor: pointer;
+  width: 52px; height: 30px; border: 1px solid var(--ink); border-radius: 15px; background: #d9d9d9; transition: background 0.15s ease;
+}
+.switch::before {
+  content: ''; position: absolute; top: 2px; left: 2px; width: 24px; height: 24px; border-radius: 50%;
+  background: var(--paper); border: 1px solid var(--ink); transition: transform 0.15s ease;
+}
+.switch:checked { background: var(--green); }
+.switch:checked::before { transform: translateX(22px); }
+.switch:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
 .keys { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin: 12px 0 6px; }
 .key {
