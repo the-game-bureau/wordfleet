@@ -2,7 +2,7 @@
 Sink or Spell
 
 - **Website:** https://thegamebureau.com/wordfleet/
-- **Mobile app (Human Captain vs AI Captain):** https://thegamebureau.com/wordfleet/mobile/ (source in `mobile/`)
+- **Mobile Mode (Human Captain vs AI Captain):** https://thegamebureau.com/wordfleet/mobile/ (source in `mobile/`)
 - **Word lists:** `dictionaries/` (see `dictionaries/README.md`)
 
 ## Mobile app
