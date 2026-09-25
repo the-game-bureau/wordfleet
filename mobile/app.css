@@ -167,7 +167,7 @@ button.cell { cursor: pointer; }
 .cell.is-preview { background: #d6ead4; }
 .cell.is-bad { background: var(--red-wash); }
 .cell.is-flash { animation: flash 0.9s ease-out 2; }
-.cell .tries { position: absolute; bottom: 1px; right: 2px; font-size: calc(var(--cell) * 0.24); color: var(--red); font-weight: 700; }
+.cell .q { color: #8a8a8a; }
 @keyframes flash { 0% { outline: 3px solid var(--red); outline-offset: -3px; } 100% { outline: 3px solid transparent; outline-offset: -3px; } }
 
 /* --- deploy --- */
@@ -187,9 +187,10 @@ button.cell { cursor: pointer; }
 .bubbles { display: inline-flex; gap: 4px; }
 .bubble {
   width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--ink); background: var(--paper);
-  font-family: var(--mono); font-size: 12px; font-weight: 700; display: grid; place-items: center; cursor: pointer; padding: 0; color: var(--ink);
+  font-family: var(--mono); font-size: 12px; font-weight: 700; display: grid; place-items: center; color: var(--ink);
 }
-.bubble.is-x { background: var(--ink); color: var(--paper); text-decoration: line-through; }
+.bubble.is-located { background: var(--gold-wash); border-color: var(--gold); }
+.bubble.is-solved { background: var(--green); border-color: var(--green-dark); }
 .fire-coord { font-family: var(--mono); font-size: 22px; font-weight: 700; letter-spacing: 0.04em; }
 .fire-call { font-family: var(--mono); font-size: 13px; color: var(--muted); margin-bottom: 12px; }
 .fire-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -271,6 +272,7 @@ button.cell { cursor: pointer; }
 .report.is-good { background: var(--green-wash); }
 .report.is-warn { background: var(--gold-wash); }
 .report.is-bad { background: var(--red-wash); }
+.solve { border-top: 1px solid var(--faint); margin-top: 12px; padding-top: 4px; }
 .mini-wrap { margin: 12px 0 4px; --cell: calc((min(calc(100vw - 32px), 360px) - 12px) / 11); }
 
 .claim { border-top: 1px solid var(--faint); padding: 10px 0; }
