@@ -20,7 +20,7 @@
   --bar-h: 52px;
   --tab-h: 58px;
   /* 11 columns (labels + A-J), 1px gaps, fits inside a card on any phone */
-  --board: min(calc(100vw - 26px), 468px);
+  --board: min(calc(100vw - 52px), 468px);   /* screen gutters + card padding and borders */
   --cell: calc((var(--board) - 12px) / 11);
 }
 
