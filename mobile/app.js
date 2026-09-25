@@ -643,6 +643,14 @@
       return;
     }
     if (!S.myShots[k]) S.myShots[k] = { hit: true, letter: null, wrong: [] };
+    if (S.myTallies[cell.letter] != null) {   // letter already called: it shows on the hit
+      S.myShots[k].letter = cell.letter;
+      ui.flash = [k];
+      log('me', '"Fire on ' + callK(k) + '!" &mdash; <span class="say">"Hit."</span> ' + cell.letter + ' was already called, so it fills in.');
+      toast(coordK(k) + ': Hit! ' + cell.letter + ' fills in.');
+      endMyTurn();
+      return;
+    }
     S.alpha = k;
     log('me', '"Fire on ' + callK(k) + '!" &mdash; <span class="say">"Hit."</span>');
     save();
@@ -762,11 +770,7 @@
             seg.push(s || null);
           }
           if (known === len || known < 2 || known / len < lvl.solve.known) return;
-          var pat = seg.map(function (s) {
-            if (!s) return '.';
-            if (s.letter) return s.letter;
-            return s.wrong && s.wrong.length ? '[^' + s.wrong.join('') + ']' : '.';
-          }).join('');
+          var pat = segPattern(seg);
           var re = new RegExp('^' + pat + '$'), ex = excludedLetters(), total = 0, top = null;
           (guessPool[len] || []).forEach(function (e) {
             if (!allowed(e.w) || !re.test(e.w) || (S.foeMissedSolves || []).indexOf(e.w) !== -1) return;
@@ -783,12 +787,14 @@
     return best && best.word;
   }
 
-  // Wheel of Fortune: a called letter is filled in everywhere it sails in the fleet.
+  // Wheel of Fortune: a called letter fills in on every square already hit that holds it.
+  // Squares not yet hit stay hidden; they show the letter the moment they are hit.
   function fillLetter(shots, board, L) {
     var filled = [];
     Object.keys(board).forEach(function (k) {
-      if (board[k].letter !== L || (shots[k] && shots[k].letter)) return;
-      shots[k] = { hit: true, letter: L, wrong: (shots[k] && shots[k].wrong) || [] };
+      var s = shots[k];
+      if (board[k].letter !== L || !s || !s.hit || s.letter) return;
+      s.letter = L;
       filled.push(k);
     });
     return filled;
@@ -796,7 +802,7 @@
 
   function fillNote(L, filled, whose) {
     if (!filled.length) return '';
-    return '<p class="hint"><strong>' + L + ' filled in at ' + filled.map(coordK).join(', ') + '</strong> \u2014 every ' + L + ' in ' + whose + ' fleet is now showing.</p>';
+    return '<p class="hint"><strong>' + L + ' filled in at ' + filled.map(coordK).join(', ') + '</strong> \u2014 every hit square in ' + whose + ' fleet holding ' + L + ' now shows it.</p>';
   }
 
   function endMyTurn() {
@@ -891,6 +897,12 @@
       log('foe', '"Fire on ' + callK(k) + '!" &mdash; <span class="say">"Miss!"</span>');
     } else {
       if (!sh[k]) sh[k] = { hit: true, letter: null, wrong: [] };
+    }
+    if (cell && S.foeTallies[cell.letter] != null) {   // letter already called: it shows on the hit
+      sh[k].letter = cell.letter;
+      ev.auto = cell.letter;
+      log('foe', '"Fire on ' + callK(k) + '!" &mdash; <span class="say">"Hit."</span> ' + cell.letter + ' was already called, so it fills in.');
+    } else if (cell) {
       var L = foeGuessLetter(k, lvl);
       ev.letter = L;
       S.foeTallies[L] = countOf(S.me.words.join(''), L);
@@ -930,12 +942,14 @@
     var b = myBoard();
     var lines = '<div class="report ' + (ev.hit ? 'is-bad' : 'is-good') + '"><div class="report-q">"Fire on coordinate ' + callOut(p.r, p.c) + '!"</div>' +
       '<div class="report-a">' + (ev.hit ? '"Hit."' : '"Miss!"') + '</div></div>';
-    if (ev.hit) {
+    if (ev.auto) {
+      lines += '<p class="hint"><strong>' + ev.auto + '</strong> was already called, so it fills in on the hit. No Alpha Strike needed.</p>';
+    } else if (ev.hit) {
       lines += '<div class="report ' + (ev.bull ? 'is-bad' : 'is-warn') + '"><div class="report-q">"Alpha Strike ' + NATO[ev.letter] + '!"</div>' +
         '<div class="report-a">' + (ev.bull ? '"Bullseye."' : '"' + ev.letter + ' tally ' + ev.tally + '."') + '</div></div>';
     }
     openSheet('<div class="sheet-eyebrow is-foe">Incoming Fire &middot; ' + esc(S.foe.name) + '</div>' +
-      '<h2>' + coord(p.r, p.c) + (ev.hit ? (ev.bull ? ' — ' + ev.letter + ' is lost' : ' — hit, letter safe') : ' — clean miss') + '</h2>' +
+      '<h2>' + coord(p.r, p.c) + (ev.hit ? (ev.auto ? ' \u2014 ' + ev.auto + ' is lost' : ev.bull ? ' \u2014 ' + ev.letter + ' is lost' : ' — hit, letter safe') : ' — clean miss') + '</h2>' +
       (ev.filled ? fillNote(ev.letter, ev.filled, 'your') : '') +
       (ev.solve ? '<div class="report ' + (ev.solve.ok ? 'is-bad' : 'is-good') + '"><div class="report-q">"Solve: ' + ev.solve.word + '!"</div><div class="report-a">' + (ev.solve.ok ? '"Correct."' : '"Negative."') + '</div></div>' +
         (ev.solve.ok ? '<p class="hint">Your word-ship <strong>' + ev.solve.word + '</strong> is fully exposed.</p>' : '') : '') +
@@ -1024,11 +1038,7 @@
   // Can any allowed dictionary word sit on these squares, given what is known?
   var fitCache = {};
   function wordFits(seg) {
-    var pat = seg.map(function (s) {
-      if (!s) return '.';
-      if (s.letter) return s.letter;
-      return s.wrong && s.wrong.length ? '[^' + s.wrong.join('') + ']' : '.';
-    }).join('');
+    var pat = segPattern(seg);
     var ck = pat + (offensiveOk() ? '+' : '');
     if (fitCache[ck] == null) {
       var re = new RegExp('^' + pat + '$');
@@ -1070,6 +1080,24 @@
     return out;
   }
 
+  // Letters already called: an unsolved hit can't hold one (it would have filled in).
+  function calledLetters() {
+    var out = {};
+    Object.keys(S.foeTallies).forEach(function (L) { out[L] = true; });
+    return out;
+  }
+
+  // Regex pattern for a run of squares from what the AI Captain knows.
+  function segPattern(seg) {
+    var called = Object.keys(calledLetters());
+    return seg.map(function (s) {
+      if (!s) return '.';
+      if (s.letter) return s.letter;
+      var no = (s.wrong || []).concat(s.hit ? called : []);
+      return no.length ? '[^' + no.join('') + ']' : '.';
+    }).join('');
+  }
+
   function excludedLetters() {
     var sh = S.foeShots, found = {}, ex = {};
     Object.keys(sh).forEach(function (k) { var L = sh[k].letter; if (L) found[L] = (found[L] || 0) + 1; });
@@ -1085,6 +1113,7 @@
     var sh = S.foeShots;
     var here = sh[k];
     var ex = excludedLetters();
+    var called = calledLetters();
     var scores = {};
     var total = 0;
     if (lvl.pattern) {
@@ -1112,6 +1141,7 @@
                 var sj = seg[j], ch = w[j];
                 if (sj && sj.letter && sj.letter !== ch) return;
                 if (sj && sj.wrong && sj.wrong.indexOf(ch) !== -1) return;
+                if (sj && sj.hit && !sj.letter && called[ch]) return;
                 if (S.foeTallies[ch] === 0) return;
                 if (!(sj && sj.letter) && ex[ch]) return;
               }
@@ -1125,7 +1155,7 @@
     }
     var best = null, bestS = 0;
     Object.keys(scores).forEach(function (L) {
-      if (ex[L] || here.wrong.indexOf(L) !== -1) return;
+      if (ex[L] || called[L] || here.wrong.indexOf(L) !== -1) return;
       var s = scores[L] * (0.9 + Math.random() * 0.2);
       if (s > bestS) { bestS = s; best = L; }
     });
@@ -1137,7 +1167,9 @@
     var g = letterScores(k, lvl);
     if (g.letter) return g.letter;
     var ex = excludedLetters();
-    var order = FREQ.split('').filter(function (L) { return !ex[L] && here.wrong.indexOf(L) === -1; });
+    var called = calledLetters();
+    var order = FREQ.split('').filter(function (L) { return !ex[L] && !called[L] && here.wrong.indexOf(L) === -1; });
+    if (!order.length) order = LETTERS.filter(function (L) { return !called[L] && here.wrong.indexOf(L) === -1; });
     if (!order.length) order = LETTERS.filter(function (L) { return here.wrong.indexOf(L) === -1; });
     // an ensign doesn't always pick the most common letter
     if (!lvl.pattern && order.length > 3 && Math.random() < 0.4) return order[rnd(Math.min(6, order.length))];
@@ -1214,7 +1246,7 @@
       '<li><strong>Initial Strike:</strong> fire on a coordinate. <span class="say">"Miss!"</span> ends your turn. <span class="say">"Hit."</span> earns an Alpha Strike.</li>' +
       '<li><strong>Alpha Strike:</strong> guess the letter there. <span class="say">"Bullseye."</span> writes it in. A wrong letter gets a tally: how many times that letter appears across the opponent\'s whole fleet. Either way your turn ends.</li>' +
       '<li><strong>Solve a Word:</strong> after calling a letter that is in the opponent\'s fleet, you may name one whole word-ship. Right, and every square of it fills in.</li>' +
-      '<li><strong>Wheel of Fortune:</strong> whatever letter is called, right or wrong, is filled in on every square of that fleet where it appears. This works for both captains.</li>' +
+      '<li><strong>Wheel of Fortune:</strong> whatever letter is called, right or wrong, fills in on every square already hit that holds it. Squares not yet hit stay hidden; hit one later and a called letter shows at once (no Alpha Strike needed). This works for both captains.</li>' +
       '<li>Fire on the same hit again later to try another letter.</li></ul>' +
       '<h3>Demand Surrender</h3><p>Instead of taking a turn, name every one of your opponent\'s word-ships and exactly where it sits. All correct: <span class="say">"You have won."</span> Anything wrong: <span class="say">"Victory is mine! You lose! Good day sir!"</span></p>' +
       '<h3>Reading the Tracker</h3><ul>' +
@@ -1286,9 +1318,76 @@
 
   // deploy
   on($('gridDeploy'), 'click', function (e) {
+    if (ui.dragged) { ui.dragged = false; return; }   // the click that ends a drag
     var c = e.target.closest('[data-k]');
     if (c) deployTap(c.getAttribute('data-k'));
   });
+
+  // Drag a deployed word-ship by any of its letters to move it.
+  var drag = null;
+  function dragCells(r0, c0, dir, len) {
+    var out = [];
+    for (var i = 0; i < len; i++) {
+      var r = dir === 'V' ? r0 + i : r0, c = dir === 'H' ? c0 + i : c0;
+      if (r >= 0 && r < 10 && c >= 0 && c < 10) out.push(key(r, c));
+    }
+    return out;
+  }
+  function clearDragMarks() {
+    Array.prototype.forEach.call($('gridDeploy').querySelectorAll('.is-preview, .is-bad, .is-dragging'), function (el) {
+      el.classList.remove('is-preview', 'is-bad', 'is-dragging');
+    });
+  }
+  on($('gridDeploy'), 'pointerdown', function (e) {
+    var cell = e.target.closest('[data-k]');
+    if (!cell || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    var k = cell.getAttribute('data-k');
+    var b = boardOf(S.me.ships);
+    if (!b[k]) return;
+    var ship = S.me.ships[b[k].ship], p = unkey(k);
+    drag = { idx: b[k].ship, off: ship.dir === 'H' ? p.c - ship.c : p.r - ship.r, from: k, moved: false, target: null };
+    try { $('gridDeploy').setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+  });
+  on($('gridDeploy'), 'pointermove', function (e) {
+    if (!drag) return;
+    var el = document.elementFromPoint(e.clientX, e.clientY);
+    var cell = el && el.closest && el.closest('#gridDeploy [data-k]');
+    var k = cell && cell.getAttribute('data-k');
+    if (!k || (k === drag.from && !drag.moved)) return;
+    drag.moved = true;
+    var ship = S.me.ships[drag.idx], p = unkey(k);
+    var r0 = ship.dir === 'V' ? p.r - drag.off : p.r;
+    var c0 = ship.dir === 'H' ? p.c - drag.off : p.c;
+    var ok = r0 >= 0 && c0 >= 0 && fits(S.me.ships, drag.idx, r0, c0, ship.dir);
+    drag.target = ok ? { r: r0, c: c0 } : null;
+    clearDragMarks();
+    cellsOf(ship).forEach(function (q) {
+      var c = $('gridDeploy').querySelector('[data-k="' + key(q.r, q.c) + '"]');
+      if (c) c.classList.add('is-dragging');
+    });
+    dragCells(r0, c0, ship.dir, ship.word.length).forEach(function (kk) {
+      var c = $('gridDeploy').querySelector('[data-k="' + kk + '"]');
+      if (c) c.classList.add(ok ? 'is-preview' : 'is-bad');
+    });
+  });
+  function endDrag(e) {
+    if (!drag) return;
+    var d = drag;
+    drag = null;
+    if (!d.moved) return;                 // a plain tap: let the click handler turn or lift it
+    ui.dragged = true;
+    setTimeout(function () { ui.dragged = false; }, 0);   // only swallow the click this drag makes
+    if (d.target) {
+      var ship = S.me.ships[d.idx];
+      ship.r = d.target.r; ship.c = d.target.c;
+      save();
+    } else if (e.type === 'pointerup') {
+      toast("Won't fit there.");
+    }
+    renderDeploy();
+  }
+  on($('gridDeploy'), 'pointerup', endDrag);
+  on($('gridDeploy'), 'pointercancel', endDrag);
   on($('segDir'), 'click', function (e) {
     var v = e.target.getAttribute('data-v');
     if (v) { ui.dir = v; renderDeploy(); }
