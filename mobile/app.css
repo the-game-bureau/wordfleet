@@ -13,6 +13,8 @@
   --red: #a93226;
   --red-wash: #f6d5d1;
   --blue-wash: #e9eef5;
+  --navy: #1f3a5f;
+  --navy-wash: #e6ecf4;
   --mono: 'Courier Prime', ui-monospace, Menlo, monospace;
   --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --safe-t: env(safe-area-inset-top, 0px);
@@ -238,7 +240,37 @@ button.cell { cursor: pointer; }
 }
 .tabbar svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; }
 .tabbar button.is-on { color: var(--ink); }
-.tabbar button.is-on::before { content: ''; position: absolute; top: -1px; left: 22%; right: 22%; height: 3px; background: var(--green); }
+.tabbar button.is-on::before { content: ''; position: absolute; top: -1px; left: 14%; right: 14%; height: 4px; background: var(--ink); }
+.tabbar button.is-attack.is-on { color: var(--green-dark); }
+.tabbar button.is-attack.is-on::before { background: var(--green); }
+.tabbar button.is-defense.is-on { color: var(--navy); }
+.tabbar button.is-defense.is-on::before { background: var(--navy); }
+
+/* --- grid banners: make it obvious which grid you're looking at --- */
+.gridbanner {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 12px; border: 1px solid var(--ink); border-bottom: none; color: #fff;
+}
+.gridbanner b { display: block; font-family: var(--mono); font-size: 17px; letter-spacing: 0.14em; line-height: 1.2; }
+.gridbanner span { font-size: 12px; opacity: 0.9; }
+.gridbanner.is-attack { background: var(--green-dark); }
+.gridbanner.is-defense { background: var(--navy); }
+.gridbanner .bubbles span { opacity: 1; }
+.gridbanner + .card { margin-top: 0; }
+.card--attack { border-top: 4px solid var(--green-dark); }
+.card--defense { border-top: 4px solid var(--navy); }
+.card.is-incoming { border: 2px solid var(--navy); background: var(--navy-wash); }
+.card.is-incoming + .card { margin-top: 12px; }
+.incoming-title { font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--navy); margin-bottom: 6px; }
+.rapid-title { font-family: var(--mono); font-size: 20px; font-weight: 700; letter-spacing: 0.1em; color: var(--red); }
+
+/* --- manifest dots --- */
+.pips { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; min-height: 9px; margin-top: 2px; max-width: 34px; }
+.pip { display: inline-block; width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--ink); background: var(--paper); }
+.pip.is-found { background: var(--green-dark); border-color: var(--green-dark); }
+.pip.is-lost { background: var(--red); border-color: var(--red); }
+.pip-key { display: inline-flex; align-items: center; gap: 4px; margin-right: 10px; color: var(--ink); font-weight: 600; }
+.mf-none { font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.04em; }
 .tab-dot { position: absolute; top: 8px; right: calc(50% - 18px); width: 8px; height: 8px; border-radius: 50%; background: var(--red); }
 
 /* --- sheet --- */
