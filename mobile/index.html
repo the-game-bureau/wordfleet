@@ -115,28 +115,33 @@
   <section class="screen screen--tabs" id="scrBattle">
 
     <div class="tab" id="tabAttack">
-      <div class="card card--flush">
-        <div class="grid-label">ATTACK GRID
-          <span class="bubbles" id="bubbles"></span>
-        </div>
+      <div class="gridbanner is-attack">
+        <div><b>ATTACK GRID</b><span>Your shots at the AI Captain's fleet</span></div>
+        <span class="bubbles" id="bubbles"></span>
+      </div>
+      <div class="card card--flush card--attack">
         <div class="grid" id="gridAttack"></div>
       </div>
       <div class="card" id="firePanel"></div>
       <div class="card">
         <div class="card-title">Attack Manifest</div>
-        <p class="hint hint--tight">Letter tallies reported by the AI Captain. <span class="mf-key">found / tally</span></p>
+        <p class="hint hint--tight"><span class="pip-key"><i class="pip is-found"></i> found</span> <span class="pip-key"><i class="pip"></i> still hidden</span><br>Each dot is one copy of that letter in the AI Captain's fleet. Letters with no dots haven't been called yet.</p>
         <div class="manifest" id="attackManifest"></div>
       </div>
     </div>
 
     <div class="tab" id="tabDefense" hidden>
-      <div class="card card--flush">
-        <div class="grid-label">DEFENSE GRID <span id="defenseWords"></span></div>
+      <div class="gridbanner is-defense">
+        <div><b>DEFENSE GRID</b><span>Your fleet &middot; the AI Captain's shots</span></div>
+      </div>
+      <div class="card is-incoming" id="incomingCard" hidden></div>
+      <div class="card card--flush card--defense">
+        <div class="grid-label"><span id="defenseWords"></span></div>
         <div class="grid" id="gridDefense"></div>
       </div>
       <div class="card">
         <div class="card-title">Defense Manifest</div>
-        <p class="hint hint--tight">How many times each letter sails in your fleet. Dimmed letters have been found by the AI Captain.</p>
+        <p class="hint hint--tight"><span class="pip-key"><i class="pip is-lost"></i> found by the AI Captain</span> <span class="pip-key"><i class="pip"></i> still hidden</span><br>Each dot is one copy of that letter in your fleet.</p>
         <div class="manifest" id="defenseManifest"></div>
       </div>
     </div>
@@ -149,13 +154,13 @@
     </div>
 
     <nav class="tabbar" id="tabbar">
-      <button type="button" data-tab="Attack" class="is-on">
+      <button type="button" data-tab="Attack" class="is-on is-attack">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 1v5M12 18v5M1 12h5M18 12h5"/></svg>
-        Attack
+        Attack Grid
       </button>
-      <button type="button" data-tab="Defense">
+      <button type="button" data-tab="Defense" class="is-defense">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 3v6c0 5-3.5 9.5-8 11-4.5-1.5-8-6-8-11V5z"/></svg>
-        Defense<span class="tab-dot" id="defDot" hidden></span>
+        Defense Grid<span class="tab-dot" id="defDot" hidden></span>
       </button>
       <button type="button" data-tab="Log">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h11l3 3v15H5z M8 9h8M8 13h8M8 17h5"/></svg>
