@@ -257,7 +257,7 @@
 
   function show(name) {
     current = name;
-    Object.keys(SCREENS).forEach(function (n) { $(SCREENS[n]).classList.toggle('is-on', n === name); });
+    Object.keys(SCREENS).forEach(function (n) { var el = $(SCREENS[n]); if (el) el.classList.toggle('is-on', n === name); });
     window.scrollTo(0, 0);
     render();
   }
@@ -1108,7 +1108,7 @@
   // ------------------------------------------------------------
   // events
   // ------------------------------------------------------------
-  function on(el, type, fn) { el.addEventListener(type, fn); }
+  function on(el, type, fn) { if (el) el.addEventListener(type, fn); }
 
   on($('btnMenu'), 'click', openMenu);
   function newBattle() {
@@ -1345,6 +1345,17 @@
   // ------------------------------------------------------------
   // boot
   // ------------------------------------------------------------
+  // If the browser handed us a page from a different release than this code
+  // (some screens missing), reload once from the network instead of showing a blank screen.
+  var missing = Object.keys(SCREENS).some(function (n) { return !$(SCREENS[n]); });
+  if (missing) {
+    var tried = false;
+    try { tried = sessionStorage.getItem('wf-reloaded') === '1'; sessionStorage.setItem('wf-reloaded', '1'); } catch (e) { tried = true; }
+    if (!tried) { location.reload(); return; }
+  } else {
+    try { sessionStorage.removeItem('wf-reloaded'); } catch (e) { /* ignore */ }
+  }
+
   S = load();
   if (S && (S.v !== 2 || !LEVELS[S.level])) S = null;   // v1 saves used the old firing rules
   // Games saved while the launch-codes screen still existed go straight to battle.
