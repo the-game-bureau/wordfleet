@@ -32,8 +32,10 @@
     bonus: 50,      // the called letter was in the square you aimed at
     sunk: 100,      // each word-ship sunk (every letter revealed)
     win: 500,       // victory
-    spare: 10       // at victory, each letter of the alphabet you never had to call
+    spare: 10,      // at victory, each letter of the alphabet you never had to call
+    vowel: 100      // the price of a vowel: you need this many points to buy one, and pay them
   };
+  function canBuyVowel() { return (S.score || 0) >= POINTS.vowel; }
   // Adds points and returns a short note of what they were for.
   function award(parts) {
     var total = 0, why = [];
@@ -820,7 +822,7 @@
   // chip(L, cls) returns one chip's HTML.
   function manifestHtml(label, left, chip) {
     return '<span class="uncalled-label"><span>' + label + '</span>' +
-      (left.some(isVowel) ? '<span class="uc-vowels-cap">Vowels: \u22121 turn</span>' : '') + '</span>' +
+      (left.some(isVowel) ? '<span class="uc-vowels-cap">Vowels: ' + POINTS.vowel + ' points</span>' : '') + '</span>' +
       left.map(function (L) { return chip(L, 'uc' + (isVowel(L) ? ' is-vowel' : '')); }).join('');
   }
 
@@ -897,7 +899,9 @@
     // Like the manifest: the grid lights up when it is the thing to tap (your turn, nothing aimed yet).
     $('gridAttack').classList.toggle('is-picking', live && !ui.sel);
     $('uncalled').innerHTML = manifestHtml('Letters Manifest', left, function (L, cls) {
-        return picking ? '<button type="button" class="' + cls + '" data-letter="' + L + '" aria-label="Call ' + L + (isVowel(L) ? ' (vowel: costs your next turn)' : '') + '">' + L + '</button>'
+        // A vowel you can't afford yet stays a plain (dimmed) chip.
+        if (picking && isVowel(L) && !canBuyVowel()) return '<span class="' + cls + ' is-locked" title="You need ' + POINTS.vowel + ' points to buy a vowel">' + L + '</span>';
+        return picking ? '<button type="button" class="' + cls + '" data-letter="' + L + '" aria-label="Call ' + L + (isVowel(L) ? ' (vowel: costs ' + POINTS.vowel + ' points)' : '') + '">' + L + '</button>'
                        : '<span class="' + cls + '">' + L + '</span>';
       });
     if (ui.flash) { clearTimeout(ui.flashTimer); ui.flashTimer = setTimeout(function () { ui.flash = null; }, 1800); }
@@ -967,7 +971,8 @@
       if (hint) sub.push('It calls a letter on your fleet. Watch the Defense Grid.');
     } else if (ui.sel) {
       step = '2'; main = 'Call a letter for <b>' + coordK(ui.sel) + '</b>: tap it in the Letters Manifest.';
-      if (hint) sub.push('Tap another square to re-aim, or ' + coordK(ui.sel) + ' again to cancel. Vowels (round) cost your next turn.');
+      if (hint) sub.push('Tap another square to re-aim, or ' + coordK(ui.sel) + ' again to cancel. Vowels (round) cost ' + POINTS.vowel + ' points.');
+      if (!canBuyVowel()) sub.push('Vowels unlock at ' + POINTS.vowel + ' points (you have ' + (S.score || 0) + ').');
     } else if (r && info && info.bonus) {
       cls = 'is-bonus'; step = '\u2605';
       main = 'Bonus turn! <b>' + info.L + '</b> was at <b>' + coordK(info.k) + '</b>. Tap another square.';
@@ -980,7 +985,7 @@
       if (!info.open && !info.bonus) sub.push(coordK(info.k) + ' holds a letter, not ' + info.L + ': marked ?');
       (info.sunk || []).forEach(function (w) { sub.unshift('<b>' + w + '</b> is sunk!'); });
       if (info.pts && info.pts.total) sub.push(ptsLine(info.pts));
-      if (info.vowel) sub.push('<span class="coach-warn">Vowel: you skip your next turn.</span>');
+      if (info.vowel) sub.push('<span class="coach-warn">Vowel bought: \u2212' + POINTS.vowel + ' points.</span>');
       else if (hint && info.t && !(info.sunk || []).length) sub.push('Reveal every letter of a word-ship to sink it.');
       sub.push('AI Captain\'s turn next<span class="dots"><i>.</i><i>.</i><i>.</i></span>');
     } else if (r) {
@@ -991,7 +996,7 @@
       (S.incoming || []).forEach(function (ev) { pre.push(aiMoveLine(ev)); });
       if (S.notice) pre.push(/vowel/.test(S.notice) ? 'AI lost a turn (vowel)' : S.notice);
       step = '1'; main = 'Your turn. Tap a square to aim.';
-      if (hint) sub.push('Then call a letter: every square holding it is revealed. Your letter in your square = bonus turn. Vowels cost a turn.');
+      if (hint) sub.push('Then call a letter: every square holding it is revealed. Your letter in your square = bonus turn. Vowels cost ' + POINTS.vowel + ' points.');
     }
     el.className = 'coach ' + cls;
     el.innerHTML = (step ? '<span class="coach-step">' + step + '</span>' : '') +
@@ -1124,6 +1129,7 @@
   function humanCall(L) {
     var k = ui.sel;
     if (!k || !canCall() || S.myTallies[L] != null) return;
+    if (isVowel(L) && !canBuyVowel()) return;   // vowels are bought with points
     closeSheet();
     var t = countOf(S.foe.words.join(''), L);
     var vowel = isVowel(L);
@@ -1135,13 +1141,13 @@
     ui.sel = null;
     if (!at) S.myShots[k] = { empty: true };   // open water: marked with a white dot
     else if (!bonus) markContact(S.myShots, k, L);   // holds another letter: marked ? with L ruled out
-    if (vowel) S.skip.me = true;
+    if (vowel) S.score = (S.score || 0) - POINTS.vowel;   // bought: the Human Captain pays in points, not a turn
     var sunkBefore = sunkWords(S.myShots, S.foe.ships);
     var cells = revealLetter(S.myShots, foeBoard(), L);
     var sunk = sunkWords(S.myShots, S.foe.ships).filter(function (w) { return sunkBefore.indexOf(w) === -1; });
     ui.flash = cells;
     log('me', coordK(k) + ': "Calling ' + NATO[L] + '!" &mdash; <span class="say">"' + L + ' tally ' + t + '."</span>' +
-      (bonus ? ' It was at ' + coordK(k) + ': bonus turn.' : '') + (vowel ? ' A vowel: the Human Captain loses the next turn.' : ''));
+      (bonus ? ' It was at ' + coordK(k) + ': bonus turn.' : '') + (vowel ? ' Bought a vowel: \u2212' + POINTS.vowel + ' points.' : ''));
     sfx('select');
     sfx(t ? 'fill' : 'zero', 0.2);
     if (sunk.length) log('me', sunk.join(', ') + ' sunk: every letter revealed.');
@@ -1162,7 +1168,7 @@
     var html = '<div class="report ' + (t ? 'is-good' : 'is-warn') + '"><div class="report-q">' + coordK(k) + ': "Calling ' + NATO[L] + '!"</div><div class="report-a">"' + L + ' tally ' + t + '."</div></div>' +
       (t ? revealNote(L, cells, 'the AI Captain\'s') : '<p class="hint">' + L + ' is nowhere in the AI Captain\'s fleet.</p>') +
       (bonus ? '<p class="bonus">\u2605 Bonus turn! ' + L + ' was hiding at ' + coordK(k) + '.</p>' : (at ? '' : '<p class="hint">' + coordK(k) + ' is open water.</p>')) +
-      (vowel ? '<p class="notice">Vowel: you lose your next turn.</p>' : '');
+      (vowel ? '<p class="notice">Vowel bought: \u2212' + POINTS.vowel + ' points.</p>' : '');
     setPref(CALLS_KEY, (+getPref(CALLS_KEY) || 0) + 1);
     showResult(bonus ? '\u2605 Bonus Turn!' : 'Calling ' + NATO[L], html, t > 0, bonus);
     S.result.info = { L: L, t: t, k: k, cells: cells, bonus: bonus, vowel: vowel, open: !at, sunk: sunk, pts: pts };
@@ -1429,7 +1435,7 @@
       '<h3>Your Turn: Call a Letter</h3><ul>' +
       '<li>Tap a hidden square on the Attack Grid, then call a letter. Every square in the enemy fleet that holds it is revealed, wherever it is.</li>' +
       '<li><strong>Bonus turn:</strong> if the letter is in the square you tapped, you go again. Otherwise the turn passes.</li>' +
-      '<li><strong>Vowels</strong> (A E I O U) can be called and reveal the same way, but the caller loses their next turn.</li>' +
+      '<li><strong>Vowels</strong> (A E I O U) reveal the same way, but they are bought: the Human Captain needs ' + POINTS.vowel + ' points or more and pays ' + POINTS.vowel + ' points for each. The AI Captain keeps no score, so it loses its next turn instead.</li>' +
       '<li><strong>Points:</strong> ' + POINTS.letter + ' for each letter you reveal, ' + POINTS.contact + ' for finding a square that holds a letter, ' + POINTS.bonus + ' for a bonus turn, ' + POINTS.sunk + ' for each word-ship you sink, and ' + POINTS.win + ' for victory plus ' + POINTS.spare + ' for each letter you never had to call.</li>' +
       '<li><strong>Sinking:</strong> a word-ship sinks when every one of its letters is revealed. Reveal the whole enemy fleet to win.</li></ul>' +
       '<h3>Winning</h3><ul>' +

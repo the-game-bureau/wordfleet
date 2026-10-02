@@ -785,3 +785,5 @@ button.uc:active { background: var(--mine, var(--navy)); color: var(--mine-ink, 
   75% { transform: translateY(6%) rotate(-2deg); }
   100% { transform: none; }
 }
+/* A vowel you can't afford yet (under 100 points) while aiming */
+.uc.is-locked { opacity: 0.35; border-style: dashed; }
