@@ -731,3 +731,6 @@ button.uc:active { background: var(--mine, var(--navy)); color: var(--mine-ink, 
 .cell.is-empty { background: #d4e6f1; }
 .cell.is-empty::after { content: "\2248"; width: auto; height: auto; border-radius: 0; background: none;
   color: #3f7391; font-family: var(--mono); font-weight: 700; font-size: calc(var(--cell) * 0.62); line-height: 1; }
+/* Revealed letters stay on white; a word-ship's squares turn green once every letter is revealed (sunk) */
+.cell.is-found { background: var(--paper); color: var(--ink); }
+.cell.is-bull.is-aim-hit { background: var(--green) !important; box-shadow: none; }

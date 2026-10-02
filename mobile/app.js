@@ -759,14 +759,16 @@
     var info = S.result && S.result.info;
     // Ship circles change only when a word-ship is completely sunk (every letter showing);
     // they never hint at which ships are partly revealed.
+    var sunkCells = {};   // squares of word-ships with every letter revealed: these go green
     $('bubbles').innerHTML = S.foe.ships.map(function (ship, i) {
       var all = cellsOf(ship).every(function (p) { var s = S.myShots[key(p.r, p.c)]; return s && s.letter; });
+      if (all) cellsOf(ship).forEach(function (p) { sunkCells[key(p.r, p.c)] = true; });
       return '<span class="bubble' + (all ? ' is-solved' : '') + '" title="' + SPECS[i].cls + (all ? ': sunk' : '') + '">' + SPECS[i].len + '</span>';
     }).join('');
     paint($('gridAttack'), function (r, c) {
       var k = key(r, c);
       var s = S.myShots[k];
-      var o = s && s.letter ? { cls: 'is-bull', text: s.letter, off: true } : s && s.empty ? { cls: 'is-empty', off: true } :
+      var o = s && s.letter ? { cls: sunkCells[k] ? 'is-bull' : 'is-found', text: s.letter, off: true } : s && s.empty ? { cls: 'is-empty', off: true } :
         s && s.tried ? { cls: 'is-contact', text: '<span class="q">?</span>' + triedHtml(s) } : {};
       if (ui.sel === k && !(s && s.letter)) o.cls = (o.cls || '') + ' is-target';
       // The story of your call, told on the grid: new letters flip in one by one, and the square
@@ -787,26 +789,25 @@
     if (ui.flash) { clearTimeout(ui.flashTimer); ui.flashTimer = setTimeout(function () { ui.flash = null; }, 1800); }
 
 
-    // The popup is only for Solve a Word and Demand Surrender; everything else is the coach bar.
+    // The popup is only for Demand Surrender; everything else is the coach bar.
     var fp = $('firePanel');
     if (ui.demand && mine) fp.innerHTML = demandForm();
-    else if (ui.solving && mine && S.result && S.result.solve) fp.innerHTML = solveBox();
-    else { ui.demand = false; ui.solving = false; fp.innerHTML = ''; }
+    else { ui.demand = false; fp.innerHTML = ''; }
     refreshPanel();
     renderCoach();
   }
 
   function refreshPanel() {
-    var mode = ui.demand ? 'demand' : ui.solving ? 'solve' : '';
+    var mode = ui.demand ? 'demand' : '';
     var show = !!mode && current === 'battle' && S && S.phase === 'battle' && ui.tab === 'Attack' && $('sheet').hidden;
     $('panelSheet').hidden = !show;
     $('panelScrim').hidden = !show;
-    $('panelSheet').setAttribute('data-screen', mode === 'demand' ? '009-MOBILE-SURRENDER' : '005-MOBILE-SOLVE');
+    $('panelSheet').setAttribute('data-screen', '009-MOBILE-SURRENDER');
     if (show) fitButtons($('panelSheet'));
     renderCoach();
   }
   function closePanel() {
-    ui.demand = false; ui.solving = false;
+    ui.demand = false;
     renderAttack();
   }
 
@@ -828,7 +829,7 @@
 
   function renderCoach() {
     var el = $('coach');
-    var show = current === 'battle' && S && S.phase === 'battle' && !ui.demand && !ui.solving;
+    var show = current === 'battle' && S && S.phase === 'battle' && !ui.demand;
     el.hidden = !show;
     if (!show) return;
     var mine = S.turn === 'me', r = S.result, info = r && r.info, hint = hintsOn();
@@ -843,17 +844,15 @@
     } else if (r && info && info.bonus) {
       cls = 'is-bonus'; step = '\u2605';
       main = 'Bonus turn! <b>' + info.L + '</b> was at <b>' + coordK(info.k) + '</b>. Tap another square.';
-      if (r.solveRes) sub.push('Solve ' + r.solveRes.word + ': ' + (r.solveRes.ok ? '<b>Correct.</b>' : '<b>Negative.</b>'));
-      if (r.solve && !r.solveRes) btns += '<button class="btn btn--sm" type="button" data-coach="solve">Solve a Word</button>';
+      (info.sunk || []).forEach(function (w) { sub.push('<b>' + w + '</b> is sunk!'); });
     } else if (r && info) {
       step = '3';
       main = '<span class="say">"' + info.L + ' tally ' + info.t + '."</span> ' +
         (info.t ? 'Revealed at ' + info.cells.map(coordK).join(', ') + '.' : info.open ? coordK(info.k) + ' is open water.' : info.L + ' isn\'t in their fleet.');
       if (!info.open && !info.bonus) sub.push(coordK(info.k) + ' holds a letter, not ' + info.L + ': marked ?');
+      (info.sunk || []).forEach(function (w) { sub.unshift('<b>' + w + '</b> is sunk!'); });
       if (info.vowel) sub.push('<span class="coach-warn">Vowel: you skip your next turn.</span>');
-      if (r.solveRes) sub.push('Solve ' + r.solveRes.word + ': ' + (r.solveRes.ok ? '<b>Correct.</b>' : '<b>Negative.</b>'));
-      else if (hint && r.solve) sub.push('Know a whole word-ship? Solve it to reveal it.');
-      if (r.solve && !r.solveRes) btns += '<button class="btn btn--sm" type="button" data-coach="solve">Solve a Word</button>';
+      else if (hint && info.t && !(info.sunk || []).length) sub.push('Reveal every letter of a word-ship to sink it.');
       btns += '<button class="btn btn--sm btn--primary" type="button" data-coach="end">End Turn</button>';
     } else if (r) {
       // A result saved by an older version: no details, just the way on.
@@ -940,6 +939,13 @@
     return s && s.tried && !s.letter ? '<span class="tried">' + s.tried.slice(-3).join('') + '</span>' : '';
   }
 
+  // Words of the word-ships with every letter revealed, in fleet order.
+  function sunkWords(shots, ships) {
+    return ships.filter(function (ship) {
+      return cellsOf(ship).every(function (p) { var s = shots[key(p.r, p.c)]; return s && s.letter; });
+    }).map(function (ship) { return ship.word; });
+  }
+
   function revealLetter(shots, board, L) {
     var cells = [];
     Object.keys(board).forEach(function (k) {
@@ -993,7 +999,9 @@
     if (!at) S.myShots[k] = { empty: true };   // open water: marked with a white dot
     else if (!bonus) markContact(S.myShots, k, L);   // holds another letter: marked ? with L ruled out
     if (vowel) S.skip.me = true;
+    var sunkBefore = sunkWords(S.myShots, S.foe.ships);
     var cells = revealLetter(S.myShots, foeBoard(), L);
+    var sunk = sunkWords(S.myShots, S.foe.ships).filter(function (w) { return sunkBefore.indexOf(w) === -1; });
     ui.flash = cells;
     log('me', coordK(k) + ': "Calling ' + NATO[L] + '!" &mdash; <span class="say">"' + L + ' tally ' + t + '."</span>' +
       (bonus ? ' It was at ' + coordK(k) + ': bonus turn.' : '') + (vowel ? ' A vowel: the Human Captain loses the next turn.' : ''));
@@ -1004,6 +1012,7 @@
       notifyBonus('\u2605 BONUS TURN!');
     }
     if (vowel) sfx('error', 0.6);
+    if (sunk.length) { sfx('solveOk', 0.5); log('me', sunk.join(', ') + ' sunk: every letter revealed.'); }
     if (allRevealed(S.myShots, foeBoard())) { finish('me', 'reveal'); return; }
     var html = '<div class="report ' + (t ? 'is-good' : 'is-warn') + '"><div class="report-q">' + coordK(k) + ': "Calling ' + NATO[L] + '!"</div><div class="report-a">"' + L + ' tally ' + t + '."</div></div>' +
       (t ? revealNote(L, cells, 'the AI Captain\'s') : '<p class="hint">' + L + ' is nowhere in the AI Captain\'s fleet.</p>') +
@@ -1011,18 +1020,11 @@
       (vowel ? '<p class="notice">Vowel: you lose your next turn.</p>' : '');
     setPref(CALLS_KEY, (+getPref(CALLS_KEY) || 0) + 1);
     showResult(bonus ? '\u2605 Bonus Turn!' : 'Calling ' + NATO[L], html, t > 0, bonus);
-    S.result.info = { L: L, t: t, k: k, cells: cells, bonus: bonus, vowel: vowel, open: !at };
+    S.result.info = { L: L, t: t, k: k, cells: cells, bonus: bonus, vowel: vowel, open: !at, sunk: sunk };
     save(); renderBattle();
   }
 
-  // --- solve a word (after calling a letter that is in the fleet) ---
-  function solveBox() {
-    return '<div class="card-title">Solve a Word</div><div class="solve" id="solveBox">' +
-      '<div class="input-row"><input class="input" id="solveIn" maxlength="5" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="WORD">' +
-      '<button class="btn btn--primary" type="button" data-act="solve">Solve</button></div>' +
-      (hintsOn() ? '<p class="hint">Name one of the AI Captain\'s word-ships. Get it right and the whole word-ship is revealed.</p>' : '') + '</div>';
-  }
-
+  // --- the AI Captain solves a word-ship it has pinned down ---
   // Fill in every square of the first unsolved word-ship spelling `word`.
   function solveWord(shots, ships, word) {
     for (var i = 0; i < ships.length; i++) {
@@ -1039,28 +1041,6 @@
       return { idx: i, cells: filled };
     }
     return null;
-  }
-
-  function humanSolve() {
-    var word = ($('solveIn').value || '').toUpperCase().replace(/[^A-Z]/g, '');
-    if (word.length < 2) { $('solveIn').focus(); return; }
-    var res = solveWord(S.myShots, S.foe.ships, word);
-    var html;
-    sfx(res ? 'solveOk' : 'solveBad');
-    if (res) {
-      ui.flash = res.cells;
-      log('me', '"Solve: ' + word + '!" &mdash; <span class="say">"Correct."</span>');
-      if (allRevealed(S.myShots, foeBoard())) { finish('me', 'reveal'); return; }
-      html = '<div class="report is-good"><div class="report-q">"Solve: ' + word + '!"</div><div class="report-a">"Correct."</div></div>';
-    } else {
-      log('me', '"Solve: ' + word + '!" &mdash; <span class="say">"Negative."</span>');
-      html = '<div class="report is-bad"><div class="report-q">"Solve: ' + word + '!"</div><div class="report-a">"Negative."</div></div>';
-    }
-    S.result.html += html;
-    S.result.solveRes = { word: word, ok: !!res };
-    ui.solving = false;
-    save();
-    renderBattle();
   }
 
   function endMyTurn() {
@@ -1559,7 +1539,6 @@
     if (act === 'demand') { ui.demand = true; renderAttack(); $('panelSheet').scrollTop = 0; }
     else if (act === 'belay') { ui.demand = false; renderAttack(); }
     else if (act === 'endTurn') endMyTurn();
-    else if (act === 'solve') humanSolve();
     else if (act === 'submitDemand') submitDemand(false);
     else if (act === 'submitDemandSure') submitDemand(true);
   });
@@ -1596,7 +1575,6 @@
     if (!b) return;
     var act = b.getAttribute('data-coach');
     if (act === 'end') endMyTurn();
-    else if (act === 'solve') { ui.solving = true; switchTab('Attack'); setTimeout(function () { var i = $('solveIn'); if (i) i.focus(); }, 50); }
   });
   on($('sheetBody'), 'click', function (e) {
     var k = e.target.closest('[data-letter]');
