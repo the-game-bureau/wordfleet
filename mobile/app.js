@@ -441,9 +441,9 @@
       noteFor = first;
       return;
     }
-    S.me.ships = S.me.words.map(function (w) { return { word: w, r: null, c: null, dir: 'H' }; });
+    S.me.ships = scatter(S.me.words);   // 004 opens with the fleet already deployed at random
     S.phase = 'deploy';
-    ui.pick = 0;
+    ui.pick = -1;
     save();
     show('deploy');
   }

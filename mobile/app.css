@@ -469,3 +469,6 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 .setup-big .deploy-head .seg, .setup-big .deploy-head .row { display: flex; width: 100%; gap: 8px; }
 .setup-big .deploy-head .seg { gap: 0; }
 .setup-big .deploy-head .seg button, .setup-big .deploy-head .row .btn { flex: 1; }
+
+/* deployed word-ships show green on 004 */
+#gridDeploy .cell.is-ship { background: var(--green); }
