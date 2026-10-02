@@ -37,7 +37,6 @@
   <!-- ============ HOME ============ -->
   <section class="screen" id="scrHome">
     <div class="hero">
-      <div class="hero-eyebrow">Battle Tracker</div>
       <h1 class="hero-title">WORD FLEET</h1>
       <p class="hero-tag">Mobile Mode</p>
     </div>
@@ -116,33 +115,26 @@
 
     <div class="tab" id="tabAttack">
       <div class="gridbanner is-attack">
-        <div><b>ATTACK GRID</b><span>Your shots at the AI Captain's fleet</span></div>
+        <div><b>ATTACK GRID</b><span>The AI Captain's hidden fleet</span></div>
         <span class="bubbles" id="bubbles"></span>
       </div>
       <div class="card card--flush card--attack">
         <div class="grid" id="gridAttack"></div>
       </div>
-      <div class="card" id="firePanel"></div>
-      <div class="card">
+      <div class="card card--manifest">
         <div class="card-title">Attack Manifest</div>
-        <p class="hint hint--tight"><strong>Tap a letter to call it.</strong> Called letters show one dot per square they revealed in the AI Captain's fleet ("none" means it isn't there). Shaded vowels cost your next turn.</p>
         <div class="manifest" id="attackManifest"></div>
       </div>
+      <div class="card" id="firePanel"></div>
     </div>
 
     <div class="tab" id="tabDefense" hidden>
       <div class="gridbanner is-defense">
-        <div><b>DEFENSE GRID</b><span>Your fleet &middot; the AI Captain's shots</span></div>
+        <div><b>DEFENSE GRID</b><span>Your fleet</span></div>
       </div>
       <div class="card is-incoming" id="incomingCard" hidden></div>
       <div class="card card--flush card--defense">
-        <div class="grid-label"><span id="defenseWords"></span></div>
         <div class="grid" id="gridDefense"></div>
-      </div>
-      <div class="card">
-        <div class="card-title">Defense Manifest</div>
-        <p class="hint hint--tight"><span class="pip-key"><i class="pip is-lost"></i> found by the AI Captain</span> <span class="pip-key"><i class="pip"></i> still hidden</span><br>Each dot is one copy of that letter in your fleet.</p>
-        <div class="manifest" id="defenseManifest"></div>
       </div>
     </div>
 
