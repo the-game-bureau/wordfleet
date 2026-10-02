@@ -41,7 +41,7 @@
   // on the first. No greens or teals: green belongs to the game's own colors.
   // Every pair is at least 7:1 contrast (WCAG AAA). Saved as S.colors; where they apply is decided later.
   // The AI Captain always flies one scheme: bright background, dark text (the reverse of every player
-  // scheme), in a hue no player scheme uses. 7.5:1 contrast.
+  // scheme), in a hue no player scheme uses. 7.5:1 contrast. Mirrored as --foe / --foe-ink in app.css.
   var FOE_SCHEME = { id: 'signal-orange', name: 'Signal Orange & Black', colors: ['#ff7f27', '#111111'] };
 
   var COLOR_SCHEMES = [
@@ -1140,7 +1140,7 @@
 
   function renderOver() {
     var won = S.winner === 'me';
-    setBar(won ? 'Victory' : 'Defeat', won ? '' : 'is-foe');
+    setBar(null);   // the result shows in the card, not the header
     var eyebrow, title, quote;
     if (S.reason === 'reveal') { eyebrow = 'Total Victory'; title = 'Every letter of the ' + S.foe.name + ' is showing.'; quote = 'Their whole fleet is revealed. "You have won."'; }
     else if (S.reason === 'foe-reveal') { eyebrow = 'Fleet Exposed'; title = 'The AI Captain revealed your whole fleet.'; quote = 'Every letter of the ' + S.me.name + ' is showing.'; }

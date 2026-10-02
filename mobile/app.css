@@ -545,3 +545,9 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 .grid-label > .over-fleet { display: flex; align-items: center; gap: 8px; color: var(--ink); font-weight: 700; letter-spacing: 0.12em; text-align: left; }
 .over-flag { display: block; width: 36px; flex-shrink: 0; }
 .over-flag svg { display: block; width: 100%; height: auto; }
+
+/* The AI Captain's colors (FOE_SCHEME in app.js): Signal Orange & Black */
+:root { --foe: #ff7f27; --foe-ink: #111111; }
+.gridbanner.is-attack { background: var(--foe); color: var(--foe-ink); }
+.gridbanner.is-attack span { opacity: 1; }
+.card--attack { border-top-color: var(--foe); }
