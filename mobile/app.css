@@ -661,3 +661,10 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 /* 007 Defense Grid, built like the Attack Grid: DEF corner button and ship circles in your colors */
 .cell.cell--def { background: var(--mine, var(--navy)); color: var(--mine-ink, #fff); }
 .bubble.is-lost { background: var(--red); border-color: var(--red); color: #fff; }
+
+/* 002-MOBILE-AI-CAPTAIN flies the enemy's Signal Orange & Black: the card's top edge and the chosen captain */
+#scrOpponent .card { border-top: 6px solid var(--foe); }
+#scrOpponent #segLevel { border-color: var(--foe-ink); }
+#scrOpponent #segLevel button.is-on { background: var(--foe); color: var(--foe-ink); }
+#scrOpponent #segLevel button.is-on .cpt { color: var(--foe-ink); opacity: 0.8; }
+#scrOpponent #levelHint strong { background: #fff1e6; border-bottom: 2px solid var(--foe); padding: 0 3px; }
