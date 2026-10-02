@@ -312,6 +312,8 @@
                   opponent: 'scrOpponent',   // "002-MOBILE-OPPONENT"
                   words: 'scrWords',         // "003-MOBILE-WORD-SHIPS"
                   deploy: 'scrDeploy',       // "004-MOBILE-DEPLOY"
+                  // battle: tabs "005-MOBILE-ATTACK", "007-MOBILE-DEFENSE", "008-MOBILE-LOG"; sheet "006-MOBILE-CALL-LETTER";
+                  // Attack panel "009-MOBILE-SURRENDER". over: "010-MOBILE-GAME-OVER". Sheets "MOBILE-MENU", "MOBILE-RULES"
                   battle: 'scrBattle', over: 'scrOver' };
   var current = 'home';
 
@@ -375,8 +377,10 @@
   }
 
   var sheetDismissible = true;
-  function openSheet(html, dismissible) {
+  // name: the sheet's screen name (006-MOBILE-CALL-LETTER, MOBILE-MENU, MOBILE-RULES).
+  function openSheet(html, dismissible, name) {
     sheetDismissible = dismissible !== false;
+    $('sheet').setAttribute('data-screen', name || '');
     $('sheetBody').innerHTML = html;
     $('scrim').hidden = false;
     $('sheet').hidden = false;
@@ -384,6 +388,7 @@
     fitButtons();
   }
   function closeSheet() {
+    $('sheet').setAttribute('data-screen', '');
     $('scrim').hidden = true;
     $('sheet').hidden = true;
     $('sheetBody').innerHTML = '';
@@ -669,7 +674,7 @@
     openSheet('<h2>Square ' + coordK(k) + '</h2>' +
       '<p class="hint" style="margin:2px 0 0">Call a letter. If it\'s in ' + coordK(k) + ', you get a <strong>bonus turn</strong>. Vowels cost your next turn.</p>' +
       '<div class="manifest manifest--pick">' + letters + '</div>' +
-      '<button class="btn btn--ghost btn--wide" type="button" data-act="close">Cancel</button>');
+      '<button class="btn btn--ghost btn--wide" type="button" data-act="close">Cancel</button>', true, '006-MOBILE-CALL-LETTER');
   }
 
   function renderAttack() {
@@ -924,7 +929,8 @@
         '<select class="select" data-claim="' + i + '" data-f="r" aria-label="Start row">' + rowOpts(cl.r) + '</select>' +
         '<select class="select" data-claim="' + i + '" data-f="dir" aria-label="Heading"><option value="H"' + (cl.dir === 'H' ? ' selected' : '') + '>Across</option><option value="V"' + (cl.dir === 'V' ? ' selected' : '') + '>Down</option></select></div></div>';
     }).join('');
-    return '<div class="card-title" style="color:var(--red)">Demand Surrender</div>' +
+    // 009-MOBILE-SURRENDER: the Attack tab's panel in Demand Surrender mode.
+    return '<div class="card-title" style="color:var(--red)" data-screen="009-MOBILE-SURRENDER">Demand Surrender</div>' +
       '<p class="hint" style="margin-top:0">Name every one of the AI Captain\'s word-ships, its first square, and its heading. All correct and you win. <strong>Anything wrong and you lose on the spot.</strong> Uses your whole turn.</p>' +
       rows + '<p class="note" id="claimNote"></p>' +
       '<button class="btn btn--danger-solid btn--wide" type="button" data-act="submitDemand">I Demand Your Surrender!</button>' +
@@ -1176,7 +1182,7 @@
         '<label class="switch-row"><span>Sound Effects</span><input type="checkbox" class="switch" data-audio="sfx"' + (window.WFAudio.sfxOn() ? ' checked' : '') + '></label>' +
         '<label class="switch-row"><span>Music</span><input type="checkbox" class="switch" data-audio="music"' + (window.WFAudio.musicOn() ? ' checked' : '') + '></label>' +
         '</div>' : '') +
-      '<button class="btn btn--ghost btn--wide" type="button" data-act="close">Close</button></div>');
+      '<button class="btn btn--ghost btn--wide" type="button" data-act="close">Close</button></div>', true, 'MOBILE-MENU');
   }
 
   function openRules() {
@@ -1197,7 +1203,7 @@
       '<h3>Reading the Tracker</h3><ul>' +
       '<li>Attack Grid: green squares are revealed letters of the AI Captain\'s fleet. Defense Grid: red squares are your letters the AI Captain has revealed.</li>' +
       '<li>Manifests: each dot under a letter is one copy of it in the fleet. The 5 4 3 3 2 circles turn yellow when some of that word-ship is showing and green when all of it is.</li></ul>' +
-      '</div><button class="btn btn--primary btn--wide" type="button" data-act="close">Aye, Aye</button>');
+      '</div><button class="btn btn--primary btn--wide" type="button" data-act="close">Aye, Aye</button>', true, 'MOBILE-RULES');
   }
 
   // ------------------------------------------------------------

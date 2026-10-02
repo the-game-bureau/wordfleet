@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Bump ?v= on every release (and CACHE in sw.js) so a new page never runs old code. -->
-  <link rel="stylesheet" href="app.css?v=80">
+  <link rel="stylesheet" href="app.css?v=81">
 </head>
 <body>
 
@@ -142,10 +142,12 @@
     </div>
   </section>
 
-  <!-- ============ BATTLE ============ -->
-  <section class="screen screen--tabs" id="scrBattle">
+  <!-- ============ BATTLE: three tabs, each a named screen ============ -->
+  <section class="screen screen--tabs" id="scrBattle" data-screen="BATTLE">
 
-    <div class="tab" id="tabAttack">
+    <!-- ============ 005-MOBILE-ATTACK (screen name: "005-MOBILE-ATTACK") ============ -->
+    <!-- Tapping a square opens 006-MOBILE-CALL-LETTER; "Demand Surrender" turns the panel below into 009-MOBILE-SURRENDER. -->
+    <div class="tab" id="tabAttack" data-screen="005-MOBILE-ATTACK">
       <div class="gridbanner is-attack">
         <div><b>ATTACK GRID</b><span>Hunting the AI Captain's fleet</span></div>
         <span class="bubbles" id="bubbles"></span>
@@ -160,7 +162,8 @@
       <div class="card" id="firePanel"></div>
     </div>
 
-    <div class="tab" id="tabDefense" hidden>
+    <!-- ============ 007-MOBILE-DEFENSE (screen name: "007-MOBILE-DEFENSE") ============ -->
+    <div class="tab" id="tabDefense" data-screen="007-MOBILE-DEFENSE" hidden>
       <div class="gridbanner is-defense">
         <div><b>DEFENSE GRID</b><span>Your fleet &middot; the AI Captain's picks</span></div>
       </div>
@@ -175,7 +178,8 @@
       </div>
     </div>
 
-    <div class="tab" id="tabLog" hidden>
+    <!-- ============ 008-MOBILE-LOG (screen name: "008-MOBILE-LOG") ============ -->
+    <div class="tab" id="tabLog" data-screen="008-MOBILE-LOG" hidden>
       <div class="card">
         <div class="card-title">Captain's Log</div>
         <div class="log" id="log"></div>
@@ -198,8 +202,8 @@
     </nav>
   </section>
 
-  <!-- ============ GAME OVER ============ -->
-  <section class="screen" id="scrOver">
+  <!-- ============ 010-MOBILE-GAME-OVER (screen name: "010-MOBILE-GAME-OVER") ============ -->
+  <section class="screen" id="scrOver" data-screen="010-MOBILE-GAME-OVER">
     <div class="card curtain">
       <div class="curtain-eyebrow" id="overEyebrow">Total Victory</div>
       <div class="curtain-title" id="overTitle">You have won.</div>
@@ -219,7 +223,9 @@
 
 </main>
 
-<!-- ============ SHEET (modal from bottom) ============ -->
+<!-- ============ SHEET (modal from bottom) ============
+     Shows 006-MOBILE-CALL-LETTER, and the unnumbered MOBILE-MENU and MOBILE-RULES (reachable from any screen).
+     The sheet's data-screen is set by whichever one is open. -->
 <div class="scrim" id="scrim" hidden></div>
 <div class="sheet" id="sheet" role="dialog" aria-modal="true" hidden>
   <div class="sheet-grip"></div>
@@ -228,7 +234,7 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="audio.js?v=80"></script>
-<script src="app.js?v=80"></script>
+<script src="audio.js?v=81"></script>
+<script src="app.js?v=81"></script>
 </body>
 </html>
