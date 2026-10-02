@@ -328,6 +328,7 @@
     // A new game starts clean: no aim, flip-ins, popups, banners or AI moves left over from the last one.
     ui.sel = null; ui.tab = 'Attack'; ui.flash = null; ui.demand = false; ui.dragged = false; ui.firstTap = null;
     clearTimeout(ui.flashTimer); clearTimeout(ui.bonusTimer); clearTimeout(ui.aiTimer); ui.aiTimer = null;
+    clearTimeout(ui.endTimer); ui.endTimer = null;
     var bb = $('bonusBanner'); if (bb) bb.hidden = true;
     save();
   }
@@ -726,6 +727,13 @@
     renderDefense();
     renderLog();
     if (S.turn === 'foe' && !ui.aiTimer) ui.aiTimer = setTimeout(foeTurn, 1600);
+    // No End Turn button: once your call is reported (and it was not a bonus turn), play moves on by itself.
+    if (S.phase === 'battle' && S.turn === 'me' && S.result && !S.result.bonus && !ui.endTimer) {
+      ui.endTimer = setTimeout(function () {
+        ui.endTimer = null;
+        if (S && S.phase === 'battle' && S.turn === 'me' && S.result && !S.result.bonus) endMyTurn();
+      }, 2600);
+    }
   }
 
   function isVowel(L) { return VOWELS.indexOf(L) !== -1; }
@@ -880,11 +888,11 @@
       (info.sunk || []).forEach(function (w) { sub.unshift('<b>' + w + '</b> is sunk!'); });
       if (info.vowel) sub.push('<span class="coach-warn">Vowel: you skip your next turn.</span>');
       else if (hint && info.t && !(info.sunk || []).length) sub.push('Reveal every letter of a word-ship to sink it.');
-      btns += '<button class="btn btn--sm btn--primary" type="button" data-coach="end">End Turn</button>';
+      sub.push('AI Captain\'s turn next<span class="dots"><i>.</i><i>.</i><i>.</i></span>');
     } else if (r) {
       // A result saved by an older version: no details, just the way on.
       step = '3'; main = r.title;
-      btns = '<button class="btn btn--sm btn--primary" type="button" data-coach="end">End Turn</button>';
+      sub.push('AI Captain\'s turn next<span class="dots"><i>.</i><i>.</i><i>.</i></span>');
     } else {
       (S.incoming || []).forEach(function (ev) { pre.push(aiMoveLine(ev)); });
       if (S.notice) pre.push(/vowel/.test(S.notice) ? 'AI lost a turn (vowel)' : S.notice);
