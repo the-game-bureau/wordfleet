@@ -347,6 +347,11 @@
     el.className = 'chip' + (cls ? ' ' + cls : '');
   }
 
+  // The music hunts while you're on the Attack Grid during battle.
+  function setMusicMood() {
+    if (window.WFAudio && window.WFAudio.setMood) window.WFAudio.setMood(current === 'battle' && S && S.phase === 'battle' && ui.tab === 'Attack' ? 'hunt' : 'main');
+  }
+
   function render() {
     if (current === 'home') renderHome();
     else if (current === 'setup' || current === 'opponent' || current === 'words') renderSetup();
@@ -355,6 +360,7 @@
     else if (current === 'over') renderOver();
     applyFleetColors();
     refreshPanel();
+    setMusicMood();
     fitButtons();
   }
 
@@ -899,6 +905,7 @@
     ui.tab = tab;
     renderBattle();
     refreshPanel();
+    setMusicMood();
     window.scrollTo(0, 0);
   }
 

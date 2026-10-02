@@ -168,6 +168,19 @@
       BARS.push({ style: sec.style, chord: sec.chords[b % sec.chords.length], tune: sec.tune && sec.tune[b], up: sec.up || 0, first: b === 0, last: b === sec.bars - 1 });
     }
   });
+  // HUNT: what plays on the Attack Grid. Same tempo and key, so the two themes hand over at a bar line:
+  // a heartbeat, a low string pulse with an uneasy half-step, regular sonar, high held strings, and a
+  // short "searching" horn motif every four bars. 16 bars, looping.
+  var Eb = { root: 39, chord: [51, 55, 58] };
+  var HUNT_CHORDS = [Dm, Dm, Eb, Dm, Dm, Bb, A, A];
+  var SEARCH = [[[62, 3], [65, 1], [64, 4]], null, null, null, [[62, 3], [65, 1], [69, 4]], null, [[70, 2], [69, 2], [67, 2], [64, 2]], null];
+  var HUNT_BARS = [];
+  for (var hb = 0; hb < 16; hb++) {
+    HUNT_BARS.push({ style: 'hunt', chord: HUNT_CHORDS[hb % 8], tune: SEARCH[hb % 8], up: 0, first: hb === 0, last: hb === 15, n: hb });
+  }
+  var MAIN_RETURN = 12;   // coming back from the hunt, the main theme picks up at the refrain's horn hook
+  var seq = BARS, mood = 'main', moodChanged = false;
+
   var step = 0, nextAt = 0, timer = null, ocean = null;
 
   function voice(type, f, t, dur, peak, attack, release, cutoff, detune) {
@@ -226,8 +239,28 @@
     });
   }
 
+  function huntStep(bar, inBar, t) {
+    var root = bar.chord.root;
+    if (inBar === 0) {
+      // Dark low pad, plus thin high strings holding the chord's fifth.
+      pad(bar.chord.chord, root, t, false);
+      voice('triangle', hz(bar.chord.chord[2] + 24), t, BAR * 1.05, 0.018, 1.2, 1.0, 2400, 6);
+      if (bar.tune) tune(bar.tune, t + EIGHTH * 2, 'verse', 0);
+      if (bar.n % 2 === 0) sonar(t + EIGHTH);
+      if (bar.n % 8 === 0) timpani(t, 0.3);
+    }
+    // Heartbeat: lub-dub on beat one, again softer on beat three.
+    if (inBar === 0) { kick(t, 0.28); kick(t + EIGHTH * 0.5, 0.18); }
+    if (inBar === 4) { kick(t, 0.16); kick(t + EIGHTH * 0.5, 0.1); }
+    // Low string pulse on every eighth; the half-step above the root keeps it uneasy.
+    var pulse = [0, 0, 0, 1, 0, 0, 12, 1][inBar];
+    voice('sawtooth', hz(root + 12 + pulse), t, EIGHTH * 0.7, inBar % 3 === 0 ? 0.055 : 0.035, 0.008, 0.1, 700);
+    if (bar.last && inBar >= 4) snare(t, 0.04 + (inBar - 4) * 0.025);
+  }
+
   function scheduleStep(i, t) {
-    var bar = BARS[Math.floor(i / 8)], inBar = i % 8, up = bar.up;
+    var bar = seq[Math.floor(i / 8)], inBar = i % 8, up = bar.up;
+    if (bar.style === 'hunt') { huntStep(bar, inBar, t); return; }
     var root = bar.chord.root + up, style = bar.style;
     if (inBar === 0) {
       pad(bar.chord.chord.map(function (m) { return m + up; }), root, t, style === 'chorus');
@@ -254,11 +287,29 @@
 
   function tick() {
     while (nextAt < ctx.currentTime + 0.25) {
+      // A change of mood waits for the next bar line, then hands over with a sonar ping and a timpani hit.
+      if (moodChanged && step % 8 === 0) {
+        moodChanged = false;
+        var toHunt = mood === 'hunt';
+        if ((seq === HUNT_BARS) !== toHunt) {
+          seq = toHunt ? HUNT_BARS : BARS;
+          step = toHunt ? 0 : MAIN_RETURN * 8;
+          timpani(nextAt, 0.32);
+          if (toHunt) sonar(nextAt + EIGHTH * 0.5);
+        }
+      }
       scheduleStep(step, nextAt);
       nextAt += EIGHTH;
       step++;
-      if (step >= BARS.length * 8) step = LOOP_FROM * 8;
+      if (step >= seq.length * 8) step = seq === HUNT_BARS ? 0 : LOOP_FROM * 8;
     }
+  }
+
+  // 'hunt' on the Attack Grid, 'main' everywhere else.
+  function setMood(m) {
+    if (m === mood) return;
+    mood = m;
+    if (timer) moodChanged = true;
   }
 
   // Ocean swell: looped low-passed noise, its volume rolling like waves.
@@ -277,7 +328,8 @@
 
   function startMusic() {
     if (!prefs.music || timer || !ensure()) return;
-    step = 0;
+    seq = mood === 'hunt' ? HUNT_BARS : BARS;
+    step = 0; moodChanged = false;
     nextAt = ctx.currentTime + 0.1;
     musicBus.gain.cancelScheduledValues(ctx.currentTime);
     musicBus.gain.setValueAtTime(0.0001, ctx.currentTime);
@@ -318,6 +370,8 @@
 
   window.WFAudio = {
     play: play,
+    setMood: setMood,
+    nowPlaying: function () { return timer ? (seq === HUNT_BARS ? 'hunt' : 'main') : 'off'; },
     sfxOn: function () { return prefs.sfx; },
     musicOn: function () { return prefs.music; },
     setSfx: function (on) { prefs.sfx = !!on; savePrefs(); if (on) play('select'); },
