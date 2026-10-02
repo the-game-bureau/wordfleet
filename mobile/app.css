@@ -791,3 +791,6 @@ button.uc:active { background: var(--mine, var(--navy)); color: var(--mine-ink, 
 .grid { grid-template-rows: calc(var(--cell) * 1.75); }
 .cell.is-col { align-items: flex-end; padding-bottom: 3px; }
 .cell.is-col span { writing-mode: vertical-rl; transform: rotate(180deg); font-size: max(7px, calc(var(--cell) * 0.3)); letter-spacing: 0.02em; text-transform: uppercase; line-height: 1; white-space: nowrap; }
+/* Vowel note: the price, and under it the free-vowels rule in smaller type */
+.uncalled-label .uc-vowels-cap { flex-direction: column; align-items: flex-end; gap: 1px; line-height: 1.1; }
+.uc-vowels-cap .uc-free { font-size: 7.5px; font-weight: 700; opacity: 0.85; }

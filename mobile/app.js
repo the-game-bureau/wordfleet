@@ -35,7 +35,10 @@
     spare: 10,      // at victory, each letter of the alphabet you never had to call
     vowel: 100      // the price of a vowel: you need this many points to buy one, and pay them
   };
-  function canBuyVowel() { return (S.score || 0) >= POINTS.vowel; }
+  // Once every consonant has been called, only vowels are left and they are free.
+  function onlyVowelsLeft(tallies) { return LETTERS.every(function (L) { return isVowel(L) || tallies[L] != null; }); }
+  function vowelPrice() { return onlyVowelsLeft(S.myTallies) ? 0 : POINTS.vowel; }
+  function canBuyVowel() { return (S.score || 0) >= vowelPrice(); }
   // Adds points and returns a short note of what they were for.
   function award(parts) {
     var total = 0, why = [];
@@ -819,11 +822,14 @@
   }
 
   function isVowel(L) { return VOWELS.indexOf(L) !== -1; }
-  // A letters manifest: A to Z, vowels as round chips; the title row notes what a vowel costs.
+  // A letters manifest: A to Z, vowels as round chips; the title row notes what a vowel costs
+  // (cost: '100 points' or 'lose a turn') and that vowels are free once only vowels are left.
   // chip(L, cls) returns one chip's HTML.
-  function manifestHtml(label, left, chip) {
+  function manifestHtml(label, left, chip, cost) {
+    var free = left.length && left.every(isVowel);
     return '<span class="uncalled-label"><span>' + label + '</span>' +
-      (left.some(isVowel) ? '<span class="uc-vowels-cap">Vowels: ' + POINTS.vowel + ' points</span>' : '') + '</span>' +
+      (left.some(isVowel) ? '<span class="uc-vowels-cap">' + (free ? '<span>Vowels: free</span>' :
+        '<span>Vowels: ' + cost + '</span><span class="uc-free">Free if only vowels left</span>') + '</span>' : '') + '</span>' +
       left.map(function (L) { return chip(L, 'uc' + (isVowel(L) ? ' is-vowel' : '')); }).join('');
   }
 
@@ -902,9 +908,9 @@
     $('uncalled').innerHTML = manifestHtml('Letters Manifest', left, function (L, cls) {
         // A vowel you can't afford yet stays a plain (dimmed) chip.
         if (picking && isVowel(L) && !canBuyVowel()) return '<span class="' + cls + ' is-locked" title="You need ' + POINTS.vowel + ' points to buy a vowel">' + L + '</span>';
-        return picking ? '<button type="button" class="' + cls + '" data-letter="' + L + '" aria-label="Call ' + L + (isVowel(L) ? ' (vowel: costs ' + POINTS.vowel + ' points)' : '') + '">' + L + '</button>'
+        return picking ? '<button type="button" class="' + cls + '" data-letter="' + L + '" aria-label="Call ' + L + (isVowel(L) ? ' (vowel: ' + (vowelPrice() ? 'costs ' + vowelPrice() + ' points' : 'free') + ')' : '') + '">' + L + '</button>'
                        : '<span class="' + cls + '">' + L + '</span>';
-      });
+      }, POINTS.vowel + ' points');
     if (ui.flash) { clearTimeout(ui.flashTimer); ui.flashTimer = setTimeout(function () { ui.flash = null; }, 1800); }
 
 
@@ -972,7 +978,7 @@
       if (hint) sub.push('It calls a letter on your fleet. Watch the Defense Grid.');
     } else if (ui.sel) {
       step = '2'; main = 'Call a letter for <b>' + coordK(ui.sel) + '</b>: tap it in the Letters Manifest.';
-      if (hint) sub.push('Tap another square to re-aim, or ' + coordK(ui.sel) + ' again to cancel. Vowels (round) cost ' + POINTS.vowel + ' points.');
+      if (hint) sub.push('Tap another square to re-aim, or ' + coordK(ui.sel) + ' again to cancel. Vowels (round) ' + (vowelPrice() ? 'cost ' + POINTS.vowel + ' points.' : 'are free now: only vowels are left.'));
       if (!canBuyVowel()) sub.push('Vowels unlock at ' + POINTS.vowel + ' points (you have ' + (S.score || 0) + ').');
     } else if (r && info && info.bonus) {
       cls = 'is-bonus'; step = '\u2605';
@@ -986,7 +992,7 @@
       if (!info.open && !info.bonus) sub.push(coordK(info.k) + ' holds a letter, not ' + info.L + ': marked ?');
       (info.sunk || []).forEach(function (w) { sub.unshift('<b>' + w + '</b> is sunk!'); });
       if (info.pts && info.pts.total) sub.push(ptsLine(info.pts));
-      if (info.vowel) sub.push('<span class="coach-warn">Vowel bought: \u2212' + POINTS.vowel + ' points.</span>');
+      if (info.vowel) sub.push(info.price ? '<span class="coach-warn">Vowel bought: \u2212' + info.price + ' points.</span>' : 'Free vowel: only vowels were left.');
       else if (hint && info.t && !(info.sunk || []).length) sub.push('Reveal every letter of a word-ship to sink it.');
       sub.push('AI Captain\'s turn next<span class="dots"><i>.</i><i>.</i><i>.</i></span>');
     } else if (r) {
@@ -1042,7 +1048,7 @@
     var aiLeft = LETTERS.filter(function (L) { return S.foeTallies[L] == null; });
     $('defUncalled').innerHTML = manifestHtml('AI Letters Manifest', aiLeft, function (L, cls) {
       return '<span class="' + cls + (mineCount[L] ? ' is-mine' : '') + '">' + L + '</span>';
-    });
+    }, '\u22121 turn');
     if (flashing) { ev.unseen = false; save(); $('defDot').hidden = true; }
   }
 
@@ -1131,6 +1137,7 @@
     var k = ui.sel;
     if (!k || !canCall() || S.myTallies[L] != null) return;
     if (isVowel(L) && !canBuyVowel()) return;   // vowels are bought with points
+    var price = isVowel(L) ? vowelPrice() : 0;   // free once only vowels are left
     closeSheet();
     var t = countOf(S.foe.words.join(''), L);
     var vowel = isVowel(L);
@@ -1142,13 +1149,13 @@
     ui.sel = null;
     if (!at) S.myShots[k] = { empty: true };   // open water: marked with a white dot
     else if (!bonus) markContact(S.myShots, k, L);   // holds another letter: marked ? with L ruled out
-    if (vowel) S.score = (S.score || 0) - POINTS.vowel;   // bought: the Human Captain pays in points, not a turn
+    if (vowel) S.score = (S.score || 0) - price;   // bought: the Human Captain pays in points, not a turn
     var sunkBefore = sunkWords(S.myShots, S.foe.ships);
     var cells = revealLetter(S.myShots, foeBoard(), L);
     var sunk = sunkWords(S.myShots, S.foe.ships).filter(function (w) { return sunkBefore.indexOf(w) === -1; });
     ui.flash = cells;
     log('me', coordK(k) + ': "Calling ' + NATO[L] + '!" &mdash; <span class="say">"' + L + ' tally ' + t + '."</span>' +
-      (bonus ? ' It was at ' + coordK(k) + ': bonus turn.' : '') + (vowel ? ' Bought a vowel: \u2212' + POINTS.vowel + ' points.' : ''));
+      (bonus ? ' It was at ' + coordK(k) + ': bonus turn.' : '') + (vowel ? (price ? ' Bought a vowel: \u2212' + price + ' points.' : ' A free vowel: only vowels were left.') : ''));
     sfx('select');
     sfx(t ? 'fill' : 'zero', 0.2);
     if (sunk.length) log('me', sunk.join(', ') + ' sunk: every letter revealed.');
@@ -1169,10 +1176,10 @@
     var html = '<div class="report ' + (t ? 'is-good' : 'is-warn') + '"><div class="report-q">' + coordK(k) + ': "Calling ' + NATO[L] + '!"</div><div class="report-a">"' + L + ' tally ' + t + '."</div></div>' +
       (t ? revealNote(L, cells, 'the AI Captain\'s') : '<p class="hint">' + L + ' is nowhere in the AI Captain\'s fleet.</p>') +
       (bonus ? '<p class="bonus">\u2605 Bonus turn! ' + L + ' was hiding at ' + coordK(k) + '.</p>' : (at ? '' : '<p class="hint">' + coordK(k) + ' is open water.</p>')) +
-      (vowel ? '<p class="notice">Vowel bought: \u2212' + POINTS.vowel + ' points.</p>' : '');
+      (vowel && price ? '<p class="notice">Vowel bought: \u2212' + price + ' points.</p>' : '');
     setPref(CALLS_KEY, (+getPref(CALLS_KEY) || 0) + 1);
     showResult(bonus ? '\u2605 Bonus Turn!' : 'Calling ' + NATO[L], html, t > 0, bonus);
-    S.result.info = { L: L, t: t, k: k, cells: cells, bonus: bonus, vowel: vowel, open: !at, sunk: sunk, pts: pts };
+    S.result.info = { L: L, t: t, k: k, cells: cells, bonus: bonus, vowel: vowel, price: price, open: !at, sunk: sunk, pts: pts };
     save(); renderBattle();
   }
 
@@ -1353,10 +1360,10 @@
     S.foeTallies[L] = t;
     if (!at) S.foeShots[k] = { empty: true };
     else if (!bonus) markContact(S.foeShots, k, L);
-    if (vowel) S.skip.foe = true;
+    if (vowel && !onlyVowelsLeft(S.foeTallies)) S.skip.foe = true;   // free once only vowels are left
     var ev = { letter: L, square: k, tally: t, vowel: vowel, bonus: bonus, cells: revealLetter(S.foeShots, myBoard(), L) };
     log('foe', coordK(k) + ': "Calling ' + NATO[L] + '!" &mdash; <span class="say">"' + L + ' tally ' + t + '."</span>' +
-      (bonus ? ' It was at ' + coordK(k) + ': bonus turn.' : '') + (vowel ? ' A vowel: the AI Captain loses its next turn.' : ''));
+      (bonus ? ' It was at ' + coordK(k) + ': bonus turn.' : '') + (vowel ? (S.skip.foe ? ' A vowel: the AI Captain loses its next turn.' : ' A free vowel: only vowels were left.') : ''));
     sfx('incoming');
     sfx(t ? 'fill' : 'zero', 0.5);
     if (bonus) sfx('bull', 0.9);
@@ -1436,7 +1443,7 @@
       '<h3>Your Turn: Call a Letter</h3><ul>' +
       '<li>Tap a hidden square on the Attack Grid, then call a letter. Every square in the enemy fleet that holds it is revealed, wherever it is.</li>' +
       '<li><strong>Bonus turn:</strong> if the letter is in the square you tapped, you go again. Otherwise the turn passes.</li>' +
-      '<li><strong>Vowels</strong> (A E I O U) reveal the same way, but they are bought: the Human Captain needs ' + POINTS.vowel + ' points or more and pays ' + POINTS.vowel + ' points for each. The AI Captain keeps no score, so it loses its next turn instead.</li>' +
+      '<li><strong>Vowels</strong> (A E I O U) reveal the same way, but they are bought: the Human Captain needs ' + POINTS.vowel + ' points or more and pays ' + POINTS.vowel + ' points for each. The AI Captain keeps no score, so it loses its next turn instead. Once every consonant has been called, only vowels are left and they are free.</li>' +
       '<li><strong>Points:</strong> ' + POINTS.letter + ' for each letter you reveal, ' + POINTS.contact + ' for finding a square that holds a letter, ' + POINTS.bonus + ' for a bonus turn, ' + POINTS.sunk + ' for each word-ship you sink, and ' + POINTS.win + ' for victory plus ' + POINTS.spare + ' for each letter you never had to call.</li>' +
       '<li><strong>Sinking:</strong> a word-ship sinks when every one of its letters is revealed. Reveal the whole enemy fleet to win.</li></ul>' +
       '<h3>Winning</h3><ul>' +
