@@ -11,6 +11,7 @@ All of Word Fleet's word data lives here.
 | `build-hunspell.js` | Builds `es.json` / `de.json` from Hunspell dictionaries and frequency lists. |
 | `offensive-en-US.txt`, `offensive-en-GB.txt`, `offensive-es.txt`, `offensive-de.txt` | Possibly offensive words (the GB file adds British words to the US list). Hidden from both captains unless **Possibly Offensive Words OK** is checked. Edit freely, then rebuild. |
 | `fleet-names.json` | Fleet-name parts (adjectives and nouns) for English (UK), Spanish and German, used by the fleet-name dice. English (US) is built into `mobile/app.js`. Hand-edited; see `_about` inside for the format. |
+| `BANNED.md` | Banned words: removed from every dictionary and kept out when the dictionaries are rebuilt (read by `banned.js`). |
 | `words.xml` | The original word list used by the printable Pen & Paper Battle Tracker. |
 | `SCOWL-LICENSE.txt`, `LDNOOBW-LICENSE.txt`, `HUNSPELL-es-LICENSE.txt`, `HUNSPELL-de-LICENSE.txt` | Licenses for the source word lists. |
 

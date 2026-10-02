@@ -83,6 +83,8 @@ function playable(w) {
   return false;
 }
 
+// Banned words (BANNED.md) never make it into the dictionary.
+const BANNED = require('./banned');
 const OFFENSIVE = new Set(fs.readFileSync(path.join(__dirname, L.offensive), 'utf8')
   .split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith('#')).map(toGame).filter(Boolean));
 
@@ -93,7 +95,7 @@ for (const line of fs.readFileSync(freqFile, 'utf8').split('\n')) {
   if (!raw || +n < MIN_COUNT) continue;
   const w = raw.toLowerCase();
   const G = toGame(w);
-  if (!G || seen.has(G)) continue;
+  if (!G || BANNED.has(G) || seen.has(G)) continue;
   const ok = playable(w);
   if (!ok) continue;
   seen.add(G);

@@ -29,6 +29,8 @@ const JUNK = new Set('cs es gs ks ls ms ps rs ss ts kb lm ln lx mb mf hes'.split
 // Possibly offensive words: kept in the word list but flagged, so the game can hide them
 // unless "Possibly Offensive Words OK" is checked. Edit offensive-en-US.txt (both) or
 // offensive-en-GB.txt (British additions) to change the list.
+// Banned words (BANNED.md) never make it into the dictionary.
+const BANNED = require('./banned');
 const OFFENSIVE = new Set((V.code === 'en-GB' ? ['offensive-en-US.txt', 'offensive-en-GB.txt'] : ['offensive-en-US.txt'])
   .flatMap(f => fs.readFileSync(path.join(__dirname, f), 'utf8').split(/\r?\n/))
   .map(l => l.trim().toLowerCase()).filter(l => l && !l.startsWith('#')));
@@ -46,7 +48,7 @@ for (const [tier, sizes] of Object.entries(TIERS)) {
   for (const size of sizes) {
     for (const f of ['english-words.' + size, V.words + size]) {
       for (const w of read(f)) {
-        if (!/^[a-z]{2,5}$/.test(w) || JUNK.has(w) || seen.has(w)) continue;
+        if (!/^[a-z]{2,5}$/.test(w) || JUNK.has(w) || BANNED.has(w.toUpperCase()) || seen.has(w)) continue;
         seen.add(w);
         byLen[w.length].push(w.toUpperCase());
       }
