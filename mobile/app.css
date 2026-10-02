@@ -651,3 +651,9 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 /* ABC: the Attack Manifest on demand, in the top bar during battle */
 .bar-manifest { margin-left: auto; min-height: 36px; padding: 4px 12px; font-family: var(--mono); font-size: 15px; font-weight: 700; letter-spacing: 0.08em; }
 .bar-manifest + .icon-btn { margin-left: 0; }
+
+/* ABC tucked into the Attack Grid's empty top-left corner: opens the Attack Manifest */
+.cell.cell--abc { background: var(--foe); color: var(--foe-ink); border: none; padding: 0; cursor: pointer;
+  font-family: var(--mono); font-weight: 700; font-size: calc(var(--cell) * 0.3); letter-spacing: 0; }
+.cell.cell--abc:active { filter: brightness(0.9); }
+.cell.cell--abc { font-size: max(11px, calc(var(--cell) * 0.36)); }

@@ -359,7 +359,6 @@
     else if (current === 'battle') renderBattle();
     else if (current === 'over') renderOver();
     applyFleetColors();
-    $('btnManifest').hidden = !(current === 'battle' && S && S.phase === 'battle');
     refreshPanel();
     setMusicMood();
     fitButtons();
@@ -434,8 +433,9 @@
   // ------------------------------------------------------------
   // grid painter
   // ------------------------------------------------------------
-  function paint(el, cellFn, tappable) {
-    var html = '<div class="cell is-label"></div>';
+  // corner: optional HTML for the empty top-left cell (the Attack Grid tucks its ABC button there).
+  function paint(el, cellFn, tappable, corner) {
+    var html = corner || '<div class="cell is-label"></div>';
     for (var c = 0; c < 10; c++) html += '<div class="cell is-label">' + COLS[c] + '</div>';
     for (var r = 0; r < 10; r++) {
       html += '<div class="cell is-label">' + (r + 1) + '</div>';
@@ -762,7 +762,7 @@
       if (fi !== -1) o.cls = (o.cls || '') + ' is-flip is-d' + Math.min(fi, 6);
       if (info && info.k === k) o.cls = (o.cls || '') + (info.bonus ? ' is-aim is-aim-hit' : ' is-aim');
       return o;
-    }, live);
+    }, live, '<button type="button" class="cell is-label cell--abc" data-abc="1" aria-label="Attack Manifest: the letters you have called">ABC</button>');
     if (ui.flash) { clearTimeout(ui.flashTimer); ui.flashTimer = setTimeout(function () { ui.flash = null; }, 1800); }
 
 
@@ -1358,7 +1358,6 @@
   // ------------------------------------------------------------
   function on(el, type, fn) { if (el) el.addEventListener(type, fn); }
 
-  on($('btnManifest'), 'click', openAttackManifest);
   on($('btnMenu'), 'click', openMenu);
   function newBattle() {
     if (S && S.phase !== 'over' && S.phase !== 'setup' && !confirm('Abandon the current battle?')) return false;
@@ -1540,6 +1539,7 @@
     else if (act === 'submitDemandSure') submitDemand(true);
   });
   on($('gridAttack'), 'click', function (e) {
+    if (e.target.closest('[data-abc]')) { openAttackManifest(); return; }
     var c = e.target.closest('[data-k]');
     if (c) openManifest(c.getAttribute('data-k'));
   });
