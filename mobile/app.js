@@ -603,21 +603,23 @@
     }).join('');
 
     var fp = $('firePanel');
-    var links = '<div class="panel-links">' +
-      '<button class="linkbtn is-danger" type="button" data-act="demand">Demand Surrender</button></div>';
+    var found = bullCount(S.myShots);
+    var demandBtn = '<button class="btn btn--danger btn--wide" type="button" data-act="demand">Demand Surrender</button>';
     if (ui.demand && mine) {
       fp.innerHTML = demandForm();
     } else if (S.result) {
-      fp.innerHTML = S.result.html +
+      fp.innerHTML = '<div class="card-title">' + S.result.title + '</div>' + S.result.html +
         (S.result.solve ? solveBox() : '') +
-        (S.result.bonus ? '<p class="status">Tap another square for your bonus turn.</p>' + links
+        (S.result.bonus ? '<p class="hint" style="margin-bottom:6px">Tap another square on the Attack Grid to take your bonus turn.</p>' + demandBtn
                         : mine ? '<button class="btn btn--primary btn--wide" type="button" data-act="endTurn">End Turn</button>'
-                               : '<p class="waiting">AI Captain is choosing…</p>');
+                               : '<p class="waiting">AI Captain is choosing a square\u2026</p>');
     } else if (!mine) {
-      fp.innerHTML = '<p class="waiting">AI Captain is choosing…</p>';
+      fp.innerHTML = '<p class="waiting">AI Captain is choosing a square\u2026</p>';
     } else {
-      fp.innerHTML = (S.notice ? '<p class="notice">' + S.notice + '</p>' : '') +
-        '<p class="status"><strong>Your turn.</strong> Tap a square, then call a letter.</p>' + links;
+      fp.innerHTML = '<div class="card-title">Your Turn &middot; ' + found + ' of ' + FLEET_CELLS + ' letters revealed</div>' +
+        (S.notice ? '<p class="notice">' + S.notice + '</p>' : '') +
+        '<p class="hint" style="margin-top:0">Tap a square on the Attack Grid, then call a letter. Every square holding it is revealed. If it\'s in the square you picked, you get a <strong>bonus turn</strong>. Vowels cost your next turn.</p>' +
+        demandBtn;
     }
   }
 
@@ -636,21 +638,33 @@
     }, false);
     if (flashing) { ev.unseen = false; save(); $('defDot').hidden = true; }
 
+    var counts = letterCounts(S.me.words), lost = {};
+    Object.keys(S.foeShots).forEach(function (k) { var L = S.foeShots[k].letter; if (L) lost[L] = (lost[L] || 0) + 1; });
+    $('defenseManifest').innerHTML = LETTERS.map(function (L) {
+      var n = counts[L];
+      return '<div class="mf' + (n === 0 ? ' is-dim' : '') + (isVowel(L) && n ? ' is-vowel' : '') + '"><span class="mf-l">' + L + '</span>' + pips(n, lost[L] || 0, 'is-lost') + '</div>';
+    }).join('');
+
     // The AI Captain's moves since your last turn, one line each.
     var ic = $('incomingCard');
     var list = S.incoming || [];
     ic.hidden = !list.length;
-    ic.innerHTML = list.length ? list.map(incomingHtml).join('') +
-      (S.turn === 'me' ? '<button class="btn btn--primary btn--wide" type="button" data-act="returnFire">Your Turn → Attack Grid</button>'
+    ic.innerHTML = list.length ? '<div class="incoming-title">Incoming fire from the AI Captain</div>' + list.map(incomingHtml).join('') +
+      (S.turn === 'me' ? '<button class="btn btn--primary btn--wide" type="button" data-act="returnFire">Your Turn: Return Fire \u2192 Attack Grid</button>'
                        : '<p class="waiting">The AI Captain goes again…</p>') : '';
   }
 
   function incomingHtml(ev) {
     if (ev.skip) return '<p class="notice">You called a vowel, so you lose this turn.</p>';
-    var h = '<p class="call"><b>AI Captain:</b> ' + coordK(ev.square) + ' · <b>' + ev.letter + '</b> — ' +
-      (ev.tally ? ev.tally + ' revealed in your fleet' : 'not in your fleet') +
-      (ev.bonus ? ' <span class="tag">Bonus turn</span>' : '') + (ev.vowel ? ' <span class="tag is-red">Vowel: loses a turn</span>' : '') + '</p>';
-    if (ev.solve) h += '<p class="call"><b>AI Captain solves:</b> ' + ev.solve.word + ' — ' + (ev.solve.ok ? 'correct, the whole word is exposed' : 'wrong') + '</p>';
+    var h = '<div class="report ' + (ev.tally ? 'is-bad' : 'is-good') + '"><div class="report-q">' + coordK(ev.square) + ': "Calling ' + NATO[ev.letter] + '!"</div>' +
+      '<div class="report-a">"' + ev.letter + ' tally ' + ev.tally + '."</div></div>';
+    if (ev.cells && ev.cells.length && ev.tally) h += revealNote(ev.letter, ev.cells.slice(0, ev.tally), 'your');
+    if (ev.bonus) h += '<p class="bonus is-foe">★ ' + ev.letter + ' was at ' + coordK(ev.square) + ': the AI Captain takes a bonus turn.</p>';
+    if (ev.vowel) h += '<p class="notice">The AI Captain called a vowel, so it loses its next turn.</p>';
+    if (ev.solve) {
+      h += '<div class="report ' + (ev.solve.ok ? 'is-bad' : 'is-good') + '"><div class="report-q">"Solve: ' + ev.solve.word + '!"</div><div class="report-a">' + (ev.solve.ok ? '"Correct."' : '"Negative."') + '</div></div>' +
+        (ev.solve.ok ? '<p class="hint">Your word-ship <strong>' + ev.solve.word + '</strong> is fully exposed.</p>' : '');
+    }
     return h;
   }
 
@@ -699,8 +713,8 @@
     S.turn = to;
   }
 
-  function showResult(html, solve, bonus) {
-    S.result = { html: html, solve: !!solve, bonus: !!bonus };
+  function showResult(title, html, solve, bonus) {
+    S.result = { title: title, html: html, solve: !!solve, bonus: !!bonus };
     save();
     renderBattle();
   }
@@ -729,17 +743,19 @@
     if (bonus) sfx('bull', 0.5);
     if (vowel) sfx('error', 0.6);
     if (allRevealed(S.myShots, foeBoard())) { finish('me', 'reveal'); return; }
-    var html = '<p class="call"><b>' + coordK(k) + ' · ' + L + '</b> — ' + (t ? t + ' revealed' : 'not in their fleet') + '</p>' +
-      (bonus ? '<p class="bonus">Bonus turn! ' + L + ' was at ' + coordK(k) + '.</p>' : '') +
+    var html = '<div class="report ' + (t ? 'is-good' : 'is-warn') + '"><div class="report-q">' + coordK(k) + ': "Calling ' + NATO[L] + '!"</div><div class="report-a">"' + L + ' tally ' + t + '."</div></div>' +
+      (t ? revealNote(L, cells, 'the AI Captain\'s') : '<p class="hint">' + L + ' is nowhere in the AI Captain\'s fleet.</p>') +
+      (bonus ? '<p class="bonus">\u2605 Bonus turn! ' + L + ' was hiding at ' + coordK(k) + '.</p>' : (at ? '' : '<p class="hint">' + coordK(k) + ' is open water.</p>')) +
       (vowel ? '<p class="notice">Vowel: you lose your next turn.</p>' : '');
-    showResult(html, t > 0, bonus);
+    showResult('Calling ' + NATO[L], html, t > 0, bonus);
   }
 
   // --- solve a word (after calling a letter that is in the fleet) ---
   function solveBox() {
-    return '<div class="solve" id="solveBox">' +
-      '<div class="input-row"><input class="input" id="solveIn" maxlength="5" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="SOLVE A WORD">' +
-      '<button class="btn" type="button" data-act="solve">Solve</button></div></div>';
+    return '<div class="solve" id="solveBox"><span class="label">Solve a Word (optional)</span>' +
+      '<div class="input-row"><input class="input" id="solveIn" maxlength="5" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="WORD">' +
+      '<button class="btn" type="button" data-act="solve">Solve</button></div>' +
+      '<p class="hint">Name one of the AI Captain\'s word-ships. Get it right and the whole word is revealed.</p></div>';
   }
 
   // Fill in every square of the first unsolved word-ship spelling `word`.
@@ -770,10 +786,10 @@
       ui.flash = res.cells;
       log('me', '"Solve: ' + word + '!" &mdash; <span class="say">"Correct."</span>');
       if (allRevealed(S.myShots, foeBoard())) { finish('me', 'reveal'); return; }
-      html = '<p class="call"><b>Solve ' + word + '</b> \u2014 correct, the whole word is revealed.</p>';
+      html = '<div class="report is-good"><div class="report-q">"Solve: ' + word + '!"</div><div class="report-a">"Correct."</div></div>';
     } else {
       log('me', '"Solve: ' + word + '!" &mdash; <span class="say">"Negative."</span>');
-      html = '<p class="call"><b>Solve ' + word + '</b> \u2014 wrong.</p>';
+      html = '<div class="report is-bad"><div class="report-q">"Solve: ' + word + '!"</div><div class="report-a">"Negative."</div></div>';
     }
     S.result.html += html;
     S.result.solve = false;
