@@ -303,7 +303,10 @@
     try { localStorage.setItem(RECORD, JSON.stringify(r)); } catch (e) { /* ignore */ }
   }
 
+  // A new battle carries over the last one's settings, fleet name, colors, word-ships and their
+  // locations as the defaults; the captain changes any of them on 001-004. The first game is random.
   function newGame() {
+    var prev = S && S.me && S.me.words && S.me.words.length === SPECS.length ? S : null;
     S = {
       v: 2,
       phase: 'setup',
@@ -311,8 +314,10 @@
       lang: (S && S.lang) || (lang && lang.code) || 'en-US',
       offensiveOk: !!(S && S.offensiveOk),
       mode: (S && S.mode) || 'auto',
-      colors: pick(COLOR_SCHEMES).id,   // a random scheme each new game; the captain can change it on 001
-      me: { name: randomFleetName(), words: randomWords(), ships: null },
+      colors: (prev && prev.colors) || pick(COLOR_SCHEMES).id,   // random for the first game; the captain can change it on 001
+      me: prev ? { name: prev.me.name, words: prev.me.words.slice(),
+                   ships: prev.me.ships ? prev.me.ships.map(function (sh) { return { word: sh.word, r: sh.r, c: sh.c, dir: sh.dir }; }) : null }
+               : { name: randomFleetName(), words: randomWords(), ships: null },
       foe: null,
       myShots: {}, myTallies: {},
       foeShots: {}, foeTallies: {},
@@ -628,7 +633,12 @@
       noteFor = first;
       return;
     }
-    S.me.ships = scatter(S.me.words);   // 004 opens with the fleet already deployed at random
+    // 004 opens with the fleet deployed: where it sat last battle (words edited in place), or at random.
+    var kept = S.me.ships && S.me.ships.length === S.me.words.length && S.me.ships.every(function (sh, i) {
+      return sh.r != null && sh.word.length === S.me.words[i].length;
+    });
+    if (kept) S.me.ships.forEach(function (sh, i) { sh.word = S.me.words[i]; });
+    else S.me.ships = scatter(S.me.words);
     S.phase = 'deploy';
     save();
     show('deploy');
@@ -1267,9 +1277,7 @@
   function openMenu() {
     var live = S && S.phase !== 'over' && S.phase !== 'setup';
     openSheet('<h2>Word Fleet</h2><div class="menu-list">' +
-      '<button class="btn btn--primary btn--wide" type="button" data-act="newBattle">Start a New Battle</button>' +
-      (S && S.me && S.me.words && S.me.words.length ? '<button class="btn btn--wide" type="button" data-act="newBattleSame">New Battle, Same Words</button>' +
-        '<button class="btn btn--wide" type="button" data-act="newBattleFleet">New Battle, Whole New Fleet</button>' : '') +
+      '<button class="btn btn--primary btn--wide" type="button" data-act="newBattle">New Battle</button>' +
       '<button class="btn btn--wide" type="button" data-act="rules">Rules of Engagement</button>' +
       (ui.installEvt ? '<button class="btn btn--wide" type="button" data-act="install">Install Word Fleet</button>' : '') +
       '<a class="btn btn--wide" href="https://thegamebureau.com/wordfleet/">Home Port</a>' +
@@ -1311,27 +1319,10 @@
   function on(el, type, fn) { if (el) el.addEventListener(type, fn); }
 
   on($('btnMenu'), 'click', openMenu);
-  // kind: undefined starts over at 001; 'same' keeps your fleet (name, colors, words) and goes straight
-  // to 004 with it deployed at random; 'fleet' keeps your colors, draws a whole new fleet and opens 003.
-  function newBattle(kind) {
+  function newBattle() {
     if (S && S.phase !== 'over' && S.phase !== 'setup' && !confirm('Abandon the current battle?')) return false;
     if (ui.aiTimer) { clearTimeout(ui.aiTimer); ui.aiTimer = null; }
-    var old = S && S.me && S.me.words && S.me.words.length ? { name: S.me.name, words: S.me.words.slice(), colors: S.colors } : null;
-    newGame();
-    if (kind && old) {
-      S.colors = old.colors;
-      if (kind === 'same') {
-        S.me.name = old.name; S.me.words = old.words;
-        S.me.ships = scatter(S.me.words);
-        S.phase = 'deploy';
-        save(); show('deploy');
-        return true;
-      }
-      S.setupStep = 'words';
-      save(); show('words');
-      return true;
-    }
-    show('setup');
+    newGame(); show('setup');
     return true;
   }
   on($('btnNew'), 'click', function () { newBattle(); });
@@ -1553,13 +1544,11 @@
     else if (act === 'menuDemand') { closeSheet(); ui.demand = true; switchTab('Attack'); }
     else if (act === 'home') { closeSheet(); show('home'); }
     else if (act === 'newBattle') { if (newBattle()) closeSheet(); }
-    else if (act === 'newBattleSame') { if (newBattle('same')) closeSheet(); }
-    else if (act === 'newBattleFleet') { if (newBattle('fleet')) closeSheet(); }
     else if (act === 'abandon') {
       if (!confirm('Abandon this battle? It counts as a loss.')) return;
       if (S.phase === 'battle') bumpRecord(false);
-      closeSheet(); S = null; try { localStorage.removeItem(STORE); } catch (err) { /* ignore */ }
-      newGame(); show('setup');
+      closeSheet();
+      newGame(); show('setup');   // like New Battle: the last fleet and settings are the defaults
     }
     else if (act === 'install') { ui.installEvt.prompt(); ui.installEvt = null; closeSheet(); }
   });
