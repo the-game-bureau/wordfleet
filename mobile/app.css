@@ -697,3 +697,10 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 .uc.is-mine.is-vowel { border-bottom-color: var(--red); }
 /* the folded news line stays compact */
 .coach-news { font-size: 15px; line-height: 1.35; }
+
+/* Aiming: the Letters Manifest lights up and its letters become buttons */
+.uncalled.is-picking { background: #fff1e6; outline: 3px solid var(--foe); outline-offset: 2px; animation: pulse-out 1.2s ease-out 1; }
+.uncalled.is-picking .uncalled-label { color: var(--ink); }
+button.uc { cursor: pointer; padding: 0; color: var(--ink); }
+button.uc:active { background: var(--foe); }
+@keyframes pulse-out { 0% { outline-color: rgba(255,127,39,0); } 50% { outline-color: var(--foe); } }

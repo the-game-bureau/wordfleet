@@ -728,45 +728,18 @@
   // Can the Human Captain pick a square and call a letter right now?
   function canCall() { return S.turn === 'me' && (!S.result || S.result.bonus) && !ui.demand; }
 
-  // Tapping a hidden square on the Attack Grid pops up the letter picker.
+  // Tapping a hidden square aims at it; the Letters Manifest above the grid then takes the letter.
+  // Tapping the same square again cancels the aim.
   function openManifest(k) {
     if (!canCall()) return;
     if (S.myShots[k] && (S.myShots[k].letter || S.myShots[k].empty)) return;
+    if (ui.sel === k) { ui.sel = null; renderAttack(); return; }
     ui.sel = k;
     if (S.result && S.result.bonus) S.result = null;
+    sfx('select');
     renderAttack();
-    var letters = LETTERS.map(function (L) {
-      var t = S.myTallies[L], v = isVowel(L);
-      if (t != null) {
-        return '<div class="mf ' + (t ? 'is-done' : 'is-zero') + '"><span class="mf-l">' + L + '</span>' +
-          (t ? pips(t, t, 'is-found') : '<span class="mf-none">none</span>') + '</div>';
-      }
-      return '<button type="button" class="mf is-callable' + (v ? ' is-vowel' : '') + '" data-letter="' + L + '">' +
-        '<span class="mf-l">' + L + '</span>' + (v ? '<span class="mf-vowel">\u22121</span>' : '<span class="pips"></span>') + '</button>';
-    }).join('');
-    // Compact: the target in the title, vowels marked −1, tap outside to cancel.
-    openSheet('<h2>Calling for ' + coordK(k) + '</h2>' +
-      (hintsOn() ? '<p class="hint" style="margin:2px 0 0">If your letter is in ' + coordK(k) + ', you get a bonus turn. Vowels (\u22121) cost your next turn.</p>' : '') +
-      '<div class="manifest manifest--pick">' + letters + '</div>', true, '006-MOBILE-CALL-LETTER');
-  }
-
-  // Attack Manifest: called letters with one dot per square revealed. No longer on the Attack tab;
-  // it shows in the letter picker when you call, and on demand from the ABC button in the top bar.
-  function attackManifestHtml() {
-    var info = S.result && S.result.info;
-    return LETTERS.map(function (L) {
-      var t = S.myTallies[L], cls = 'mf' + (isVowel(L) && t == null ? ' is-vowel' : '');
-      var under = t == null ? '<span class="pips"></span>' : t ? pips(t, t, 'is-found') : '<span class="mf-none">none</span>';
-      if (t != null) cls += t ? ' is-done' : ' is-zero';
-      if (info && info.L === L && ui.flash) cls += ' is-pulse';
-      return '<div class="' + cls + '"><span class="mf-l">' + L + '</span>' + under + '</div>';
-    }).join('');
-  }
-  function openAttackManifest() {
-    openSheet('<h2>Attack Manifest</h2>' +
-      (hintsOn() ? '<p class="hint" style="margin:2px 0 0">Letters you have called. Each dot is one square of that letter revealed in the AI Captain\'s fleet.</p>' : '') +
-      '<div class="manifest">' + attackManifestHtml() + '</div>' +
-      '<button class="btn btn--ghost btn--wide" type="button" data-act="close">Close</button>', true, 'MOBILE-ATTACK-MANIFEST');
+    var strip = $('uncalled');
+    if (strip && strip.scrollIntoView) strip.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 
   function renderAttack() {
@@ -792,9 +765,16 @@
       return o;
     }, live);
     // Letters not yet called, A to Z; each drops out once called. Vowels are marked (they cost a turn).
+    // Letters Manifest: letters not yet called. Once you aim at a square they become buttons to call.
     var left = LETTERS.filter(function (L) { return S.myTallies[L] == null; });
-    $('uncalled').innerHTML = '<span class="uncalled-label">Letters left</span>' +
-      left.map(function (L) { return '<span class="uc' + (isVowel(L) ? ' is-vowel' : '') + '">' + L + '</span>'; }).join('');
+    var picking = !!ui.sel && live;
+    $('uncalled').classList.toggle('is-picking', picking);
+    $('uncalled').innerHTML = '<span class="uncalled-label">' + (picking ? 'Letters Manifest \u00b7 for ' + coordK(ui.sel) : 'Letters Manifest') + '</span>' +
+      left.map(function (L) {
+        var cls = 'uc' + (isVowel(L) ? ' is-vowel' : '');
+        return picking ? '<button type="button" class="' + cls + '" data-letter="' + L + '" aria-label="Call ' + L + (isVowel(L) ? ' (vowel: costs your next turn)' : '') + '">' + L + '</button>'
+                       : '<span class="' + cls + '">' + L + '</span>';
+      }).join('');
     if (ui.flash) { clearTimeout(ui.flashTimer); ui.flashTimer = setTimeout(function () { ui.flash = null; }, 1800); }
 
 
@@ -849,7 +829,8 @@
       main = 'AI Captain is aiming<span class="dots"><i>.</i><i>.</i><i>.</i></span>';
       if (hint) sub.push('It calls a letter on your fleet. Watch the Defense Grid.');
     } else if (ui.sel) {
-      step = '2'; main = 'Call a letter for <b>' + coordK(ui.sel) + '</b>';
+      step = '2'; main = 'Call a letter for <b>' + coordK(ui.sel) + '</b>: tap it in the Letters Manifest.';
+      if (hint) sub.push('Tap another square to re-aim, or ' + coordK(ui.sel) + ' again to cancel. Vowels (red) cost your next turn.');
     } else if (r && info && info.bonus) {
       cls = 'is-bonus'; step = '\u2605';
       main = 'Bonus turn! <b>' + info.L + '</b> was at <b>' + coordK(info.k) + '</b>. Tap another square.';
@@ -905,25 +886,9 @@
     // Letters the AI Captain has not called yet; the ones in your fleet (still at risk) are outlined in your colors.
     var mineCount = letterCounts(S.me.words);
     var aiLeft = LETTERS.filter(function (L) { return S.foeTallies[L] == null; });
-    $('defUncalled').innerHTML = '<span class="uncalled-label">AI letters left</span>' +
+    $('defUncalled').innerHTML = '<span class="uncalled-label">AI Letters Manifest</span>' +
       aiLeft.map(function (L) { return '<span class="uc' + (isVowel(L) ? ' is-vowel' : '') + (mineCount[L] ? ' is-mine' : '') + '">' + L + '</span>'; }).join('');
     if (flashing) { ev.unseen = false; save(); $('defDot').hidden = true; }
-  }
-
-  // Defense Manifest: every letter in your fleet, a dot per copy, filled red once the AI Captain reveals it.
-  function defenseManifestHtml() {
-    var counts = letterCounts(S.me.words), lost = {};
-    Object.keys(S.foeShots).forEach(function (k) { var L = S.foeShots[k].letter; if (L) lost[L] = (lost[L] || 0) + 1; });
-    return LETTERS.map(function (L) {
-      var n = counts[L];
-      return '<div class="mf' + (n === 0 ? ' is-dim' : '') + (isVowel(L) && n ? ' is-vowel' : '') + '"><span class="mf-l">' + L + '</span>' + pips(n, lost[L] || 0, 'is-lost') + '</div>';
-    }).join('');
-  }
-  function openDefenseManifest() {
-    openSheet('<h2>Defense Manifest</h2>' +
-      '<p class="hint" style="margin:2px 0 0"><span class="pip-key"><i class="pip is-lost"></i> revealed by the AI Captain</span> <span class="pip-key"><i class="pip"></i> still hidden</span></p>' +
-      '<div class="manifest">' + defenseManifestHtml() + '</div>' +
-      '<button class="btn btn--ghost btn--wide" type="button" data-act="close">Close</button>', true, 'MOBILE-DEFENSE-MANIFEST');
   }
 
   // 008-MOBILE-LOG: newest first, an anchor bullet on every entry. Your moves and the AI Captain's
@@ -1570,6 +1535,10 @@
     else if (act === 'solve') humanSolve();
     else if (act === 'submitDemand') submitDemand(false);
     else if (act === 'submitDemandSure') submitDemand(true);
+  });
+  on($('uncalled'), 'click', function (e) {
+    var b = e.target.closest('[data-letter]');
+    if (b) humanCall(b.getAttribute('data-letter'));
   });
   on($('gridAttack'), 'click', function (e) {
     var c = e.target.closest('[data-k]');
