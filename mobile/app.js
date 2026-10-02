@@ -752,7 +752,7 @@
       fp.innerHTML = demandForm();
     } else if (S.result) {
       pkey = 'result:' + S.log.length + (S.result.bonus ? ':bonus' : '');
-      dismissible = !!S.result.bonus;   // a bonus turn means tapping the grid next
+      dismissible = true;   // close it to look at the grid; the reopen button brings it back
       fp.innerHTML = '<div class="card-title">' + S.result.title + '</div>' + S.result.html +
         (S.result.solve ? solveBox() : '') +
         (S.result.bonus ? '<button class="btn btn--bonus btn--wide" type="button" data-act="panelOk">\u2605 Take Your Bonus Turn</button>' + demandBtn
@@ -782,6 +782,9 @@
     $('panelSheet').hidden = !show;
     $('panelScrim').hidden = !show;
     $('panelClose').hidden = !ui.panelDismissible;
+    // A closed result (not a bonus turn) leaves a button above the tabs to bring it back and end the turn.
+    $('panelReopen').hidden = show || !(current === 'battle' && S && S.phase === 'battle' && ui.tab === 'Attack' && $('sheet').hidden &&
+      ui.panelKey && ui.panelKey === ui.panelClosed && /^result:/.test(ui.panelKey) && !/:bonus$/.test(ui.panelKey));
     $('panelSheet').setAttribute('data-screen', ui.panelKey === 'demand' ? '009-MOBILE-SURRENDER' : '005-MOBILE-ATTACK-POPUP');
     if (show) fitButtons($('panelSheet'));
   }
@@ -1498,6 +1501,7 @@
   on($('scrim'), 'click', function () { if (sheetDismissible) closeSheet(); });
   on($('panelScrim'), 'click', closePanel);
   on($('panelClose'), 'click', closePanel);
+  on($('panelReopen'), 'click', function () { ui.panelClosed = null; refreshPanel(); });
   on($('sheetBody'), 'click', function (e) {
     var k = e.target.closest('[data-letter]');
     if (k) { humanCall(k.getAttribute('data-letter')); return; }
