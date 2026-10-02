@@ -1158,7 +1158,8 @@
   });
   on($('btnRollName'), 'click', function () { S.me.name = randomFleetName(); $('inFleet').value = S.me.name; fitFleetName(); renderSchemes(); save(); });
   on($('segLevel'), 'click', function (e) {
-    var v = e.target.getAttribute('data-v');
+    var b = e.target.closest('[data-v]');   // a tap may land on the "Captain" line inside the button
+    var v = b && b.getAttribute('data-v');
     if (!v) return;
     S.level = v;
     if (!S.wordsEdited) S.me.words = randomWords();   // drawn words follow the opponent; typed ones stay
