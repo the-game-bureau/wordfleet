@@ -478,12 +478,11 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 .deploy-frame { border: 1px solid var(--ink); border-top: 4px solid var(--navy); padding: 10px 0; background: var(--paper); }
 .deploy-board { --board: min(calc(100vw - 54px), 468px); }
 
-/* 001: color scheme swatches, two colors each */
-.swatches { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
-.swatch { display: flex; height: 52px; padding: 0; border: 1px solid var(--ink); background: var(--paper); cursor: pointer; overflow: hidden; }
-.swatch i { flex: 1; }
-.swatch.is-on { outline: 3px solid var(--ink); outline-offset: 2px; }
+/* 001: color schemes shown as flags flying the fleet's initials */
+.swatches { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.swatch { display: block; padding: 4px 2px; border: 1px solid transparent; background: none; cursor: pointer; border-radius: 4px; }
+.swatch svg { display: block; width: 100%; height: auto; }
+.swatch.is-on { border-color: var(--ink); outline: 2px solid var(--ink); background: #fff; }
 .swatch:focus-visible { outline: 3px solid var(--green-dark); outline-offset: 2px; }
 .setup-big .swatch-name { margin: 10px 0 0; font-weight: 600; color: var(--ink); }
 .setup-big #lblColors { margin-top: 22px; }
-.swatch span { flex: 1; display: grid; place-items: center; font-family: var(--mono); font-size: 22px; font-weight: 700; }

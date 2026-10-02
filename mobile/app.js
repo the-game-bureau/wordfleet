@@ -386,14 +386,7 @@
       return '<option value="' + esc(l.code) + '"' + (lang && l.code === lang.code ? ' selected' : '') + '>' + esc(l.name) + '</option>';
     }).join('');
     $('selLang').disabled = languages.length < 2;
-    // A saved scheme that no longer exists gets a fresh random one.
-    if (!COLOR_SCHEMES.some(function (cs) { return cs.id === S.colors; })) { S.colors = pick(COLOR_SCHEMES).id; save(); }
-    var scheme = S.colors;
-    $('colorSchemes').innerHTML = COLOR_SCHEMES.map(function (cs) {
-      return '<button type="button" class="swatch' + (cs.id === scheme ? ' is-on' : '') + '" data-scheme="' + cs.id + '" role="radio" aria-checked="' + (cs.id === scheme) + '" aria-label="' + esc(cs.name) + '">' +
-        '<span style="background:' + cs.colors[0] + ';color:' + cs.colors[1] + '">Aa</span></button>';
-    }).join('');
-    $('colorSchemeName').textContent = COLOR_SCHEMES.filter(function (cs) { return cs.id === scheme; })[0].name;
+    renderSchemes();
     $('chkOffensive').checked = offensiveOk();
     setSeg('segLevel', S.level);
     $('levelHint').innerHTML = esc(LEVELS[S.level].hint) + ' <strong>e.g. ' + LEVELS[S.level].example + '</strong>';
@@ -411,6 +404,32 @@
     $('wordList').innerHTML = html;
     Array.prototype.forEach.call($('wordList').querySelectorAll('[data-word]'), markWordInput);
     $('setupNote').textContent = '';
+  }
+
+  // Fleet initials for the flags: first letter of each word ("SALTY ARMADA" -> SA, "LEGIÓN DE LA SIRENA" -> LDLS).
+  function fleetInitials(name) {
+    return (name || '').trim().split(/\s+/).map(function (w) { return w.replace(/^[^A-Za-zÀ-ÿ]+/, '').charAt(0); }).join('').toUpperCase().slice(0, 5);
+  }
+
+  // A small waving flag in a color scheme: first color for the cloth, second for the fleet initials.
+  function flagSvg(cs, initials) {
+    var size = initials.length <= 2 ? 20 : initials.length === 3 ? 16 : 12;
+    return '<svg viewBox="0 0 64 48" aria-hidden="true">' +
+      '<rect x="3" y="2" width="3" height="46" rx="1" fill="#000"/>' +
+      '<path d="M6 5 C22 0 38 10 61 5 L61 33 C38 38 22 28 6 33 Z" fill="' + cs.colors[0] + '" stroke="#000" stroke-width="1"/>' +
+      '<text x="33.5" y="19" dy="0.35em" text-anchor="middle" font-family="Courier Prime, monospace" font-weight="700" font-size="' + size + '" fill="' + cs.colors[1] + '">' + esc(initials) + '</text>' +
+      '</svg>';
+  }
+
+  function renderSchemes() {
+    // A saved scheme that no longer exists gets a fresh random one.
+    if (!COLOR_SCHEMES.some(function (cs) { return cs.id === S.colors; })) { S.colors = pick(COLOR_SCHEMES).id; save(); }
+    var scheme = S.colors, initials = fleetInitials(S.me.name) || 'WF';
+    $('colorSchemes').innerHTML = COLOR_SCHEMES.map(function (cs) {
+      return '<button type="button" class="swatch' + (cs.id === scheme ? ' is-on' : '') + '" data-scheme="' + cs.id + '" role="radio" aria-checked="' + (cs.id === scheme) + '" aria-label="' + esc(cs.name) + '">' +
+        flagSvg(cs, initials) + '</button>';
+    }).join('');
+    $('colorSchemeName').textContent = COLOR_SCHEMES.filter(function (cs) { return cs.id === scheme; })[0].name;
   }
 
   function setSeg(id, v) {
@@ -1130,13 +1149,13 @@
     var size = parseFloat(getComputedStyle(el).fontSize);
     while (el.scrollWidth > el.clientWidth && size > 11) el.style.fontSize = (size -= 1) + 'px';
   }
-  on($('inFleet'), 'input', function () { S.me.name = this.value.toUpperCase(); fitFleetName(); save(); });
+  on($('inFleet'), 'input', function () { S.me.name = this.value.toUpperCase(); fitFleetName(); renderSchemes(); save(); });
   on($('colorSchemes'), 'click', function (e) {
     var b = e.target.closest('[data-scheme]');
     if (!b) return;
-    S.colors = b.getAttribute('data-scheme'); S.colorsPicked = true; save(); renderSetup();
+    S.colors = b.getAttribute('data-scheme'); S.colorsPicked = true; save(); renderSchemes();
   });
-  on($('btnRollName'), 'click', function () { S.me.name = randomFleetName(); $('inFleet').value = S.me.name; fitFleetName(); save(); });
+  on($('btnRollName'), 'click', function () { S.me.name = randomFleetName(); $('inFleet').value = S.me.name; fitFleetName(); renderSchemes(); save(); });
   on($('segLevel'), 'click', function (e) {
     var v = e.target.getAttribute('data-v');
     if (!v) return;

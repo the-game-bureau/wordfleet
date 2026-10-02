@@ -1,11 +1,11 @@
 /* Word Fleet service worker: the whole game works offline once loaded. */
-var CACHE = 'wordfleet-v61';
+var CACHE = 'wordfleet-v62';
 var SHELL = [
   './',
   'index.html',
-  'app.css?v=61',
-  'app.js?v=61',
-  'audio.js?v=61',
+  'app.css?v=62',
+  'app.js?v=62',
+  'audio.js?v=62',
   'manifest.webmanifest',
   'icons/icon-180.png',
   'icons/icon-192.png',
