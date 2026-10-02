@@ -912,6 +912,8 @@
       var all = cellsOf(ship).every(function (p) { var s = S.foeShots[key(p.r, p.c)]; return s && s.letter; });
       return '<span class="bubble' + (all ? ' is-lost' : '') + '" title="' + SPECS[i].cls + (all ? ': sunk' : '') + '">' + SPECS[i].len + '</span>';
     }).join('');
+    // Outlined like the Attack Grid while it is where the action is: the AI Captain's turn.
+    $('gridDefense').classList.toggle('is-picking', S.phase === 'battle' && S.turn === 'foe');
     paint($('gridDefense'), function (r, c) {
       var k = key(r, c);
       var cell = b[k];
