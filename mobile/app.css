@@ -743,3 +743,9 @@ button.uc:active { background: var(--mine, var(--navy)); color: var(--mine-ink, 
 .coach.is-lost .coach-eyebrow { color: var(--red); }
 /* Your turn, nothing aimed yet: the Attack Grid lights up like the letters manifest does when aiming */
 .grid.is-picking { outline: 3px solid var(--mine, var(--navy)); outline-offset: 3px; animation: pulse-out 1.2s ease-out 1; }
+/* "?" squares: violet, the complement of Wordle green and yellow, solid like a Wordle tile */
+:root { --contact: #7b5fb3; }
+.cell.is-contact { background: var(--contact); }
+.cell.is-contact .q, .cell.is-contact .tried { color: #fff; }
+.cell.is-ship.is-contact { background: var(--blue-wash); box-shadow: inset 0 0 0 3px var(--contact); }
+.cell.is-ship.is-contact .tried { color: var(--contact); }
