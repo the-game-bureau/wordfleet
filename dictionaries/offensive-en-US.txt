@@ -442,3 +442,25 @@ yellow showers
 yiffy
 zoophilia
 🖕
+# Added after testing: slurs SCOWL lists as plain words
+wog
+wogs
+gyp
+gyps
+wop
+wops
+boong
+darky
+poof
+poofs
+fag
+fags
+fagot
+mongo
+yid
+yids
+squaw
+mick
+micks
+nonce
+ponce

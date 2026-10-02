@@ -151,19 +151,22 @@
   function allowed(w) { return !offensiveSet[w] || offensiveOk(); }
   function inDictionary(w) { return !!dictSet[w] && allowed(w); }
 
-  // Three example words (5, 4 and 3 letters) for a captain on 002, from that captain's tier of the chosen
-  // dictionary and never offensive. Kept per language and captain so they don't change on every tap.
+  // Example words for a captain on 002, one per word-ship (5, 4, 3, 3, 2 letters), from that captain's tier
+  // of the chosen dictionary and never offensive. Kept per language and captain so they don't change on every tap.
   var exampleCache = {};
   function levelExamples(level) {
     var k = (lang && lang.code) + ':' + level;
     if (!exampleCache[k]) {
-      var tiers = (LEVELS[level] || LEVELS.ensign).tiers;
-      exampleCache[k] = [5, 4, 3].map(function (len) {
-        var pool = [];
+      var tiers = (LEVELS[level] || LEVELS.ensign).tiers, chosen = [];
+      SPECS.forEach(function (spec) {
+        var len = spec.len, pool = [];
         tiers.forEach(function (t) { var byLen = lang && lang.tiers[t]; if (byLen && byLen[len]) pool = pool.concat(byLen[len]); });
-        pool = pool.filter(function (w) { return !unsafeSet[w]; });
-        return pool.length ? pick(pool) : pick(FALLBACK[len]);
-      }).join(' \u2022 ');
+        // Short words are scarce outside the common tier (none at all in Spanish and German): use the common tier.
+        if (pool.length < 3 && lang && lang.tiers.common && lang.tiers.common[len]) pool = pool.concat(lang.tiers.common[len]);
+        pool = pool.filter(function (w) { return !unsafeSet[w] && chosen.indexOf(w) === -1; });
+        chosen.push(pool.length ? pick(pool) : pick(FALLBACK[len]));
+      });
+      exampleCache[k] = chosen.join(' \u2022 ');
     }
     return exampleCache[k];
   }
