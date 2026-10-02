@@ -249,7 +249,8 @@
   // ------------------------------------------------------------
   var SCREENS = { home: 'scrMobileHome',   // "001 Mobile Home"
                   setup: 'scrSetup',   // "002 Prepare for Battle"
-                  deploy: 'scrDeploy', battle: 'scrBattle', over: 'scrOver' };
+                  deploy: 'scrDeploy',   // "003 Deploy"
+                  battle: 'scrBattle', over: 'scrOver' };
   var current = 'home';
 
   function show(name) {
