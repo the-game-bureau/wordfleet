@@ -38,12 +38,15 @@
   // Once every consonant has been called, only vowels are left and they are free.
   function onlyVowelsLeft(tallies) { return LETTERS.every(function (L) { return isVowel(L) || tallies[L] != null; }); }
   function vowelPrice() { return onlyVowelsLeft(S.myTallies) ? 0 : POINTS.vowel; }
+  function foeVowelPrice() { return onlyVowelsLeft(S.foeTallies) ? 0 : POINTS.vowel; }
   function canBuyVowel() { return (S.score || 0) >= vowelPrice(); }
   // Adds points and returns a short note of what they were for.
-  function award(parts) {
+  // who: 'me' (default) or 'foe': the AI Captain scores by the same rules and buys vowels the same way.
+  function award(parts, who) {
     var total = 0, why = [];
     parts.forEach(function (x) { if (x[0] > 0) { total += x[0]; why.push('+' + x[0] + ' ' + x[1]); } });
-    S.score = (S.score || 0) + total;
+    if (who === 'foe') S.foeScore = (S.foeScore || 0) + total;
+    else S.score = (S.score || 0) + total;
     return { total: total, why: why };
   }
 
@@ -55,7 +58,7 @@
                  hint: 'A dependable old hand who has seen a few storms. Hides familiar words, calls sensible consonants, and aims where your revealed letters point.',
                  pattern: true, vowelCost: 0.45, noise: 0.15 },
     admiral:   { name: 'Captain Lexicon',   tiers: ['rare'],    
-                 hint: 'A walking dictionary with a periscope. Hides rare words that are hard to crack, studies every letter you reveal, and almost never wastes a turn on a vowel.',
+                 hint: 'A walking dictionary with a periscope. Hides rare words that are hard to crack, studies every letter you reveal, and almost never spends points on a vowel.',
                  pattern: true, vowelCost: 0.3, noise: 0.05 }
   };
 
@@ -407,7 +410,7 @@
       foeShots: {}, foeTallies: {},
       turn: null, incoming: [], lastFoe: null, skip: { me: false, foe: false }, notice: null,
       claims: null, log: [], turns: 0,
-      winner: null, reason: null, score: 0, winPts: null
+      winner: null, reason: null, score: 0, foeScore: 0, winPts: null
     };
     // A new game starts clean: no aim, flip-ins, popups, banners or AI moves left over from the last one.
     ui.sel = null; ui.tab = 'Attack'; ui.flash = null; ui.demand = false; ui.dragged = false; ui.firstTap = null;
@@ -949,7 +952,7 @@
   function aiMoveLine(ev) {
     if (ev.skip) return 'you lost a turn (vowel)';
     return 'AI: <b>' + ev.letter + '</b> at <b>' + coordK(ev.square) + '</b> (' + ev.tally + ')' +
-      (ev.bonus ? ' \u2605 bonus' : '');
+      (ev.bonus ? ' \u2605 bonus' : '') + (ev.vowel && ev.price ? ', bought for ' + ev.price : '') + (ev.pts && ev.pts.total ? ', +' + ev.pts.total : '');
   }
 
   function ptsLine(p) {
@@ -964,13 +967,15 @@
     var mine = S.turn === 'me', r = S.result, info = r && r.info, hint = hintsOn();
     var step = '', main = '', pre = [], sub = [], btns = '', cls = '';   // pre: news above the instruction; sub: details below
     if (S.phase === 'over') {
-      // 010-MOBILE-GAME-OVER: the result, how the battle went, and no buttons (New Battle is in the ☰ menu).
+      // 010-MOBILE-GAME-OVER: the result, how the battle went, and a New Battle button (also in the ☰ menu).
       var o = overText(), called = Object.keys(S.myTallies);
       cls = S.winner === 'me' ? 'is-bonus' : 'is-lost';
       step = S.winner === 'me' ? '\u2605' : '\u2715';
       main = '<span class="coach-eyebrow">' + o.eyebrow + '</span>' + o.title;
       sub.push(o.quote);
       if (S.winPts) sub.push(ptsLine(S.winPts));
+      sub.push('AI Captain: ' + (S.foeScore || 0) + ' points');
+      btns = '<button class="btn btn--sm btn--primary" type="button" data-coach="new">New Battle</button>';
       sub.push('<b>' + (S.score || 0) + ' points</b> \u00b7 ' + called.length + ' letters called \u00b7 ' + called.filter(isVowel).length + ' vowels \u00b7 ' + bullCount(S.myShots) + '/' + FLEET_CELLS + ' revealed');
     } else if (!mine) {
       cls = 'is-wait';
@@ -1018,6 +1023,7 @@
 
   function renderDefense() {
     $('defFleetName').textContent = S.me.name || 'Your fleet';
+    $('foeScore').textContent = 'AI: ' + (S.foeScore || 0) + ' points';
     var b = myBoard();
     var ev = S.lastFoe;
     var flashing = ev && ev.unseen && ui.tab === 'Defense';
@@ -1048,7 +1054,7 @@
     var aiLeft = LETTERS.filter(function (L) { return S.foeTallies[L] == null; });
     $('defUncalled').innerHTML = manifestHtml('AI Letters Manifest', aiLeft, function (L, cls) {
       return '<span class="' + cls + (mineCount[L] ? ' is-mine' : '') + '">' + L + '</span>';
-    }, '\u22121 turn');
+    }, POINTS.vowel + ' points');
     if (flashing) { ev.unseen = false; save(); $('defDot').hidden = true; }
   }
 
@@ -1311,6 +1317,9 @@
   function foeCallLetter(lvl) {
     var called = S.foeTallies, prior = priorScores();
     var options = LETTERS.filter(function (L) { return called[L] == null; });
+    // Vowels cost the AI Captain points too: it can only call one it can afford.
+    var canVowel = (S.foeScore || 0) >= foeVowelPrice();
+    if (!canVowel && options.some(function (L) { return !isVowel(L); })) options = options.filter(function (L) { return !isVowel(L); });
     var score = {};
     options.forEach(function (L) { score[L] = prior[L]; });
     if (lvl.pattern) {
@@ -1356,14 +1365,24 @@
     var t = countOf(S.me.words.join(''), L);
     var vowel = isVowel(L);
     var bonus = !!(at && at.letter === L);
+    var price = vowel ? foeVowelPrice() : 0;   // free once only vowels are left
     S.turns++;
     S.foeTallies[L] = t;
     if (!at) S.foeShots[k] = { empty: true };
     else if (!bonus) markContact(S.foeShots, k, L);
-    if (vowel && !onlyVowelsLeft(S.foeTallies)) S.skip.foe = true;   // free once only vowels are left
-    var ev = { letter: L, square: k, tally: t, vowel: vowel, bonus: bonus, cells: revealLetter(S.foeShots, myBoard(), L) };
+    if (vowel) S.foeScore = (S.foeScore || 0) - price;   // bought with points, like the Human Captain
+    var sunkBefore = sunkWords(S.foeShots, S.me.ships);
+    var ev = { letter: L, square: k, tally: t, vowel: vowel, price: price, bonus: bonus, cells: revealLetter(S.foeShots, myBoard(), L) };
+    var sunk = sunkWords(S.foeShots, S.me.ships).filter(function (w) { return sunkBefore.indexOf(w) === -1; });
+    ev.pts = award([
+      [ev.cells.length * POINTS.letter, ev.cells.length === 1 ? 'letter' : 'letters'],
+      [at && !bonus ? POINTS.contact : 0, '?'],
+      [bonus ? POINTS.bonus : 0, 'bonus'],
+      [sunk.length * POINTS.sunk, 'sunk']
+    ], 'foe');
     log('foe', coordK(k) + ': "Calling ' + NATO[L] + '!" &mdash; <span class="say">"' + L + ' tally ' + t + '."</span>' +
-      (bonus ? ' It was at ' + coordK(k) + ': bonus turn.' : '') + (vowel ? (S.skip.foe ? ' A vowel: the AI Captain loses its next turn.' : ' A free vowel: only vowels were left.') : ''));
+      (bonus ? ' It was at ' + coordK(k) + ': bonus turn.' : '') + (vowel ? (price ? ' Bought a vowel: \u2212' + price + ' points.' : ' A free vowel: only vowels were left.') : '') +
+      (sunk.length ? ' ' + sunk.join(', ') + ' sunk.' : '') + (ev.pts.total ? ' +' + ev.pts.total + ' points. AI Captain\'s score ' + S.foeScore + '.' : ''));
     sfx('incoming');
     sfx(t ? 'fill' : 'zero', 0.5);
     if (bonus) sfx('bull', 0.9);
@@ -1390,6 +1409,10 @@
       var spare = LETTERS.filter(function (L) { return S.myTallies[L] == null; }).length;
       S.winPts = award([[POINTS.win, 'victory'], [spare * POINTS.spare, 'letters to spare']]);
       log('me', S.winPts.total + ' points (' + S.winPts.why.join(', ') + '). Final score ' + S.score + '.');
+    } else {
+      var foeSpare = LETTERS.filter(function (L) { return S.foeTallies[L] == null; }).length;
+      var fp = award([[POINTS.win, 'victory'], [foeSpare * POINTS.spare, 'letters to spare']], 'foe');
+      log('foe', fp.total + ' points (' + fp.why.join(', ') + '). AI Captain\'s final score ' + S.foeScore + '.');
     }
     bumpRecord(winner === 'me');
     recordFleet({ score: S.score || 0, won: winner === 'me', level: S.level });
@@ -1443,7 +1466,7 @@
       '<h3>Your Turn: Call a Letter</h3><ul>' +
       '<li>Tap a hidden square on the Attack Grid, then call a letter. Every square in the enemy fleet that holds it is revealed, wherever it is.</li>' +
       '<li><strong>Bonus turn:</strong> if the letter is in the square you tapped, you go again. Otherwise the turn passes.</li>' +
-      '<li><strong>Vowels</strong> (A E I O U) reveal the same way, but they are bought: the Human Captain needs ' + POINTS.vowel + ' points or more and pays ' + POINTS.vowel + ' points for each. The AI Captain keeps no score, so it loses its next turn instead. Once every consonant has been called, only vowels are left and they are free.</li>' +
+      '<li><strong>Vowels</strong> (A E I O U) reveal the same way, but they are bought: a captain needs ' + POINTS.vowel + ' points or more and pays ' + POINTS.vowel + ' points for each. The AI Captain earns points by the same rules and buys its vowels the same way. Once every consonant has been called, only vowels are left and they are free.</li>' +
       '<li><strong>Points:</strong> ' + POINTS.letter + ' for each letter you reveal, ' + POINTS.contact + ' for finding a square that holds a letter, ' + POINTS.bonus + ' for a bonus turn, ' + POINTS.sunk + ' for each word-ship you sink, and ' + POINTS.win + ' for victory plus ' + POINTS.spare + ' for each letter you never had to call.</li>' +
       '<li><strong>Sinking:</strong> a word-ship sinks when every one of its letters is revealed. Reveal the whole enemy fleet to win.</li></ul>' +
       '<h3>Winning</h3><ul>' +
@@ -1675,6 +1698,7 @@
     if (!b) return;
     var act = b.getAttribute('data-coach');
     if (act === 'end') endMyTurn();
+    else if (act === 'new') newBattle();
   });
   on($('sheetBody'), 'click', function (e) {
     var k = e.target.closest('[data-letter]');

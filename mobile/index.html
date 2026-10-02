@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Bump ?v= on every release (and CACHE in sw.js) so a new page never runs old code. -->
-  <link rel="stylesheet" href="app.css?v=157">
+  <link rel="stylesheet" href="app.css?v=159">
 </head>
 <body>
 
@@ -166,7 +166,7 @@
       <!-- Built like the Attack Grid, in your fleet colors. The AI Captain's moves are reported in the coach bar;
            "AI letters left" above the grid matches the Attack Grid's "Letters left". -->
       <div class="gridbanner is-defense">
-        <div><b>DEFENSE GRID</b><span id="defFleetName">Your fleet</span></div>
+        <div><b>DEFENSE GRID</b><span id="defFleetName">Your fleet</span><span class="banner-score" id="foeScore">AI: 0 points</span></div>
         <div class="roll"><div class="roll-label">Fleet Muster</div><span class="bubbles" id="defBubbles"></span></div>
       </div>
       <div class="card card--flush card--defense">
@@ -228,7 +228,7 @@
 <div class="coach coach--notice" id="notice" role="alert" aria-live="assertive" hidden></div>
 <div class="bonus-banner" id="bonusBanner" role="status" aria-live="assertive" hidden></div>
 
-<script src="audio.js?v=157"></script>
-<script src="app.js?v=157"></script>
+<script src="audio.js?v=159"></script>
+<script src="app.js?v=159"></script>
 </body>
 </html>

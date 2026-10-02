@@ -26,7 +26,8 @@
 
   // Browsers only allow audio after a user gesture, so the context is made on the first tap.
   function ensure() {
-    if (ctx) { if (ctx.state === 'suspended' && !document.hidden) ctx.resume(); return true; }
+    // iOS can leave the context 'suspended' or 'interrupted' (screen lock, a call, another app's audio).
+    if (ctx) { if (ctx.state !== 'running' && !document.hidden) ctx.resume(); return true; }
     var AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return false;
     ctx = new AC();
@@ -351,15 +352,14 @@
     }
   }
 
-  // Start once the player first touches the page (browser autoplay rules).
+  // Start on the player's first touch (browser autoplay rules), and on every touch after that make
+  // sure the sound is still running: iOS stops it after a screen lock, a call or another app's audio,
+  // and only lets it start again from a tap.
   function unlock() {
     if (!ensure()) return;
-    if (prefs.music) startMusic();
-    document.removeEventListener('pointerdown', unlock, true);
-    document.removeEventListener('keydown', unlock, true);
+    if (prefs.music && !timer) startMusic();
   }
-  document.addEventListener('pointerdown', unlock, true);
-  document.addEventListener('keydown', unlock, true);
+  ['pointerdown', 'touchend', 'click', 'keydown'].forEach(function (ev) { document.addEventListener(ev, unlock, true); });
 
   // Go quiet when the app is in the background.
   document.addEventListener('visibilitychange', function () {
