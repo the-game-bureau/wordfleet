@@ -453,10 +453,11 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 .setup-big .note:empty { min-height: 0; margin: 0; }
 
 /* 004 Deploy as step 4 of Prepare for Battle */
-.setup-big .card--deploy { padding: 18px 12px; }
+.setup-big .card--deploy { padding: 18px 12px; }   /* the grid keeps the narrower padding */
+/* 18px card padding + 2px here = the 20px the other setup cards use, so the buttons line up across 001-004 */
 .setup-big .card--deploy .card-title, .setup-big .card--deploy .section-head, .setup-big .card--deploy .hint,
-.setup-big .card--deploy .deploy-head, .setup-big .card--deploy .roster, .setup-big .card--deploy > .btn { margin-left: 6px; margin-right: 6px; }
-.setup-big .card--deploy > .btn--wide { width: calc(100% - 12px); }
+.setup-big .card--deploy .deploy-head, .setup-big .card--deploy .roster, .setup-big .card--deploy > .btn { margin-left: 8px; margin-right: 8px; }
+.setup-big .card--deploy > .btn--wide { width: calc(100% - 16px); }
 .setup-big .card--deploy .grid-label { font-size: 14px; margin-bottom: 8px; }
 .setup-big .deploy-head .seg button { min-height: 48px; font-size: 16px; padding: 6px 12px; }
 .setup-big .deploy-head .btn--sm { min-height: 48px; font-size: 16px; padding: 6px 12px; }
