@@ -647,3 +647,7 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 .cell.is-aim-hit::after { content: "\2713"; position: absolute; top: 0; right: 2px; font-size: 10px; line-height: 1.2; }
 .mf.is-pulse { animation: pulse 0.6s ease-out 3; }
 @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0,0,0,0.5); } 100% { box-shadow: 0 0 0 10px rgba(0,0,0,0); } }
+
+/* ABC: the Attack Manifest on demand, in the top bar during battle */
+.bar-manifest { margin-left: auto; min-height: 36px; padding: 4px 12px; font-family: var(--mono); font-size: 15px; font-weight: 700; letter-spacing: 0.08em; }
+.bar-manifest + .icon-btn { margin-left: 0; }

@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Bump ?v= on every release (and CACHE in sw.js) so a new page never runs old code. -->
-  <link rel="stylesheet" href="app.css?v=99">
+  <link rel="stylesheet" href="app.css?v=100">
 </head>
 <body>
 
@@ -28,6 +28,8 @@
     <span class="bar-sub" id="barSub">Mobile Mode</span>
   </div>
   <span class="chip" id="barChip" hidden></span>
+  <!-- During battle: the Attack Manifest on demand (MOBILE-ATTACK-MANIFEST) -->
+  <button class="btn btn--sm bar-manifest" id="btnManifest" type="button" aria-label="Attack Manifest: the letters you have called" hidden>ABC</button>
   <button class="icon-btn" id="btnMenu" type="button" aria-label="Menu">
     <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" fill="none"/></svg>
   </button>
@@ -148,10 +150,6 @@
     <!-- ============ 005-MOBILE-ATTACK (screen name: "005-MOBILE-ATTACK") ============ -->
     <!-- Tapping a square opens 006-MOBILE-CALL-LETTER; "Demand Surrender" turns the panel below into 009-MOBILE-SURRENDER. -->
     <div class="tab" id="tabAttack" data-screen="005-MOBILE-ATTACK">
-      <div class="card card--manifest card--manifest-top">
-        <div class="card-title">Attack Manifest</div>
-        <div class="manifest" id="attackManifest"></div>
-      </div>
       <div class="gridbanner is-attack">
         <div><b>ATTACK GRID</b><span>Hunting the AI Captain's fleet</span></div>
         <span class="bubbles" id="bubbles"></span>
@@ -244,7 +242,7 @@
 <div class="toast" id="toast" hidden></div>
 <div class="bonus-banner" id="bonusBanner" role="status" aria-live="assertive" hidden></div>
 
-<script src="audio.js?v=99"></script>
-<script src="app.js?v=99"></script>
+<script src="audio.js?v=100"></script>
+<script src="app.js?v=100"></script>
 </body>
 </html>

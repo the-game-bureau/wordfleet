@@ -359,6 +359,7 @@
     else if (current === 'battle') renderBattle();
     else if (current === 'over') renderOver();
     applyFleetColors();
+    $('btnManifest').hidden = !(current === 'battle' && S && S.phase === 'battle');
     refreshPanel();
     setMusicMood();
     fitButtons();
@@ -721,6 +722,25 @@
       '<div class="manifest manifest--pick">' + letters + '</div>', true, '006-MOBILE-CALL-LETTER');
   }
 
+  // Attack Manifest: called letters with one dot per square revealed. No longer on the Attack tab;
+  // it shows in the letter picker when you call, and on demand from the ABC button in the top bar.
+  function attackManifestHtml() {
+    var info = S.result && S.result.info;
+    return LETTERS.map(function (L) {
+      var t = S.myTallies[L], cls = 'mf' + (isVowel(L) && t == null ? ' is-vowel' : '');
+      var under = t == null ? '<span class="pips"></span>' : t ? pips(t, t, 'is-found') : '<span class="mf-none">none</span>';
+      if (t != null) cls += t ? ' is-done' : ' is-zero';
+      if (info && info.L === L && ui.flash) cls += ' is-pulse';
+      return '<div class="' + cls + '"><span class="mf-l">' + L + '</span>' + under + '</div>';
+    }).join('');
+  }
+  function openAttackManifest() {
+    openSheet('<h2>Attack Manifest</h2>' +
+      (hintsOn() ? '<p class="hint" style="margin:2px 0 0">Letters you have called. Each dot is one square of that letter revealed in the AI Captain\'s fleet.</p>' : '') +
+      '<div class="manifest">' + attackManifestHtml() + '</div>' +
+      '<button class="btn btn--ghost btn--wide" type="button" data-act="close">Close</button>', true, 'MOBILE-ATTACK-MANIFEST');
+  }
+
   function renderAttack() {
     var mine = S.turn === 'me';
     var live = canCall();
@@ -747,14 +767,6 @@
     }, live);
     if (ui.flash) { clearTimeout(ui.flashTimer); ui.flashTimer = setTimeout(function () { ui.flash = null; }, 1800); }
 
-    // Attack Manifest (display only): called letters with one dot per square revealed.
-    $('attackManifest').innerHTML = LETTERS.map(function (L) {
-      var t = S.myTallies[L], cls = 'mf' + (isVowel(L) && t == null ? ' is-vowel' : '');
-      var under = t == null ? '<span class="pips"></span>' : t ? pips(t, t, 'is-found') : '<span class="mf-none">none</span>';
-      if (t != null) cls += t ? ' is-done' : ' is-zero';
-      if (info && info.L === L && ui.flash) cls += ' is-pulse';
-      return '<div class="' + cls + '"><span class="mf-l">' + L + '</span>' + under + '</div>';
-    }).join('');
 
     // The popup is only for Solve a Word and Demand Surrender; everything else is the coach bar.
     var fp = $('firePanel');
@@ -1348,6 +1360,7 @@
   // ------------------------------------------------------------
   function on(el, type, fn) { if (el) el.addEventListener(type, fn); }
 
+  on($('btnManifest'), 'click', openAttackManifest);
   on($('btnMenu'), 'click', openMenu);
   function newBattle() {
     if (S && S.phase !== 'over' && S.phase !== 'setup' && !confirm('Abandon the current battle?')) return false;
