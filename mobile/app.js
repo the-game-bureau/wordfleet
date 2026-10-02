@@ -37,13 +37,14 @@
                  pattern: true, vowelCost: 0.3, noise: 0.05, solve: { known: 0.4, share: 0.7 } }
   };
 
-  // Color schemes offered on 001 (two colors each). Saved as S.colors; where they apply is decided later.
+  // Color schemes offered on 001: a dark first color and a light second color that reads clearly as text
+  // on the first (every pair is at least 7:1 contrast, WCAG AAA). Saved as S.colors; where they apply is decided later.
   var COLOR_SCHEMES = [
-    { id: 'navy-green',      name: 'Navy & Green',      colors: ['#1f3a5f', '#6aaa64'] },
-    { id: 'crimson-gold',    name: 'Crimson & Gold',    colors: ['#9b1b1f', '#e8b10a'] },
-    { id: 'teal-coral',      name: 'Teal & Coral',      colors: ['#0f6e6a', '#ff7f5c'] },
-    { id: 'midnight-silver', name: 'Midnight & Silver', colors: ['#1e1b4b', '#b8bec8'] },
-    { id: 'ocean-sand',      name: 'Ocean & Sand',      colors: ['#0369a1', '#e9c46a'] }
+    { id: 'navy-green',      name: 'Navy & Green',      colors: ['#1a2f4f', '#8fd685'] },   // 7.8:1
+    { id: 'crimson-gold',    name: 'Crimson & Gold',    colors: ['#7a1216', '#ffd24a'] },   // 7.6:1
+    { id: 'teal-coral',      name: 'Teal & Coral',      colors: ['#083d3a', '#ffb59c'] },   // 7.1:1
+    { id: 'midnight-silver', name: 'Midnight & Silver', colors: ['#1e1b4b', '#d9dde4'] },   // 11.7:1
+    { id: 'ocean-sand',      name: 'Ocean & Sand',      colors: ['#023e66', '#f4dc9c'] }    // 8.3:1
   ];
 
   var FLEET_ADJ = ['Salty', 'Barnacle-Crusted', 'Rum-Soaked', 'Royal', 'Crabby', 'Peg-Legged', 'Stormy', 'Treacherous', 'Cursed', 'Ghostly', 'Iron-Bound', 'Sea-Worn', 'Soggy-Bottom', 'Windswept', 'Ironclad', 'Thunderhead', 'Bloodwake', 'Scurvy', "Admiral's", "Commodore's", 'Steel-Hulled', 'Storm-Battered', 'Salt-Crusted', 'Rust-Stained', 'Sun-Bleached', 'Cannon-Heavy', 'Torpedo-Laden', 'Merciless', 'Grog-Fueled', 'Hook-Handed', "Kraken's", "Siren's", "Neptune's", 'Abyssal', 'Phantom', 'Half-Sunk', 'Creaking', 'Patched-Up', 'Battle-Scarred'];
@@ -387,7 +388,7 @@
     var scheme = S.colors || COLOR_SCHEMES[0].id;
     $('colorSchemes').innerHTML = COLOR_SCHEMES.map(function (cs) {
       return '<button type="button" class="swatch' + (cs.id === scheme ? ' is-on' : '') + '" data-scheme="' + cs.id + '" role="radio" aria-checked="' + (cs.id === scheme) + '" aria-label="' + esc(cs.name) + '">' +
-        '<i style="background:' + cs.colors[0] + '"></i><i style="background:' + cs.colors[1] + '"></i></button>';
+        '<span style="background:' + cs.colors[0] + ';color:' + cs.colors[1] + '">Aa</span></button>';
     }).join('');
     $('colorSchemeName').textContent = COLOR_SCHEMES.filter(function (cs) { return cs.id === scheme; })[0].name;
     $('chkOffensive').checked = offensiveOk();
