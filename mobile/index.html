@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Bump ?v= on every release (and CACHE in sw.js) so a new page never runs old code. -->
-  <link rel="stylesheet" href="app.css?v=46">
+  <link rel="stylesheet" href="app.css?v=47">
 </head>
 <body>
 
@@ -65,7 +65,7 @@
         <button class="btn btn--sq" id="btnRollName" type="button" aria-label="Random fleet name">&#x1F3B2;</button>
       </div>
 
-      <button class="btn btn--primary btn--wide btn--next" id="btnToOpponent" type="button">NEXT | STEP 2 OF 3 | CHOOSE YOUR OPPONENT</button>
+      <button class="btn btn--wide btn--next btn--progress" style="--progress: 33%" id="btnToOpponent" type="button" aria-label="Next: Choose Your Opponent (step 1 of 3 done)">Next: Choose Your Opponent</button>
       <a class="btn btn--ghost btn--wide" id="lnkHome" href="../">&larr; Back</a>
     </div>
   </section>
@@ -83,7 +83,7 @@
       </div>
       <p class="hint" id="levelHint"></p>
 
-      <button class="btn btn--primary btn--wide btn--next" id="btnToWords" type="button">NEXT | STEP 3 OF 3 | BUILD YOUR WORD-SHIPS</button>
+      <button class="btn btn--wide btn--next btn--progress" style="--progress: 67%" id="btnToWords" type="button" aria-label="Next: Build Your Word-Ships (step 2 of 3 done)">Next: Build Your Word-Ships</button>
       <button class="btn btn--ghost btn--wide" id="btnBackToSetup" type="button">&larr; Back</button>
     </div>
   </section>
@@ -102,7 +102,7 @@
       <button class="btn btn--wide btn--sm-gap" id="btnRefreshAll" type="button">&#x21bb; Refresh All</button>
       <p class="note" id="setupNote"></p>
 
-      <button class="btn btn--primary btn--wide btn--next" id="btnToDeploy" type="button">Deploy Fleet</button>
+      <button class="btn btn--wide btn--next btn--progress" style="--progress: 100%" id="btnToDeploy" type="button">Deploy Fleet</button>
       <button class="btn btn--ghost btn--wide" id="btnBackToOpponent" type="button">&larr; Back</button>
     </div>
   </section>
@@ -217,7 +217,7 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="audio.js?v=46"></script>
-<script src="app.js?v=46"></script>
+<script src="audio.js?v=47"></script>
+<script src="app.js?v=47"></script>
 </body>
 </html>

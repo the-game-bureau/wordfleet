@@ -436,3 +436,7 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 /* Big on/off switch on 003 (Possibly Offensive Words OK) */
 .switch-row--big { font-size: 19px; font-weight: 700; gap: 16px; min-height: 56px; }
 .switch-row--big .switch { transform: scale(1.3); transform-origin: right center; margin-right: 4px; }
+
+/* Next buttons on 001-003 double as a progress bar: green fills left to right (33%, 67%, 100%). */
+.btn--progress { background: linear-gradient(to right, var(--green) var(--progress, 0%), var(--paper) var(--progress, 0%)); border-width: 2px; }
+.btn--progress:active:not(:disabled) { background: var(--green-dark); color: var(--ink); }
