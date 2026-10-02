@@ -83,8 +83,10 @@ function playable(w) {
   return false;
 }
 
-// Banned words (BANNED.md) never make it into the dictionary.
-const BANNED = require('./banned');
+// Banned words (BANNED.md) never make it into the dictionary; never-suggested words (NEVER-SUGGESTED.md)
+// stay in it but are marked so the game never draws them.
+const listFor = require('./lists');
+const BANNED = listFor('BANNED.md', code), NEVER = listFor('NEVER-SUGGESTED.md', code);
 const OFFENSIVE = new Set(fs.readFileSync(path.join(__dirname, L.offensive), 'utf8')
   .split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith('#')).map(toGame).filter(Boolean));
 
@@ -113,11 +115,12 @@ ranked.forEach((w, i) => { const t = tierOf(i); out.tiers[w.length === 2 && t !=
 extraOnly.forEach(w => out.tiers.extra[w.length].push(w));
 for (const byLen of Object.values(out.tiers)) Object.values(byLen).forEach(a => a.sort());
 out.offensive = [...OFFENSIVE].filter(w => seen.has(w)).sort();
+out.neverSuggest = [...NEVER].filter(w => seen.has(w)).sort();
 
 const dest = path.join(__dirname, code + '.json');
 fs.writeFileSync(dest, JSON.stringify(out));
 for (const [t, byLen] of Object.entries(out.tiers)) {
   console.log(t.padEnd(9), Object.entries(byLen).map(([l, a]) => l + ':' + a.length).join('  '));
 }
-console.log('offensive', out.offensive.length);
+console.log('offensive', out.offensive.length, 'never suggested', out.neverSuggest.length);
 console.log('wrote', dest, fs.statSync(dest).size, 'bytes');

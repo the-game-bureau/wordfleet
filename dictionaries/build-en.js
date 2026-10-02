@@ -29,8 +29,10 @@ const JUNK = new Set('cs es gs ks ls ms ps rs ss ts kb lm ln lx mb mf hes'.split
 // Possibly offensive words: kept in the word list but flagged, so the game can hide them
 // unless "Possibly Offensive Words OK" is checked. Edit offensive-en-US.txt (both) or
 // offensive-en-GB.txt (British additions) to change the list.
-// Banned words (BANNED.md) never make it into the dictionary.
-const BANNED = require('./banned');
+// Banned words (BANNED.md) never make it into the dictionary; never-suggested words (NEVER-SUGGESTED.md)
+// stay in it but are marked so the game never draws them.
+const listFor = require('./lists');
+const BANNED = listFor('BANNED.md', V.code), NEVER = listFor('NEVER-SUGGESTED.md', V.code);
 const OFFENSIVE = new Set((V.code === 'en-GB' ? ['offensive-en-US.txt', 'offensive-en-GB.txt'] : ['offensive-en-US.txt'])
   .flatMap(f => fs.readFileSync(path.join(__dirname, f), 'utf8').split(/\r?\n/))
   .map(l => l.trim().toLowerCase()).filter(l => l && !l.startsWith('#')));
@@ -58,11 +60,12 @@ for (const [tier, sizes] of Object.entries(TIERS)) {
   out.tiers[tier] = byLen;
 }
 out.offensive = [...OFFENSIVE].filter(w => seen.has(w)).map(w => w.toUpperCase()).sort();
+out.neverSuggest = [...NEVER].filter(w => seen.has(w.toLowerCase())).sort();
 
 const dest = path.join(__dirname, V.code + '.json');
 fs.writeFileSync(dest, JSON.stringify(out));
 for (const [t, byLen] of Object.entries(out.tiers)) {
   console.log(t.padEnd(9), Object.entries(byLen).map(([l, a]) => l + ':' + a.length).join('  '));
 }
-console.log('offensive', out.offensive.length);
+console.log('offensive', out.offensive.length, 'never suggested', out.neverSuggest.length);
 console.log('wrote', dest, fs.statSync(dest).size, 'bytes');

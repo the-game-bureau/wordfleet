@@ -118,6 +118,7 @@
   var lang = null;      // { code, name, tiers, offensive }
   var offensiveSet = {};
   var unsafeSet = {};    // offensive words plus words built on them; never shown as examples
+  var neverSet = {};     // dictionaries/NEVER-SUGGESTED.md: may be typed, never suggested or drawn
   var dictSet = {};     // every playable word -> tier name
   var guessPool = {};   // length -> [{ w, wt }] for the AI Captain's letter reads
 
@@ -146,6 +147,8 @@
         guessPool = {};
         offensiveSet = {};
         (d.offensive || []).forEach(function (w) { offensiveSet[w] = true; });
+        neverSet = {};
+        (d.neverSuggest || []).forEach(function (w) { neverSet[w] = true; });
         // Words built on an offensive stem of 4+ letters (FICK -> FICKT) are kept out of examples.
         unsafeSet = {};
         var stems = (d.offensive || []).filter(function (w) { return w.length >= 4; });
@@ -178,7 +181,7 @@
         tiers.forEach(function (t) { var byLen = lang && lang.tiers[t]; if (byLen && byLen[len]) pool = pool.concat(byLen[len]); });
         // Short words are scarce outside the common tier (none at all in Spanish and German): use the common tier.
         if (pool.length < 3 && lang && lang.tiers.common && lang.tiers.common[len]) pool = pool.concat(lang.tiers.common[len]);
-        pool = pool.filter(function (w) { return !unsafeSet[w] && chosen.indexOf(w) === -1; });
+        pool = pool.filter(function (w) { return !unsafeSet[w] && !neverSet[w] && chosen.indexOf(w) === -1; });
         chosen.push(pool.length ? pick(pool) : pick(FALLBACK[len]));
       });
       exampleCache[k] = chosen.join(' \u2022 ');
@@ -197,7 +200,7 @@
     // Two-letter words are scarce in every tier: top up from the common tier.
     if (pool.length < 12 && lang && lang.tiers.common && lang.tiers.common[len]) pool = pool.concat(lang.tiers.common[len]);
     // With offensive words off, drawn words also skip words built on an offensive stem.
-    pool = pool.filter(function (w) { return offensiveOk() || !unsafeSet[w]; });
+    pool = pool.filter(function (w) { return !neverSet[w] && (offensiveOk() || !unsafeSet[w]); });
     return pool.length ? pool : FALLBACK[len];
   }
 

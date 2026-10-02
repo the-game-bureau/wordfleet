@@ -11,7 +11,9 @@ All of Word Fleet's word data lives here.
 | `build-hunspell.js` | Builds `es.json` / `de.json` from Hunspell dictionaries and frequency lists. |
 | `offensive-en-US.txt`, `offensive-en-GB.txt`, `offensive-es.txt`, `offensive-de.txt` | Possibly offensive words (the GB file adds British words to the US list). Hidden from both captains unless **Possibly Offensive Words OK** is checked. Edit freely, then rebuild. |
 | `fleet-names.json` | Fleet-name parts (adjectives and nouns) for English (UK), Spanish and German, used by the fleet-name dice. English (US) is built into `mobile/app.js`. Hand-edited; see `_about` inside for the format. |
-| `BANNED.md` | Banned words: removed from every dictionary and kept out when the dictionaries are rebuilt (read by `banned.js`). |
+| `BANNED.md` | Banned words (the slurs): removed from the dictionaries and kept out when they are rebuilt. A word can be banned in one language only. |
+| `NEVER-SUGGESTED.md` | Words a captain may type but the game never suggests or draws (e.g. FUCK). Marked as `neverSuggest` in each dictionary. |
+| `lists.js` | Reads `BANNED.md` and `NEVER-SUGGESTED.md` for the build scripts. |
 | `words.xml` | The original word list used by the printable Pen & Paper Battle Tracker. |
 | `SCOWL-LICENSE.txt`, `LDNOOBW-LICENSE.txt`, `HUNSPELL-es-LICENSE.txt`, `HUNSPELL-de-LICENSE.txt` | Licenses for the source word lists. |
 
@@ -67,6 +69,6 @@ node dictionaries/build-hunspell.js es index.aff index.dic es_full.txt
 
 ## Adding a language
 
-1. Produce `<code>.json` in the same shape as `en-US.json`: `{ lang, name, tiers: { common, everyday, rare, extra }, offensive }`. Each tier maps a word length (2–5) to an uppercase word array, with letters A–Z only.
+1. Produce `<code>.json` in the same shape as `en-US.json`: `{ lang, name, tiers: { common, everyday, rare, extra }, offensive, neverSuggest }`. Each tier maps a word length (2–5) to an uppercase word array, with letters A–Z only.
 2. Add `{ "code": "<code>", "name": "<Display Name>", "file": "<code>.json" }` to `languages.json`.
 3. Add the file to the `SHELL` list in `mobile/sw.js` so it works offline.
