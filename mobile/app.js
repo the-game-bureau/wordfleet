@@ -247,7 +247,7 @@
   // ------------------------------------------------------------
   // screens + chrome
   // ------------------------------------------------------------
-  var SCREENS = { home: 'scrMobileHome',   // "Mobile Home"
+  var SCREENS = { home: 'scrMobileHome',   // "001 Mobile Home"
                   setup: 'scrSetup', deploy: 'scrDeploy', battle: 'scrBattle', over: 'scrOver' };
   var current = 'home';
 
