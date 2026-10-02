@@ -16,3 +16,31 @@ listed separately); a language code in brackets limits it to that language, as i
 
 - fuck
 - fucks
+
+### English: the strongest possibly-offensive words
+
+(English only: RAPE, for one, is Spanish for monkfish.)
+
+- cunt (en)
+- cunts (en)
+- twat (en)
+- twats (en)
+- shit (en)
+- shits (en)
+- shite (en)
+- jizz (en)
+- spunk (en)
+- clit (en)
+- dildo (en)
+- milf (en)
+- poon (en)
+- skeet (en)
+- whore (en)
+- whores (en)
+- slut (en)
+- sluts (en)
+- skank (en)
+- slag (en)
+- slags (en)
+- rape (en)
+- rapes (en)
