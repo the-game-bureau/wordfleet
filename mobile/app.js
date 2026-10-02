@@ -1332,13 +1332,13 @@
       '<li>Ships may touch but not overlap. No proper nouns, abbreviations, or suffixes.</li></ul>' +
       '<h3>Who Goes First?</h3><p>Against the AI Captain, the Human Captain always goes first.</p>' +
       '<h3>Your Turn: Call a Letter</h3><ul>' +
-      '<li>Tap a hidden square on the Attack Grid, then call a letter. Every square in the opponent\'s fleet that holds it is revealed, wherever it is.</li>' +
+      '<li>Tap a hidden square on the Attack Grid, then call a letter. Every square in the enemy fleet that holds it is revealed, wherever it is.</li>' +
       '<li><strong>Bonus turn:</strong> if the letter is in the square you tapped, you go again. Otherwise the turn passes.</li>' +
       '<li><strong>Vowels</strong> (A E I O U) can be called and reveal the same way, but the caller loses their next turn.</li>' +
-      '<li><strong>Solve a Word:</strong> after calling a letter that is in the opponent\'s fleet, you may name one whole word-ship. Right, and every square of it is revealed.</li></ul>' +
+      '<li><strong>Solve a Word:</strong> after calling a letter that is in the enemy fleet, you may name one whole word-ship. Right, and every square of it is revealed.</li></ul>' +
       '<h3>Winning</h3><ul>' +
-      '<li>Reveal every letter of the opponent\'s fleet and you win.</li>' +
-      '<li><strong>Demand Surrender:</strong> instead of calling a letter, name every one of your opponent\'s word-ships and exactly where it sits. All correct: <span class="say">"You have won."</span> Anything wrong: <span class="say">"Victory is mine! You lose! Good day sir!"</span></li></ul>' +
+      '<li>Reveal every letter of the enemy fleet and you win.</li>' +
+      '<li><strong>Demand Surrender:</strong> instead of calling a letter, name every enemy word-ship and exactly where it sits. All correct: <span class="say">"You have won."</span> Anything wrong: <span class="say">"Victory is mine! You lose! Good day sir!"</span></li></ul>' +
       '<h3>Reading the Tracker</h3><ul>' +
       '<li>Attack Grid: green squares are revealed letters of the AI Captain\'s fleet. Defense Grid: red squares are your letters the AI Captain has revealed.</li>' +
       '<li>Manifests: each dot under a letter is one copy of it in the fleet. The 5 4 3 3 2 circles turn green only when that word-ship is completely sunk.</li></ul>' +
@@ -1382,7 +1382,7 @@
     var v = b && b.getAttribute('data-v');
     if (!v) return;
     S.level = v;
-    if (!S.wordsEdited) S.me.words = randomWords();   // drawn words follow the opponent; typed ones stay
+    if (!S.wordsEdited) S.me.words = randomWords();   // drawn words follow the AI Captain's level; typed ones stay
     save(); renderSetup();
   });
   on($('wordList'), 'click', function (e) {
