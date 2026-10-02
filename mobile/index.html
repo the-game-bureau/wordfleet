@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Bump ?v= on every release (and CACHE in sw.js) so a new page never runs old code. -->
-  <link rel="stylesheet" href="app.css?v=50">
+  <link rel="stylesheet" href="app.css?v=51">
 </head>
 <body>
 
@@ -65,7 +65,7 @@
         <button class="btn btn--sq" id="btnRollName" type="button" aria-label="Random fleet name">&#x1F3B2;</button>
       </div>
 
-      <button class="btn btn--wide btn--next btn--progress" style="--progress: 33%" id="btnToOpponent" type="button" aria-label="Next: Choose Your Opponent (step 1 of 3 done)">Next: Choose Your Opponent</button>
+      <button class="btn btn--wide btn--next btn--progress" style="--progress: 25%" id="btnToOpponent" type="button" aria-label="Next: Choose Your Opponent (step 1 of 4 done)">Next: Choose Your Opponent</button>
       <a class="btn btn--ghost btn--wide" id="lnkHome" href="../">&larr; Back</a>
     </div>
   </section>
@@ -83,7 +83,7 @@
       </div>
       <p class="hint" id="levelHint"></p>
 
-      <button class="btn btn--wide btn--next btn--progress" style="--progress: 67%" id="btnToWords" type="button" aria-label="Next: Build Your Word-Ships (step 2 of 3 done)">Next: Build Your Word-Ships</button>
+      <button class="btn btn--wide btn--next btn--progress" style="--progress: 50%" id="btnToWords" type="button" aria-label="Next: Build Your Word-Ships (step 2 of 4 done)">Next: Build Your Word-Ships</button>
       <button class="btn btn--ghost btn--wide" id="btnBackToSetup" type="button">&larr; Back</button>
     </div>
   </section>
@@ -105,18 +105,23 @@
       <div id="wordList"></div>
       <p class="note" id="setupNote"></p>
 
-      <button class="btn btn--wide btn--next btn--progress" style="--progress: 100%" id="btnToDeploy" type="button">Next: Deploy Your Fleet</button>
+      <button class="btn btn--wide btn--next btn--progress" style="--progress: 75%" id="btnToDeploy" type="button" aria-label="Next: Deploy Your Fleet (step 3 of 4 done)">Next: Deploy Your Fleet</button>
       <button class="btn btn--ghost btn--wide" id="btnBackToOpponent" type="button">&larr; Back</button>
     </div>
   </section>
 
   <!-- ============ 004-MOBILE-DEPLOY (screen name: "004-MOBILE-DEPLOY") ============ -->
-  <section class="screen" id="scrDeploy" data-screen="004-MOBILE-DEPLOY">
-    <div class="card card--flush">
+  <section class="screen setup-big" id="scrDeploy" data-screen="004-MOBILE-DEPLOY">
+    <h1 class="page-head">Prepare for Battle</h1>
+    <div class="card card--deploy">
+      <div class="card-title">Deploy Your Fleet</div>
       <div class="grid-label">DEFENSE GRID <span id="deployCount">0 of 5 deployed</span></div>
       <div class="grid" id="gridDeploy"></div>
-    </div>
-    <div class="card">
+
+      <div class="section-head">
+        <span class="label label--say">Pick a ship, then tap a square</span>
+      </div>
+      <p class="hint hint--label">Drag to move. Double-tap its first letter to turn it. Tap once to send it back to port.</p>
       <div class="deploy-head">
         <div class="seg seg--sm" id="segDir">
           <button type="button" data-v="H" class="is-on">Across &rarr;</button>
@@ -128,9 +133,9 @@
         </div>
       </div>
       <div class="roster" id="roster"></div>
-      <p class="hint">Pick a word-ship, then tap its first square. Ships read left-to-right or top-to-bottom. They may touch but never overlap. Drag a deployed ship to move it. Double-tap its first letter to turn it; tap it once to pull it back.</p>
-      <button class="btn btn--primary btn--wide" id="btnDeployDone" type="button" disabled>Confirm Deployment</button>
-      <button class="btn btn--ghost btn--wide" id="btnDeployBack" type="button">&larr; Change Words</button>
+
+      <button class="btn btn--wide btn--next btn--progress" style="--progress: 75%" id="btnDeployDone" type="button" disabled>Confirm Deployment</button>
+      <button class="btn btn--ghost btn--wide" id="btnDeployBack" type="button">&larr; Back</button>
     </div>
   </section>
 
@@ -220,7 +225,7 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="audio.js?v=50"></script>
-<script src="app.js?v=50"></script>
+<script src="audio.js?v=51"></script>
+<script src="app.js?v=51"></script>
 </body>
 </html>

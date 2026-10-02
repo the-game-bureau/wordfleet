@@ -452,7 +452,7 @@
   // DEPLOY
   // ------------------------------------------------------------
   function renderDeploy() {
-    setBar('Deploy', 'is-quiet');
+    setBar(null);
     var ships = S.me.ships;
     var placed = ships.filter(function (s) { return s.r != null; }).length;
     $('deployCount').textContent = placed + ' of 5 deployed';
@@ -470,6 +470,8 @@
         '<span class="ship-at">' + (s.r != null ? coord(s.r, s.c) + (s.dir === 'H' ? ' →' : ' ↓') : 'in port') + '</span></button>';
     }).join('');
     $('btnDeployDone').disabled = placed < 5;
+    // Step 4 of 4: the progress bar fills from 75% to 100% as ships are deployed.
+    $('btnDeployDone').style.setProperty('--progress', (75 + placed * 5) + '%');
   }
 
   // Pull a deployed ship back into port and select it.
@@ -1201,7 +1203,7 @@
     if (!S.wordsEdited) S.me.words = S.me.words.map(function (w, i) { return inDictionary(w) ? w : randomWordFor(i, S.me.words); });
     save(); renderSetup();
   });
-  // Prepare for Battle runs in three steps: 001 name/language, 002 opponent, 003 words.
+  // Prepare for Battle runs in four steps: 001 name/language, 002 opponent, 003 words, 004 deploy.
   function setupStep(step) {
     if (step !== 'setup') {
       var name = (S.me.name || '').trim().toUpperCase().replace(/\s+/g, ' ');
