@@ -320,7 +320,10 @@
       claims: null, log: [], turns: 0,
       winner: null, reason: null
     };
-    ui.sel = null; ui.tab = 'Attack';
+    // A new game starts clean: no aim, flip-ins, popups, banners or AI moves left over from the last one.
+    ui.sel = null; ui.tab = 'Attack'; ui.flash = null; ui.demand = false; ui.dragged = false; ui.firstTap = null;
+    clearTimeout(ui.flashTimer); clearTimeout(ui.bonusTimer); clearTimeout(ui.aiTimer); ui.aiTimer = null;
+    var bb = $('bonusBanner'); if (bb) bb.hidden = true;
     save();
   }
 
