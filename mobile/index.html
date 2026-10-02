@@ -52,6 +52,7 @@
   <!-- ============ 002 PREPARE FOR BATTLE (screen name: "002 Prepare for Battle") ============ -->
   <section class="screen" id="scrSetup" data-screen="002 Prepare for Battle">
     <div class="card">
+      <div class="step">Step 1 of 3</div>
       <div class="card-title">Prepare for Battle</div>
       <label class="label" for="inFleet">Fleet Name</label>
       <div class="input-row">
@@ -61,19 +62,16 @@
 
       <label class="label" for="selLang">Language</label>
       <select class="select" id="selLang"></select>
-      <label class="check"><input type="checkbox" id="chkOffensive"> Possibly Offensive Words OK</label>
-      <p class="hint hint--tight">Unchecked, neither captain may use words that could offend. Applies to both fleets.</p>
 
-      <span class="label">Word-ships</span>
-      <div class="seg" id="segMode">
-        <button type="button" data-v="auto" class="is-on">Auto-Generated</button>
-        <button type="button" data-v="manual">Captain's Choice</button>
-      </div>
-      <p class="hint" id="modeHint">Auto words are drawn from the Word Fleet dictionary. The AI Captain uses the same method.</p>
+      <button class="btn btn--primary btn--wide btn--next" id="btnToOpponent" type="button">Next: Choose Your Opponent</button>
+    </div>
+  </section>
 
-      <div id="wordList"></div>
-      <p class="note" id="setupNote"></p>
-
+  <!-- ============ 003 CHOOSE YOUR OPPONENT (screen name: "003 Choose Your Opponent") ============ -->
+  <section class="screen" id="scrOpponent" data-screen="003 Choose Your Opponent">
+    <div class="card">
+      <div class="step">Step 2 of 3</div>
+      <div class="card-title">Choose Your Opponent</div>
       <span class="label">AI Captain's Rank</span>
       <div class="seg" id="segLevel">
         <button type="button" data-v="ensign" class="is-on">Ensign</button>
@@ -82,12 +80,36 @@
       </div>
       <p class="hint" id="levelHint"></p>
 
-      <button class="btn btn--primary btn--wide" id="btnToDeploy" type="button">Deploy Fleet</button>
+      <button class="btn btn--primary btn--wide btn--next" id="btnToWords" type="button">Next: Choose Your Words</button>
+      <button class="btn btn--ghost btn--wide" id="btnBackToSetup" type="button">&larr; Back</button>
     </div>
   </section>
 
-  <!-- ============ 003 DEPLOY (screen name: "003 Deploy") ============ -->
-  <section class="screen" id="scrDeploy" data-screen="003 Deploy">
+  <!-- ============ 004 CHOOSE YOUR WORDS (screen name: "004 Choose Your Words") ============ -->
+  <section class="screen" id="scrWords" data-screen="004 Choose Your Words">
+    <div class="card">
+      <div class="step">Step 3 of 3</div>
+      <div class="card-title">Choose Your Words</div>
+      <span class="label">Word-ships</span>
+      <div class="seg" id="segMode">
+        <button type="button" data-v="auto" class="is-on">Auto-Generated</button>
+        <button type="button" data-v="manual">Captain's Choice</button>
+      </div>
+      <p class="hint" id="modeHint"></p>
+
+      <div id="wordList"></div>
+      <p class="note" id="setupNote"></p>
+
+      <label class="check"><input type="checkbox" id="chkOffensive"> Possibly Offensive Words OK</label>
+      <p class="hint hint--tight">Unchecked, neither captain may use words that could offend. Applies to both fleets.</p>
+
+      <button class="btn btn--primary btn--wide btn--next" id="btnToDeploy" type="button">Deploy Fleet</button>
+      <button class="btn btn--ghost btn--wide" id="btnBackToOpponent" type="button">&larr; Back</button>
+    </div>
+  </section>
+
+  <!-- ============ 005 DEPLOY (screen name: "005 Deploy") ============ -->
+  <section class="screen" id="scrDeploy" data-screen="005 Deploy">
     <div class="card card--flush">
       <div class="grid-label">DEFENSE GRID <span id="deployCount">0 of 5 deployed</span></div>
       <div class="grid" id="gridDeploy"></div>
