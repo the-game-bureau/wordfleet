@@ -411,13 +411,12 @@
     return (name || '').trim().split(/\s+/).map(function (w) { return w.replace(/^[^A-Za-zÀ-ÿ]+/, '').charAt(0); }).join('').toUpperCase().slice(0, 5);
   }
 
-  // A small waving flag in a color scheme: first color for the cloth, second for the fleet initials.
+  // A small waving flag (no pole) in a color scheme: first color for the cloth, second for the fleet initials.
   function flagSvg(cs, initials) {
     var size = initials.length <= 2 ? 20 : initials.length === 3 ? 16 : 12;
-    return '<svg viewBox="0 0 64 48" aria-hidden="true">' +
-      '<rect x="3" y="2" width="3" height="46" rx="1" fill="#000"/>' +
-      '<path d="M6 5 C22 0 38 10 61 5 L61 33 C38 38 22 28 6 33 Z" fill="' + cs.colors[0] + '" stroke="#000" stroke-width="1"/>' +
-      '<text x="33.5" y="19" dy="0.35em" text-anchor="middle" font-family="Courier Prime, monospace" font-weight="700" font-size="' + size + '" fill="' + cs.colors[1] + '">' + esc(initials) + '</text>' +
+    return '<svg viewBox="0 0 64 40" aria-hidden="true">' +
+      '<path d="M3 5 C20 0 38 10 61 5 L61 35 C38 40 20 30 3 35 Z" fill="' + cs.colors[0] + '" stroke="#000" stroke-width="1"/>' +
+      '<text x="32" y="20" dy="0.35em" text-anchor="middle" font-family="Courier Prime, monospace" font-weight="700" font-size="' + size + '" fill="' + cs.colors[1] + '">' + esc(initials) + '</text>' +
       '</svg>';
   }
 
