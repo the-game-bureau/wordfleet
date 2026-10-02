@@ -487,3 +487,4 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 .swatch:focus-visible { outline: 3px solid var(--green-dark); outline-offset: 2px; }
 .setup-big .swatch-name { margin: 10px 0 0; font-weight: 600; color: var(--ink); }
 .setup-big #lblColors { margin-top: 22px; }
+#deployBanner span { opacity: 1; }   /* keep the full contrast of the fleet's two colors */

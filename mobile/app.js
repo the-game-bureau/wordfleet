@@ -448,6 +448,10 @@
       '</svg>';
   }
 
+  function schemeOf(id) {
+    return COLOR_SCHEMES.filter(function (cs) { return cs.id === id; })[0] || COLOR_SCHEMES[0];
+  }
+
   function renderSchemes() {
     // A saved scheme that no longer exists gets a fresh random one.
     if (!COLOR_SCHEMES.some(function (cs) { return cs.id === S.colors; })) { S.colors = pick(COLOR_SCHEMES).id; save(); }
@@ -521,6 +525,11 @@
     // The fleet is always on the grid (a game saved with ships in port gets a fresh layout).
     if (S.me.ships.some(function (s) { return s.r == null; })) { S.me.ships = scatter(S.me.words); save(); }
     $('deployFleetName').textContent = S.me.name || 'Your fleet';
+    // The preview flies the fleet's colors: color 1 behind, color 2 for the text.
+    var cs = schemeOf(S.colors);
+    $('deployBanner').style.background = cs.colors[0];
+    $('deployBanner').style.color = cs.colors[1];
+    $('deployFrame').style.borderTopColor = cs.colors[0];
     var b = boardOf(S.me.ships);
     paint($('gridDeploy'), function (r, c) {
       var cell = b[key(r, c)];
