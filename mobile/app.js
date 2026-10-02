@@ -575,7 +575,9 @@
   function markWordInput(input, strict) {
     var i = +input.getAttribute('data-word');
     var w = input.value;
-    input.classList.remove('is-bad', 'is-good');
+    input.classList.remove('is-bad', 'is-good', 'is-offensive');
+    // A possibly offensive word shows its letters in red (allowed or not).
+    if (offensiveSet[w.toUpperCase()]) input.classList.add('is-offensive');
     if (!w && !strict) return;
     if (w.length === SPECS[i].len || strict) input.classList.add(wordMessage(i) ? 'is-bad' : 'is-good');
   }

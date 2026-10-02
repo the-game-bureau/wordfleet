@@ -671,3 +671,6 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 /* All three captains get the same width; fitButtons() shrinks the names together so RUBBER DUCK stays on one line */
 #segLevel button { flex: 1 1 0; min-width: 0; padding-left: 3px; padding-right: 3px; letter-spacing: 0; }
 .setup-big #segLevel .cpt { font-size: 0.75em; }   /* scales with the name, which fitButtons() may shrink */
+
+/* 003: possibly offensive words show in red */
+.input.is-offensive { color: var(--red); }
