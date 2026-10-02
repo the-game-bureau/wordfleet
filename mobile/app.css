@@ -703,13 +703,12 @@ button.uc { cursor: pointer; padding: 0; color: var(--ink); }
 button.uc:active { background: var(--mine, var(--navy)); color: var(--mine-ink, #fff); }
 @keyframes pulse-out { 0% { outline-color: transparent; } 50% { outline-color: var(--mine, var(--navy)); } }
 
-/* Vowels: their own group at the end of row two, round chips, captioned with the cost */
+/* Vowels: round chips in their place in the alphabet, with a note on their cost under the manifest */
 .uc { align-self: start; }
-.uc-vowels { grid-row: 3; grid-column: 9 / -1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; position: relative; }
-.uc-vowels::before { content: ""; position: absolute; left: -3px; top: -2px; bottom: -2px; border-left: 2px solid var(--ink); }
 .uc.is-vowel { border-radius: 50%; aspect-ratio: 1 / 1; }
-.uc-vowels-cap { grid-row: 4; grid-column: 9 / -1; font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: 0.02em;
-  text-transform: uppercase; color: var(--muted); text-align: right; white-space: nowrap; overflow: hidden; }
+.uc-vowels-cap { grid-column: 1 / -1; display: flex; align-items: center; justify-content: flex-end; gap: 5px; margin-top: 2px;
+  font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.uc-dot { width: 10px; height: 10px; border: 1px solid var(--ink); border-radius: 50%; }
 
 /* A square known to hold a hidden letter: "?" plus the letters already ruled out there */
 .cell.is-contact { background: #e9ecef; }

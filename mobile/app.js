@@ -718,15 +718,12 @@
   }
 
   function isVowel(L) { return VOWELS.indexOf(L) !== -1; }
-  // A letters manifest: consonants first, then the vowels in their own group (round chips) at the
-  // end of the second row, captioned with what they cost. chip(L, cls) returns one chip's HTML.
+  // A letters manifest: A to Z, vowels as round chips, with a note on what a vowel costs.
+  // chip(L, cls) returns one chip's HTML.
   function manifestHtml(label, left, chip) {
-    var cons = left.filter(function (L) { return !isVowel(L); });
-    var vows = left.filter(isVowel);
     return '<span class="uncalled-label">' + label + '</span>' +
-      cons.map(function (L) { return chip(L, 'uc'); }).join('') +
-      (vows.length ? '<span class="uc-vowels" style="grid-column: span ' + vows.length + ' / -1; grid-template-columns: repeat(' + vows.length + ', 1fr)">' + vows.map(function (L) { return chip(L, 'uc is-vowel'); }).join('') + '</span>' +
-        '<span class="uc-vowels-cap">Vowels: \u22121 turn</span>' : '');
+      left.map(function (L) { return chip(L, 'uc' + (isVowel(L) ? ' is-vowel' : '')); }).join('') +
+      (left.some(isVowel) ? '<span class="uc-vowels-cap"><i class="uc-dot"></i>Vowels: \u22121 turn</span>' : '');
   }
 
   function pips(total, filled, cls) {
