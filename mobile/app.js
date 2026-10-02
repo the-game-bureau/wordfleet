@@ -718,12 +718,12 @@
   }
 
   function isVowel(L) { return VOWELS.indexOf(L) !== -1; }
-  // A letters manifest: A to Z, vowels as round chips, with a note on what a vowel costs.
+  // A letters manifest: A to Z, vowels as round chips; the title row notes what a vowel costs.
   // chip(L, cls) returns one chip's HTML.
   function manifestHtml(label, left, chip) {
-    return '<span class="uncalled-label">' + label + '</span>' +
-      left.map(function (L) { return chip(L, 'uc' + (isVowel(L) ? ' is-vowel' : '')); }).join('') +
-      (left.some(isVowel) ? '<span class="uc-vowels-cap"><i class="uc-dot"></i>Vowels: \u22121 turn</span>' : '');
+    return '<span class="uncalled-label"><span>' + label + '</span>' +
+      (left.some(isVowel) ? '<span class="uc-vowels-cap"><i class="uc-dot"></i>Vowels: \u22121 turn</span>' : '') + '</span>' +
+      left.map(function (L) { return chip(L, 'uc' + (isVowel(L) ? ' is-vowel' : '')); }).join('');
   }
 
   function pips(total, filled, cls) {
@@ -780,7 +780,7 @@
     var left = LETTERS.filter(function (L) { return S.myTallies[L] == null; });
     var picking = !!ui.sel && live;
     $('uncalled').classList.toggle('is-picking', picking);
-    $('uncalled').innerHTML = manifestHtml(picking ? 'Letters Manifest \u00b7 for ' + coordK(ui.sel) : 'Letters Manifest', left, function (L, cls) {
+    $('uncalled').innerHTML = manifestHtml('Letters Manifest', left, function (L, cls) {
         return picking ? '<button type="button" class="' + cls + '" data-letter="' + L + '" aria-label="Call ' + L + (isVowel(L) ? ' (vowel: costs your next turn)' : '') + '">' + L + '</button>'
                        : '<span class="' + cls + '">' + L + '</span>';
       });

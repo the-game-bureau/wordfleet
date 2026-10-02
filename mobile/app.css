@@ -706,7 +706,8 @@ button.uc:active { background: var(--mine, var(--navy)); color: var(--mine-ink, 
 /* Vowels: round chips in their place in the alphabet, with a note on their cost under the manifest */
 .uc { align-self: center; aspect-ratio: 1 / 1; border-width: 1.5px; border-radius: 14%; line-height: 1; font-size: max(11px, calc(var(--cell) * 0.44)); }
 .uc.is-vowel { border-radius: 50%; }
-.uc-vowels-cap { grid-column: 1 / -1; display: flex; align-items: center; justify-content: flex-end; gap: 5px; margin-top: 2px;
+.uncalled-label { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; column-gap: 10px; }
+.uc-vowels-cap { display: inline-flex; align-items: center; gap: 5px; margin-left: auto; white-space: nowrap;
   font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
 .uc-dot { width: 10px; height: 10px; border: 1.5px solid var(--ink); border-radius: 50%; }
 
@@ -724,3 +725,6 @@ button.uc:active { background: var(--mine, var(--navy)); color: var(--mine-ink, 
 #scrBattle .tab { padding-bottom: calc(var(--coach-h, 150px) + 16px); }
 /* The empty top-left corner of every grid: no shading, no top or left border */
 .cell.is-corner { background: var(--paper); margin: -1px 0 0 -1px; }
+/* Title row of a letters manifest: title and vowel note share one line, even on an iPhone SE */
+.uncalled-label { letter-spacing: 0.06em; flex-wrap: nowrap; column-gap: 6px; white-space: nowrap; }
+.uncalled-label .uc-vowels-cap { letter-spacing: 0; font-size: 10px; }
