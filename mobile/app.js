@@ -745,13 +745,11 @@
     var mine = S.turn === 'me';
     var live = canCall();
     var info = S.result && S.result.info;
-    // Ship status: yellow once some of its letters show, green once all of them do.
+    // Ship circles change only when a word-ship is completely sunk (every letter showing);
+    // they never hint at which ships are partly revealed.
     $('bubbles').innerHTML = S.foe.ships.map(function (ship, i) {
-      var shots = cellsOf(ship).map(function (p) { return S.myShots[key(p.r, p.c)]; });
-      var some = shots.some(function (s) { return s && s.letter; });
-      var all = shots.every(function (s) { return s && s.letter; });
-      var state = all ? 'solved' : some ? 'located' : 'hidden';
-      return '<span class="bubble is-' + state + '" title="' + SPECS[i].cls + ': ' + (all ? 'solved' : some ? 'partly revealed' : 'hidden') + '">' + SPECS[i].len + '</span>';
+      var all = cellsOf(ship).every(function (p) { var s = S.myShots[key(p.r, p.c)]; return s && s.letter; });
+      return '<span class="bubble' + (all ? ' is-solved' : '') + '" title="' + SPECS[i].cls + (all ? ': sunk' : '') + '">' + SPECS[i].len + '</span>';
     }).join('');
     paint($('gridAttack'), function (r, c) {
       var k = key(r, c);
@@ -1351,7 +1349,7 @@
       '<li><strong>Demand Surrender:</strong> instead of calling a letter, name every one of your opponent\'s word-ships and exactly where it sits. All correct: <span class="say">"You have won."</span> Anything wrong: <span class="say">"Victory is mine! You lose! Good day sir!"</span></li></ul>' +
       '<h3>Reading the Tracker</h3><ul>' +
       '<li>Attack Grid: green squares are revealed letters of the AI Captain\'s fleet. Defense Grid: red squares are your letters the AI Captain has revealed.</li>' +
-      '<li>Manifests: each dot under a letter is one copy of it in the fleet. The 5 4 3 3 2 circles turn yellow when some of that word-ship is showing and green when all of it is.</li></ul>' +
+      '<li>Manifests: each dot under a letter is one copy of it in the fleet. The 5 4 3 3 2 circles turn green only when that word-ship is completely sunk.</li></ul>' +
       '</div><button class="btn btn--primary btn--wide" type="button" data-act="close">Aye, Aye</button>', true, 'MOBILE-RULES');
   }
 
