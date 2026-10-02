@@ -540,3 +540,8 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
   background: linear-gradient(to right, var(--green) var(--progress, 0%), var(--paper) var(--progress, 0%));
   color: var(--ink); filter: brightness(0.9); transform: translateY(1px);
 }
+
+/* 010 Game Over: each fleet's flag beside its grid label */
+.grid-label > .over-fleet { display: flex; align-items: center; gap: 8px; color: var(--ink); font-weight: 700; letter-spacing: 0.12em; text-align: left; }
+.over-flag { display: block; width: 36px; flex-shrink: 0; }
+.over-flag svg { display: block; width: 100%; height: auto; }

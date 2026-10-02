@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Bump ?v= on every release (and CACHE in sw.js) so a new page never runs old code. -->
-  <link rel="stylesheet" href="app.css?v=81">
+  <link rel="stylesheet" href="app.css?v=82">
 </head>
 <body>
 
@@ -212,11 +212,11 @@
       <button class="btn btn--primary btn--wide" id="btnAgain" type="button">New Battle</button>
     </div>
     <div class="card card--flush">
-      <div class="grid-label">AI CAPTAIN'S FLEET <span id="overFoeWords"></span></div>
+      <div class="grid-label"><span class="over-fleet"><i class="over-flag" id="overFoeFlag"></i>AI CAPTAIN'S FLEET</span> <span id="overFoeWords"></span></div>
       <div class="grid" id="gridOverFoe"></div>
     </div>
     <div class="card card--flush">
-      <div class="grid-label">HUMAN CAPTAIN'S DEFENSE GRID <span id="overMyWords"></span></div>
+      <div class="grid-label"><span class="over-fleet"><i class="over-flag" id="overMyFlag"></i>HUMAN CAPTAIN'S DEFENSE GRID</span> <span id="overMyWords"></span></div>
       <div class="grid" id="gridOverMe"></div>
     </div>
   </section>
@@ -234,7 +234,7 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="audio.js?v=81"></script>
-<script src="app.js?v=81"></script>
+<script src="audio.js?v=82"></script>
+<script src="app.js?v=82"></script>
 </body>
 </html>

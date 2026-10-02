@@ -40,6 +40,10 @@
   // Color schemes offered on 001: a dark first color and a light second color that reads clearly as text
   // on the first. No greens or teals: green belongs to the game's own colors.
   // Every pair is at least 7:1 contrast (WCAG AAA). Saved as S.colors; where they apply is decided later.
+  // The AI Captain always flies one scheme: bright background, dark text (the reverse of every player
+  // scheme), in a hue no player scheme uses. 7.5:1 contrast.
+  var FOE_SCHEME = { id: 'signal-orange', name: 'Signal Orange & Black', colors: ['#ff7f27', '#111111'] };
+
   var COLOR_SCHEMES = [
     { id: 'plum-peach',      name: 'Plum & Peach',      colors: ['#4a1942', '#ffc9a8'] },   // 9.4:1
     { id: 'crimson-gold',    name: 'Crimson & Gold',    colors: ['#7a1216', '#ffd24a'] },   // 7.6:1
@@ -632,7 +636,7 @@
 
   function renderBattle() {
     var mine = S.turn === 'me';
-    setBar(mine ? 'Your Turn' : 'AI Captain\'s Turn', mine ? '' : 'is-foe');
+    setBar(null);   // whose turn it is shows in the Attack panel, not the header
     Array.prototype.forEach.call($('tabbar').children, function (b) { b.classList.toggle('is-on', b.getAttribute('data-tab') === ui.tab); });
     $('tabAttack').hidden = ui.tab !== 'Attack';
     $('tabDefense').hidden = ui.tab !== 'Defense';
@@ -1154,6 +1158,9 @@
     $('overFoeWords').textContent = S.foe.words.join(' • ');
     $('overMyWords').textContent = S.me.words.join(' • ');
     var fb = foeBoard(), mb = myBoard();
+    // Each fleet flies its flag: the AI Captain's Signal Orange & Black, yours in your scheme.
+    $('overFoeFlag').innerHTML = flagSvg(FOE_SCHEME, fleetInitials(S.foe.name) || 'AI');
+    $('overMyFlag').innerHTML = flagSvg(schemeOf(S.colors), fleetInitials(S.me.name) || 'WF');
     paint($('gridOverFoe'), function (r, c) {
       var k = key(r, c), cell = fb[k], s = S.myShots[k];
       var cls = cell ? (s && s.letter ? 'is-bull' : 'is-ship') : s && s.empty ? 'is-empty' : '';
