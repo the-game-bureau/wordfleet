@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Bump ?v= on every release (and CACHE in sw.js) so a new page never runs old code. -->
-  <link rel="stylesheet" href="app.css?v=54">
+  <link rel="stylesheet" href="app.css?v=55">
 </head>
 <body>
 
@@ -117,7 +117,7 @@
       <div class="card-title">Deploy Your Fleet</div>
       <!-- Same banner and frame as the in-game Defense Grid -->
       <div class="deploy-board">
-        <div class="gridbanner is-defense"><div><b>DEFENSE GRID</b><span>Your fleet</span></div></div>
+        <div class="gridbanner is-defense"><div><b>DEFENSE GRID</b><span id="deployFleetName">Your fleet</span></div></div>
         <div class="deploy-frame"><div class="grid" id="gridDeploy"></div></div>
       </div>
 
@@ -218,7 +218,7 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="audio.js?v=54"></script>
-<script src="app.js?v=54"></script>
+<script src="audio.js?v=55"></script>
+<script src="app.js?v=55"></script>
 </body>
 </html>

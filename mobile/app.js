@@ -454,6 +454,7 @@
     setBar(null);
     // The fleet is always on the grid (a game saved with ships in port gets a fresh layout).
     if (S.me.ships.some(function (s) { return s.r == null; })) { S.me.ships = scatter(S.me.words); save(); }
+    $('deployFleetName').textContent = S.me.name || 'Your fleet';
     var b = boardOf(S.me.ships);
     paint($('gridDeploy'), function (r, c) {
       var cell = b[key(r, c)];
