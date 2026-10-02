@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Bump ?v= on every release (and CACHE in sw.js) so a new page never runs old code. -->
-  <link rel="stylesheet" href="app.css?v=44">
+  <link rel="stylesheet" href="app.css?v=45">
 </head>
 <body>
 
@@ -53,8 +53,9 @@
 
   <!-- ============ 001-MOBILE-PREPARE (screen name: "001-MOBILE-PREPARE") ============ -->
   <section class="screen setup-big" id="scrSetup" data-screen="001-MOBILE-PREPARE">
+    <h1 class="page-head">Preparing for Battle</h1>
     <div class="card">
-      <div class="card-title">Welcome Captain! Prepare for Battle</div>
+      <div class="card-title">Welcome Captain!</div>
       <label class="label label--say" for="selLang">Choose your language</label>
       <select class="select" id="selLang"></select>
 
@@ -71,8 +72,10 @@
 
   <!-- ============ 002-MOBILE-OPPONENT (screen name: "002-MOBILE-OPPONENT") ============ -->
   <section class="screen setup-big" id="scrOpponent" data-screen="002-MOBILE-OPPONENT">
+    <h1 class="page-head">Preparing for Battle</h1>
     <div class="card">
       <div class="card-title">Choose Your Opponent</div>
+      <span class="label label--say">Pick the AI Captain you'll face</span>
       <div class="seg" id="segLevel">
         <button type="button" data-v="ensign" class="is-on"><span class="cpt">Captain</span>Rubber Duck</button>
         <button type="button" data-v="commander"><span class="cpt">Captain</span>Steady</button>
@@ -87,11 +90,14 @@
 
   <!-- ============ 003-MOBILE-WORD-SHIPS (screen name: "003-MOBILE-WORD-SHIPS") ============ -->
   <section class="screen setup-big" id="scrWords" data-screen="003-MOBILE-WORD-SHIPS">
+    <h1 class="page-head">Preparing for Battle</h1>
     <div class="card">
       <div class="card-title">Build Your Word-Ships</div>
+      <span class="label label--say">Offensive words</span>
       <label class="check check--top"><input type="checkbox" id="chkOffensive"> Possibly Offensive Words OK</label>
       <p class="hint hint--tight">Applies to both fleets.</p>
 
+      <span class="label label--say">Your five word-ships</span>
       <div id="wordList"></div>
       <button class="btn btn--wide btn--sm-gap" id="btnRefreshAll" type="button">&#x21bb; Refresh All</button>
       <p class="note" id="setupNote"></p>
@@ -211,7 +217,7 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="audio.js?v=44"></script>
-<script src="app.js?v=44"></script>
+<script src="audio.js?v=45"></script>
+<script src="app.js?v=45"></script>
 </body>
 </html>
