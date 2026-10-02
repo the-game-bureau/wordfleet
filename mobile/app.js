@@ -38,11 +38,12 @@
   };
 
   // Color schemes offered on 001: a dark first color and a light second color that reads clearly as text
-  // on the first (every pair is at least 7:1 contrast, WCAG AAA). Saved as S.colors; where they apply is decided later.
+  // on the first. No greens or teals: green belongs to the game's own colors.
+  // Every pair is at least 7:1 contrast (WCAG AAA). Saved as S.colors; where they apply is decided later.
   var COLOR_SCHEMES = [
-    { id: 'navy-green',      name: 'Navy & Green',      colors: ['#1a2f4f', '#8fd685'] },   // 7.8:1
+    { id: 'plum-peach',      name: 'Plum & Peach',      colors: ['#4a1942', '#ffc9a8'] },   // 9.4:1
     { id: 'crimson-gold',    name: 'Crimson & Gold',    colors: ['#7a1216', '#ffd24a'] },   // 7.6:1
-    { id: 'teal-coral',      name: 'Teal & Coral',      colors: ['#083d3a', '#ffb59c'] },   // 7.1:1
+    { id: 'charcoal-sky',    name: 'Charcoal & Sky',    colors: ['#262626', '#9fd3ff'] },   // 9.5:1
     { id: 'midnight-silver', name: 'Midnight & Silver', colors: ['#1e1b4b', '#d9dde4'] },   // 11.7:1
     { id: 'ocean-sand',      name: 'Ocean & Sand',      colors: ['#023e66', '#f4dc9c'] }    // 8.3:1
   ];
@@ -385,7 +386,9 @@
       return '<option value="' + esc(l.code) + '"' + (lang && l.code === lang.code ? ' selected' : '') + '>' + esc(l.name) + '</option>';
     }).join('');
     $('selLang').disabled = languages.length < 2;
-    var scheme = S.colors || COLOR_SCHEMES[0].id;
+    // A saved scheme that no longer exists gets a fresh random one.
+    if (!COLOR_SCHEMES.some(function (cs) { return cs.id === S.colors; })) { S.colors = pick(COLOR_SCHEMES).id; save(); }
+    var scheme = S.colors;
     $('colorSchemes').innerHTML = COLOR_SCHEMES.map(function (cs) {
       return '<button type="button" class="swatch' + (cs.id === scheme ? ' is-on' : '') + '" data-scheme="' + cs.id + '" role="radio" aria-checked="' + (cs.id === scheme) + '" aria-label="' + esc(cs.name) + '">' +
         '<span style="background:' + cs.colors[0] + ';color:' + cs.colors[1] + '">Aa</span></button>';
