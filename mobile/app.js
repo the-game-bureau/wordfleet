@@ -744,8 +744,7 @@
     }).join('');
 
     var fp = $('firePanel');
-    var found = bullCount(S.myShots);
-    var demandBtn = '<button class="btn btn--danger btn--wide" type="button" data-act="demand">Demand Surrender</button>';
+    // Demand Surrender lives in the \u2630 menu, not in these popups.
     var pkey, dismissible;
     if (ui.demand && mine) {
       pkey = 'demand'; dismissible = true;
@@ -755,7 +754,7 @@
       dismissible = true;   // close it to look at the grid; the reopen button brings it back
       fp.innerHTML = '<div class="card-title">' + S.result.title + '</div>' + S.result.html +
         (S.result.solve ? solveBox() : '') +
-        (S.result.bonus ? '<button class="btn btn--bonus btn--wide" type="button" data-act="panelOk">\u2605 Take Your Bonus Turn</button>' + demandBtn
+        (S.result.bonus ? '<button class="btn btn--bonus btn--wide" type="button" data-act="panelOk">\u2605 Take Your Bonus Turn</button>'
                         : mine ? '<button class="btn btn--primary btn--wide" type="button" data-act="endTurn">End Turn</button>'
                                : '<p class="waiting">AI Captain is choosing a square\u2026</p>');
     } else if (!mine) {
@@ -763,10 +762,9 @@
       fp.innerHTML = '<p class="waiting">AI Captain is choosing a square\u2026</p>';
     } else {
       pkey = 'turn:' + S.log.length; dismissible = true;   // a new key every move, so each turn pops up once
-      fp.innerHTML = '<div class="card-title">Your Turn &middot; ' + found + ' of ' + FLEET_CELLS + ' letters revealed</div>' +
+      fp.innerHTML = '<div class="card-title">Your Turn</div>' +   // no count of letters in play
         (S.notice ? '<p class="notice">' + S.notice + '</p>' : '') +
         '<p class="hint" style="margin-top:0">Tap a square on the Attack Grid, then call a letter. Every square holding it is revealed. If it\'s in the square you picked, you get a <strong>bonus turn</strong>. Vowels cost your next turn.</p>' +
-        demandBtn +
         '<button class="btn btn--primary btn--wide" type="button" data-act="panelOk">To the Attack Grid</button>';
     }
     ui.panelKey = pkey; ui.panelDismissible = dismissible;
@@ -1261,7 +1259,7 @@
       (ui.installEvt ? '<button class="btn btn--wide" type="button" data-act="install">Install Word Fleet</button>' : '') +
       '<a class="btn btn--wide" href="https://thegamebureau.com/wordfleet/">Home Port</a>' +
       '<a class="btn btn--wide" href="https://thegamebureau.com/">By The Game Bureau</a>' +
-      (S && S.phase === 'battle' && S.turn === 'me' && !S.result ? '<button class="btn btn--danger btn--wide" type="button" data-act="menuDemand">Demand Surrender</button>' : '') +
+      (S && S.phase === 'battle' && S.turn === 'me' && (!S.result || S.result.bonus) ? '<button class="btn btn--danger btn--wide" type="button" data-act="menuDemand">Demand Surrender</button>' : '') +
       (live ? '<button class="btn btn--danger btn--wide" type="button" data-act="abandon">Abandon Battle</button>' : '') +
       (window.WFAudio ? '<div class="switches">' +
         '<label class="switch-row"><span>Sound Effects</span><input type="checkbox" class="switch" data-audio="sfx"' + (window.WFAudio.sfxOn() ? ' checked' : '') + '></label>' +
