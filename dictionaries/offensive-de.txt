@@ -65,3 +65,15 @@ vollpfosten
 wichse
 wichsen
 wichser
+
+# Ergänzt: Kraftausdrücke und vulgäre Wörter, keine Beleidigungen von Gruppen. Ein + davor nimmt das Wort ins Wörterbuch auf, falls es fehlt.
+ficke
+fickt
+pisse
+pisst
+kotze
+huren
+wichs
++titte
++kacke
++kackt

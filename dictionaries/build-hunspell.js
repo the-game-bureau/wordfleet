@@ -87,8 +87,11 @@ function playable(w) {
 // stay in it but are marked so the game never draws them.
 const listFor = require('./lists');
 const BANNED = listFor('BANNED.md', code), NEVER = listFor('NEVER-SUGGESTED.md', code);
-const OFFENSIVE = new Set(fs.readFileSync(path.join(__dirname, L.offensive), 'utf8')
-  .split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith('#')).map(toGame).filter(Boolean));
+const offLines = fs.readFileSync(path.join(__dirname, L.offensive), 'utf8')
+  .split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith('#'));
+const OFFENSIVE = new Set(offLines.map(l => toGame(l.replace(/^\+/, ''))).filter(Boolean));
+// "+word" lines also add the word to the dictionary when the spell checker or frequency list lacks it.
+const ADD = new Set(offLines.filter(l => l.startsWith('+')).map(l => toGame(l.slice(1))).filter(Boolean));
 
 const seen = new Set();
 const ranked = [], extraOnly = [];
@@ -114,6 +117,13 @@ for (const t of ['common', 'everyday', 'rare', 'extra']) out.tiers[t] = { 2: [],
 ranked.forEach((w, i) => { const t = tierOf(i); out.tiers[w.length === 2 && t !== 'common' ? 'extra' : t][w.length].push(w); });
 extraOnly.forEach(w => out.tiers.extra[w.length].push(w));
 for (const byLen of Object.values(out.tiers)) Object.values(byLen).forEach(a => a.sort());
+// Offensive words marked "+" that the dictionary lacks join the common tier.
+for (const w of ADD) {
+  if (seen.has(w) || BANNED.has(w)) continue;
+  seen.add(w);
+  out.tiers.common[w.length].push(w);
+  out.tiers.common[w.length].sort();
+}
 out.offensive = [...OFFENSIVE].filter(w => seen.has(w)).sort();
 out.neverSuggest = [...NEVER].filter(w => seen.has(w)).sort();
 

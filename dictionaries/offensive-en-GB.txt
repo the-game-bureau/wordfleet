@@ -16,3 +16,10 @@ wanker
 ponce
 arse
 arses
+
+# Added: British profanity, no slurs. A leading + adds the word to the dictionary if it is missing.
+shag
+shags
++feck
++shite
++arse

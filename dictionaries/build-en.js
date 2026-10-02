@@ -35,7 +35,11 @@ const listFor = require('./lists');
 const BANNED = listFor('BANNED.md', V.code), NEVER = listFor('NEVER-SUGGESTED.md', V.code);
 const OFFENSIVE = new Set((V.code === 'en-GB' ? ['offensive-en-US.txt', 'offensive-en-GB.txt'] : ['offensive-en-US.txt'])
   .flatMap(f => fs.readFileSync(path.join(__dirname, f), 'utf8').split(/\r?\n/))
-  .map(l => l.trim().toLowerCase()).filter(l => l && !l.startsWith('#')));
+  .map(l => l.trim().toLowerCase()).filter(l => l && !l.startsWith('#')).map(l => l.replace(/^\+/, '')));
+// "+word" lines also add the word to the dictionary when the word list lacks it.
+const ADD = new Set((V.code === 'en-GB' ? ['offensive-en-US.txt', 'offensive-en-GB.txt'] : ['offensive-en-US.txt'])
+  .flatMap(f => fs.readFileSync(path.join(__dirname, f), 'utf8').split(/\r?\n/))
+  .map(l => l.trim().toLowerCase()).filter(l => l.startsWith('+')).map(l => l.slice(1)));
 
 function read(file) {
   const p = path.join(dir, file);
@@ -58,6 +62,13 @@ for (const [tier, sizes] of Object.entries(TIERS)) {
   }
   Object.values(byLen).forEach(a => a.sort());
   out.tiers[tier] = byLen;
+}
+// Offensive words marked "+" that the word list lacks join the common tier.
+for (const w of ADD) {
+  if (!/^[a-z]{2,5}$/.test(w) || seen.has(w) || BANNED.has(w.toUpperCase())) continue;
+  seen.add(w);
+  out.tiers.common[w.length].push(w.toUpperCase());
+  out.tiers.common[w.length].sort();
 }
 out.offensive = [...OFFENSIVE].filter(w => seen.has(w)).map(w => w.toUpperCase()).sort();
 out.neverSuggest = [...NEVER].filter(w => seen.has(w.toLowerCase())).sort();

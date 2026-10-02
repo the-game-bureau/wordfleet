@@ -464,3 +464,17 @@ mick
 micks
 nonce
 ponce
+
+# Added: everyday profanity and vulgar words, no slurs. A leading + adds the word to the dictionary if it is missing.
+asses
+butts
+cunts
+dicks
+fucks
+shits
+sluts
+twats
+wanks
++jizz
++skank
++pissy

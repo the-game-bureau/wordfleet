@@ -9,7 +9,7 @@ All of Word Fleet's word data lives here.
 | `es.json`, `de.json` | Spanish and German word lists, same shape. Generated; don't edit by hand. |
 | `build-en.js` | Builds `en-US.json` / `en-GB.json` from SCOWL. |
 | `build-hunspell.js` | Builds `es.json` / `de.json` from Hunspell dictionaries and frequency lists. |
-| `offensive-en-US.txt`, `offensive-en-GB.txt`, `offensive-es.txt`, `offensive-de.txt` | Possibly offensive words (the GB file adds British words to the US list). Hidden from both captains unless **Possibly Offensive Words OK** is checked. Edit freely, then rebuild. |
+| `offensive-en-US.txt`, `offensive-en-GB.txt`, `offensive-es.txt`, `offensive-de.txt` | Possibly offensive words (the GB file adds British words to the US list). Hidden from both captains unless **Allow possibly offensive words** is on. Edit freely, then rebuild. A line starting with `+` (e.g. `+jizz`) also adds that word to the dictionary if it is missing. No slurs: those go in `BANNED.md`. |
 | `fleet-names.json` | Fleet-name parts (adjectives and nouns) for English (UK), Spanish and German, used by the fleet-name dice. English (US) is built into `mobile/app.js`. Hand-edited; see `_about` inside for the format. |
 | `BANNED.md` | Banned words (the slurs): removed from the dictionaries and kept out when they are rebuilt. A word can be banned in one language only. |
 | `NEVER-SUGGESTED.md` | Words a captain may type but the game never suggests or draws (e.g. FUCK). Marked as `neverSuggest` in each dictionary. |
