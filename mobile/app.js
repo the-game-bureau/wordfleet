@@ -382,7 +382,7 @@
       var tooWide = function () {
         return seg.scrollWidth > seg.clientWidth || Array.prototype.some.call(btns, function (b) { return b.scrollWidth > b.clientWidth; });
       };
-      while (tooWide() && size > 11) {
+      while (tooWide() && size > 10) {
         size -= 1;
         Array.prototype.forEach.call(btns, function (b) { b.style.fontSize = size + 'px'; });
       }
