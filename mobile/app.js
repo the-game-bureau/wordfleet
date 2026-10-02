@@ -1267,7 +1267,9 @@
   function openMenu() {
     var live = S && S.phase !== 'over' && S.phase !== 'setup';
     openSheet('<h2>Word Fleet</h2><div class="menu-list">' +
-      '<button class="btn btn--primary btn--wide" type="button" data-act="newBattle">New Battle</button>' +
+      '<button class="btn btn--primary btn--wide" type="button" data-act="newBattle">Start a New Battle</button>' +
+      (S && S.me && S.me.words && S.me.words.length ? '<button class="btn btn--wide" type="button" data-act="newBattleSame">New Battle, Same Words</button>' +
+        '<button class="btn btn--wide" type="button" data-act="newBattleFleet">New Battle, Whole New Fleet</button>' : '') +
       '<button class="btn btn--wide" type="button" data-act="rules">Rules of Engagement</button>' +
       (ui.installEvt ? '<button class="btn btn--wide" type="button" data-act="install">Install Word Fleet</button>' : '') +
       '<a class="btn btn--wide" href="https://thegamebureau.com/wordfleet/">Home Port</a>' +
@@ -1309,13 +1311,30 @@
   function on(el, type, fn) { if (el) el.addEventListener(type, fn); }
 
   on($('btnMenu'), 'click', openMenu);
-  function newBattle() {
+  // kind: undefined starts over at 001; 'same' keeps your fleet (name, colors, words) and goes straight
+  // to 004 with it deployed at random; 'fleet' keeps your colors, draws a whole new fleet and opens 003.
+  function newBattle(kind) {
     if (S && S.phase !== 'over' && S.phase !== 'setup' && !confirm('Abandon the current battle?')) return false;
     if (ui.aiTimer) { clearTimeout(ui.aiTimer); ui.aiTimer = null; }
-    newGame(); show('setup');
+    var old = S && S.me && S.me.words && S.me.words.length ? { name: S.me.name, words: S.me.words.slice(), colors: S.colors } : null;
+    newGame();
+    if (kind && old) {
+      S.colors = old.colors;
+      if (kind === 'same') {
+        S.me.name = old.name; S.me.words = old.words;
+        S.me.ships = scatter(S.me.words);
+        S.phase = 'deploy';
+        save(); show('deploy');
+        return true;
+      }
+      S.setupStep = 'words';
+      save(); show('words');
+      return true;
+    }
+    show('setup');
     return true;
   }
-  on($('btnNew'), 'click', newBattle);
+  on($('btnNew'), 'click', function () { newBattle(); });
   on($('btnContinue'), 'click', resume);
   on($('btnHowTo'), 'click', openRules);
 
@@ -1534,6 +1553,8 @@
     else if (act === 'menuDemand') { closeSheet(); ui.demand = true; switchTab('Attack'); }
     else if (act === 'home') { closeSheet(); show('home'); }
     else if (act === 'newBattle') { if (newBattle()) closeSheet(); }
+    else if (act === 'newBattleSame') { if (newBattle('same')) closeSheet(); }
+    else if (act === 'newBattleFleet') { if (newBattle('fleet')) closeSheet(); }
     else if (act === 'abandon') {
       if (!confirm('Abandon this battle? It counts as a loss.')) return;
       if (S.phase === 'battle') bumpRecord(false);
