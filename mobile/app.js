@@ -411,12 +411,14 @@
     return (name || '').trim().split(/\s+/).map(function (w) { return w.replace(/^[^A-Za-zÀ-ÿ]+/, '').charAt(0); }).join('').toUpperCase().slice(0, 5);
   }
 
-  // A small waving flag (no pole) in a color scheme: first color for the cloth, second for the fleet initials.
+  // A small waving flag on a short pole with a ball on top, in a color scheme: first color for the cloth, second for the fleet initials.
   function flagSvg(cs, initials) {
     var size = initials.length <= 2 ? 20 : initials.length === 3 ? 16 : 12;
-    return '<svg viewBox="0 0 64 40" aria-hidden="true">' +
-      '<path d="M3 5 C20 0 38 10 61 5 L61 35 C38 40 20 30 3 35 Z" fill="' + cs.colors[0] + '" stroke="#000" stroke-width="1"/>' +
-      '<text x="32" y="20" dy="0.35em" text-anchor="middle" font-family="Courier Prime, monospace" font-weight="700" font-size="' + size + '" fill="' + cs.colors[1] + '">' + esc(initials) + '</text>' +
+    return '<svg viewBox="0 0 66 48" aria-hidden="true">' +
+      '<rect x="3" y="7" width="2.5" height="38" rx="1" fill="#000"/>' +            // short pole
+      '<circle cx="4.25" cy="5" r="3.2" fill="#000"/>' +                               // ball on top
+      '<path d="M5.5 10 C22 5 40 15 63 10 L63 39 C40 44 22 34 5.5 39 Z" fill="' + cs.colors[0] + '" stroke="#000" stroke-width="1"/>' +
+      '<text x="34" y="24.5" dy="0.35em" text-anchor="middle" font-family="Courier Prime, monospace" font-weight="700" font-size="' + size + '" fill="' + cs.colors[1] + '">' + esc(initials) + '</text>' +
       '</svg>';
   }
 
