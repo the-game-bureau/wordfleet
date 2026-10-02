@@ -722,7 +722,7 @@
   // chip(L, cls) returns one chip's HTML.
   function manifestHtml(label, left, chip) {
     return '<span class="uncalled-label"><span>' + label + '</span>' +
-      (left.some(isVowel) ? '<span class="uc-vowels-cap"><i class="uc-dot"></i>Vowels: \u22121 turn</span>' : '') + '</span>' +
+      (left.some(isVowel) ? '<span class="uc-vowels-cap">Vowels: \u22121 turn</span>' : '') + '</span>' +
       left.map(function (L) { return chip(L, 'uc' + (isVowel(L) ? ' is-vowel' : '')); }).join('');
   }
 

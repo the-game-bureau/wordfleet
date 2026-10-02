@@ -709,7 +709,6 @@ button.uc:active { background: var(--mine, var(--navy)); color: var(--mine-ink, 
 .uncalled-label { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; column-gap: 10px; }
 .uc-vowels-cap { display: inline-flex; align-items: center; gap: 5px; margin-left: auto; white-space: nowrap;
   font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
-.uc-dot { width: 10px; height: 10px; border: 1.5px solid var(--ink); border-radius: 50%; }
 
 /* A square known to hold a hidden letter: "?" plus the letters already ruled out there */
 .cell.is-contact { background: #e9ecef; }
