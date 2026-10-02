@@ -33,7 +33,7 @@
                  hint: 'A dependable old hand who has seen a few storms. Hides familiar words, calls sensible consonants, and solves your words once the clues line up.',
                  pattern: true, vowelCost: 0.45, noise: 0.15, solve: { known: 0.6, share: 1 } },
     admiral:   { name: 'Captain Lexicon',   tiers: ['rare'],     example: 'GLYPH • YURT • ASP',
-                 hint: 'A walking dictionary with a spyglass. Hides rare words that are hard to crack, studies every letter you reveal, almost never wastes a turn on a vowel, and solves early.',
+                 hint: 'A walking dictionary with a periscope. Hides rare words that are hard to crack, studies every letter you reveal, almost never wastes a turn on a vowel, and solves early.',
                  pattern: true, vowelCost: 0.3, noise: 0.05, solve: { known: 0.4, share: 0.7 } }
   };
 
