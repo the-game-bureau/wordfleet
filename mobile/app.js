@@ -830,10 +830,11 @@
   // Longer hints for a captain's first two calls ever, or whenever Hints is switched on in the menu.
   function hintsOn() { return getPref(HINT_KEY) === 'on' || (+getPref(CALLS_KEY) || 0) < 2; }
 
+  // One short item per thing that happened since your last turn; renderCoach joins them into one line.
   function aiMoveLine(ev) {
-    if (ev.skip) return 'You called a vowel, so you lost a turn.';
-    return 'AI Captain called <b>' + ev.letter + '</b> at <b>' + coordK(ev.square) + '</b> \u00b7 tally ' + ev.tally +
-      (ev.bonus ? ' \u00b7 \u2605 bonus turn' : '') + (ev.solve ? ' \u00b7 solved ' + (ev.solve.ok ? ev.solve.word : 'nothing') : '');
+    if (ev.skip) return 'you lost a turn (vowel)';
+    return 'AI: <b>' + ev.letter + '</b> at <b>' + coordK(ev.square) + '</b> (' + ev.tally + ')' +
+      (ev.bonus ? ' \u2605 bonus' : '') + (ev.solve ? ', solved ' + (ev.solve.ok ? '<b>' + ev.solve.word + '</b>' : 'nothing') : '');
   }
 
   function renderCoach() {
@@ -869,13 +870,13 @@
       btns = '<button class="btn btn--sm btn--primary" type="button" data-coach="end">End Turn</button>';
     } else {
       (S.incoming || []).forEach(function (ev) { pre.push(aiMoveLine(ev)); });
-      if (S.notice) pre.push(S.notice);
+      if (S.notice) pre.push(/vowel/.test(S.notice) ? 'AI lost a turn (vowel)' : S.notice);
       step = '1'; main = 'Your turn. Tap a square to aim.';
       if (hint) sub.push('Then call a letter: every square holding it is revealed. Your letter in your square = bonus turn. Vowels cost a turn.');
     }
     el.className = 'coach ' + cls;
     el.innerHTML = (step ? '<span class="coach-step">' + step + '</span>' : '') +
-      '<div class="coach-body">' + pre.map(function (x) { return '<div class="coach-news">' + x + '</div>'; }).join('') +
+      '<div class="coach-body">' + (pre.length ? '<div class="coach-news">' + pre.join(' \u00b7 ') + '</div>' : '') +
       '<div class="coach-main">' + main + '</div>' +
       sub.map(function (x) { return '<div class="coach-sub">' + x + '</div>'; }).join('') +
       (btns ? '<div class="coach-btns">' + btns + '</div>' : '') + '</div>';
@@ -900,7 +901,12 @@
       if (ui.tab === 'Defense' && (S.incoming || []).some(function (e) { return e.square === k; })) cls += ' is-aimed';
       if (flashing && ev.cells && ev.cells.indexOf(k) !== -1) cls += ' is-flash';
       return { cls: cls, text: cell ? cell.letter : '' };
-    }, false, '<button type="button" class="cell is-label cell--abc cell--def" data-def="1" aria-label="Defense Manifest: your letters the AI Captain has revealed">DEF</button>');
+    }, false);
+    // Letters the AI Captain has not called yet; the ones in your fleet (still at risk) are outlined in your colors.
+    var mineCount = letterCounts(S.me.words);
+    var aiLeft = LETTERS.filter(function (L) { return S.foeTallies[L] == null; });
+    $('defUncalled').innerHTML = '<span class="uncalled-label">AI letters left</span>' +
+      aiLeft.map(function (L) { return '<span class="uc' + (isVowel(L) ? ' is-vowel' : '') + (mineCount[L] ? ' is-mine' : '') + '">' + L + '</span>'; }).join('');
     if (flashing) { ev.unseen = false; save(); $('defDot').hidden = true; }
   }
 
@@ -1571,7 +1577,6 @@
   });
   on($('firePanel'), 'input', function (e) { if (e.target.hasAttribute('data-claim')) claimInput(e.target); });
   on($('firePanel'), 'change', function (e) { if (e.target.hasAttribute('data-claim')) claimInput(e.target); });
-  on($('gridDefense'), 'click', function (e) { if (e.target.closest('[data-def]')) openDefenseManifest(); });
   on($('tabbar'), 'click', function (e) {
     var b = e.target.closest('[data-tab]');
     if (!b) return;

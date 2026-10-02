@@ -691,3 +691,9 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 .uncalled { display: grid; grid-template-columns: repeat(13, 1fr); gap: 3px; }
 .uncalled-label { grid-column: 1 / -1; }
 .uc { min-width: 0; height: auto; aspect-ratio: 1 / 1.1; font-size: max(13px, calc(var(--cell) * 0.5)); }
+
+/* 007: AI letters left; letters in your fleet are outlined in your colors */
+.uc.is-mine { background: var(--mine, var(--navy)); color: var(--mine-ink, #fff); border-color: var(--mine, var(--navy)); }
+.uc.is-mine.is-vowel { border-bottom-color: var(--red); }
+/* the folded news line stays compact */
+.coach-news { font-size: 15px; line-height: 1.35; }

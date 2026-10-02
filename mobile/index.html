@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Bump ?v= on every release (and CACHE in sw.js) so a new page never runs old code. -->
-  <link rel="stylesheet" href="app.css?v=126">
+  <link rel="stylesheet" href="app.css?v=127">
 </head>
 <body>
 
@@ -162,12 +162,14 @@
     <!-- ============ 007-MOBILE-DEFENSE (screen name: "007-MOBILE-DEFENSE") ============ -->
     <div class="tab" id="tabDefense" data-screen="007-MOBILE-DEFENSE" hidden>
       <!-- Built like the Attack Grid, in your fleet colors. The AI Captain's moves are reported in the coach bar;
-           DEF in the top-left corner opens the Defense Manifest (MOBILE-DEFENSE-MANIFEST). -->
+           "AI letters left" above the grid matches the Attack Grid's "Letters left". -->
       <div class="gridbanner is-defense">
         <div><b>DEFENSE GRID</b><span id="defFleetName">Your fleet</span></div>
         <span class="bubbles" id="defBubbles"></span>
       </div>
       <div class="card card--flush card--defense">
+        <!-- Letters the AI Captain hasn't called yet; yours (still at risk) outlined in your colors -->
+        <div class="uncalled" id="defUncalled" aria-label="Letters the AI Captain has not called yet"></div>
         <div class="grid" id="gridDefense"></div>
       </div>
     </div>
@@ -241,7 +243,7 @@
 <div class="coach coach--notice" id="notice" role="alert" aria-live="assertive" hidden></div>
 <div class="bonus-banner" id="bonusBanner" role="status" aria-live="assertive" hidden></div>
 
-<script src="audio.js?v=126"></script>
-<script src="app.js?v=126"></script>
+<script src="audio.js?v=127"></script>
+<script src="app.js?v=127"></script>
 </body>
 </html>
