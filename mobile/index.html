@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Bump ?v= on every release (and CACHE in sw.js) so a new page never runs old code. -->
-  <link rel="stylesheet" href="app.css?v=153">
+  <link rel="stylesheet" href="app.css?v=154">
 </head>
 <body>
 
@@ -148,11 +148,11 @@
 
     <!-- ============ 005-MOBILE-ATTACK (screen name: "005-MOBILE-ATTACK") ============ -->
     <!-- Tapping a square lights up the Letters Manifest (006); "Demand Surrender" (☰ menu) opens 009-MOBILE-SURRENDER.
-         "Order of Battle": one circle per word-ship, by length; it fills in when that word-ship is sunk. -->
+         "Fleet Muster": one circle per word-ship, by length; it fills in when that word-ship is sunk. -->
     <div class="tab" id="tabAttack" data-screen="005-MOBILE-ATTACK">
       <div class="gridbanner is-attack">
         <div><b>ATTACK GRID</b><span class="banner-score" id="score">0 points</span></div>
-        <div class="roll"><div class="roll-label">Order of Battle</div><span class="bubbles" id="bubbles"></span></div>
+        <div class="roll"><div class="roll-label">Fleet Muster</div><span class="bubbles" id="bubbles"></span></div>
       </div>
       <div class="card card--flush card--attack">
         <!-- Letters still to call; they disappear as you call them (called ones show on the grid) -->
@@ -167,7 +167,7 @@
            "AI letters left" above the grid matches the Attack Grid's "Letters left". -->
       <div class="gridbanner is-defense">
         <div><b>DEFENSE GRID</b><span id="defFleetName">Your fleet</span></div>
-        <div class="roll"><div class="roll-label">Order of Battle</div><span class="bubbles" id="defBubbles"></span></div>
+        <div class="roll"><div class="roll-label">Fleet Muster</div><span class="bubbles" id="defBubbles"></span></div>
       </div>
       <div class="card card--flush card--defense">
         <!-- Letters the AI Captain hasn't called yet; yours (still at risk) outlined in your colors -->
@@ -228,7 +228,7 @@
 <div class="coach coach--notice" id="notice" role="alert" aria-live="assertive" hidden></div>
 <div class="bonus-banner" id="bonusBanner" role="status" aria-live="assertive" hidden></div>
 
-<script src="audio.js?v=153"></script>
-<script src="app.js?v=153"></script>
+<script src="audio.js?v=154"></script>
+<script src="app.js?v=154"></script>
 </body>
 </html>

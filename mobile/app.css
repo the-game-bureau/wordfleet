@@ -764,7 +764,7 @@ button.uc:active { background: var(--mine, var(--navy)); color: var(--mine-ink, 
 .fleet-info .fleet-stats { color: var(--ink); font-weight: 700; }
 .fleet-acts { display: grid; gap: 6px; flex-shrink: 0; }
 .fleet-acts .btn { min-height: 34px; padding: 4px 10px; font-size: 13px; }
-/* "Order of Battle": the ship circles in a grid banner, with their label */
+/* "Fleet Muster": the ship circles in a grid banner, with their label */
 .roll { display: grid; justify-items: end; gap: 4px; flex-shrink: 0; }
 .roll-label { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; }
 .fleet-info b, .fleet-info span { white-space: normal; overflow: visible; }
