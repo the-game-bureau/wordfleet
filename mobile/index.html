@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Bump ?v= on every release (and CACHE in sw.js) so a new page never runs old code. -->
-  <link rel="stylesheet" href="app.css?v=76">
+  <link rel="stylesheet" href="app.css?v=77">
 </head>
 <body>
 
@@ -53,8 +53,8 @@
 
   <!-- ============ 001-MOBILE-PREPARE (screen name: "001-MOBILE-PREPARE") ============ -->
   <section class="screen setup-big" id="scrSetup" data-screen="001-MOBILE-PREPARE">
-    <p class="page-welcome">Welcome, Captain!</p>
-    <h1 class="page-head">Prepare for Battle</h1>
+    <p class="page-head">Prepare for Battle</p>
+    <h1 class="page-line">Welcome, Captain!</h1>
     <div class="card">
       <div class="card-title">Set Up Your Fleet</div>
       <!-- 11: language on one compact row -->
@@ -80,8 +80,8 @@
 
   <!-- ============ 002-MOBILE-OPPONENT (screen name: "002-MOBILE-OPPONENT") ============ -->
   <section class="screen setup-big" id="scrOpponent" data-screen="002-MOBILE-OPPONENT">
-    <h1 class="page-head">Prepare for Battle</h1>
-    <div class="fleet-tag" data-fleet-tag></div>
+    <p class="page-head">Prepare for Battle</p>
+    <h1 class="page-line fleet-tag" data-fleet-tag></h1>
     <div class="card">
       <div class="card-title">Choose Your Opponent</div>
       <span class="label label--say">Pick the AI Captain you'll face</span>
@@ -99,8 +99,8 @@
 
   <!-- ============ 003-MOBILE-WORD-SHIPS (screen name: "003-MOBILE-WORD-SHIPS") ============ -->
   <section class="screen setup-big" id="scrWords" data-screen="003-MOBILE-WORD-SHIPS">
-    <h1 class="page-head">Prepare for Battle</h1>
-    <div class="fleet-tag" data-fleet-tag></div>
+    <p class="page-head">Prepare for Battle</p>
+    <h1 class="page-line fleet-tag" data-fleet-tag></h1>
     <div class="card">
       <div class="card-title">Build Your Word-Ships</div>
       <label class="switch-row switch-row--big"><span>Allow possibly offensive words</span><input type="checkbox" class="switch" id="chkOffensive" role="switch"></label>
@@ -121,7 +121,8 @@
 
   <!-- ============ 004-MOBILE-DEPLOY (screen name: "004-MOBILE-DEPLOY") ============ -->
   <section class="screen setup-big" id="scrDeploy" data-screen="004-MOBILE-DEPLOY">
-    <h1 class="page-head">Prepare for Battle</h1>
+    <p class="page-head">Prepare for Battle</p>
+    <h1 class="page-line fleet-tag" data-fleet-tag></h1>
     <div class="card card--deploy">
       <div class="card-title">Deploy Your Fleet</div>
       <!-- Same banner and frame as the in-game Defense Grid -->
@@ -227,7 +228,7 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="audio.js?v=76"></script>
-<script src="app.js?v=76"></script>
+<script src="audio.js?v=77"></script>
+<script src="app.js?v=77"></script>
 </body>
 </html>

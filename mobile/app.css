@@ -518,3 +518,11 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 .setup-big .section-head { flex-wrap: wrap; }
 .setup-big .section-head .label--say { flex: 1 1 190px; }
 .setup-big .lang-row + .label--say { margin-top: 22px; }
+
+/* Header above the card on every Prepare screen: small "PREPARE FOR BATTLE" first,
+   then one big line, "Welcome, Captain!" on 001 or your flag and fleet name on 002-004. */
+.page-head { font-size: 14px; letter-spacing: 0.16em; color: var(--muted); margin: 4px 2px 2px; }
+.page-line { display: flex; align-items: center; gap: 10px; min-height: 40px; margin: 0 2px 12px;
+  font-family: var(--mono); font-size: 22px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.2; }
+.page-line .fleet-tag-name { font-size: inherit; letter-spacing: inherit; }
+.page-line .fleet-tag-flag { width: 48px; }
