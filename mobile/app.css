@@ -734,3 +734,9 @@ button.uc:active { background: var(--mine, var(--navy)); color: var(--mine-ink, 
 /* Revealed letters stay on white; a word-ship's squares turn green once every letter is revealed (sunk) */
 .cell.is-found { background: var(--paper); color: var(--ink); }
 .cell.is-bull.is-aim-hit { background: var(--green) !important; box-shadow: none; }
+/* 010-MOBILE-GAME-OVER: letters of the enemy fleet you never revealed, and a lost battle's coach bar */
+.cell.is-unfound { background: #e9ecef; color: #6b7280; }
+.coach.is-lost { background: var(--red-wash); }
+.coach.is-lost .coach-step { background: var(--red); color: #fff; }
+.coach-eyebrow { display: block; font-family: var(--mono); font-size: 13px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 2px; }
+.coach.is-lost .coach-eyebrow { color: var(--red); }

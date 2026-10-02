@@ -28,13 +28,13 @@
   var LEVELS = {
     ensign:    { name: 'Captain Rubber Duck',    tiers: ['common'],  
                  hint: 'A cheerful rookie who has never sailed beyond the bathtub. Hides everyday words anyone knows and calls letters on a hunch, vowels and all.',
-                 pattern: false, vowelCost: 1, noise: 1, solve: null },
+                 pattern: false, vowelCost: 1, noise: 1 },
     commander: { name: 'Captain Steady', tiers: ['everyday'],
-                 hint: 'A dependable old hand who has seen a few storms. Hides familiar words, calls sensible consonants, and solves your word-ships once the clues line up.',
-                 pattern: true, vowelCost: 0.45, noise: 0.15, solve: { known: 0.6, share: 1 } },
+                 hint: 'A dependable old hand who has seen a few storms. Hides familiar words, calls sensible consonants, and aims where your revealed letters point.',
+                 pattern: true, vowelCost: 0.45, noise: 0.15 },
     admiral:   { name: 'Captain Lexicon',   tiers: ['rare'],    
-                 hint: 'A walking dictionary with a periscope. Hides rare words that are hard to crack, studies every letter you reveal, almost never wastes a turn on a vowel, and solves early.',
-                 pattern: true, vowelCost: 0.3, noise: 0.05, solve: { known: 0.4, share: 0.7 } }
+                 hint: 'A walking dictionary with a periscope. Hides rare words that are hard to crack, studies every letter you reveal, and almost never wastes a turn on a vowel.',
+                 pattern: true, vowelCost: 0.3, noise: 0.05 }
   };
 
   // Color schemes offered on 001: a dark first color and a light second color that reads clearly as text
@@ -338,8 +338,8 @@
                   words: 'scrWords',         // "003-MOBILE-WORD-SHIPS"
                   deploy: 'scrDeploy',       // "004-MOBILE-DEPLOY"
                   // battle: tabs "005-MOBILE-ATTACK", "007-MOBILE-DEFENSE", "008-MOBILE-LOG"; sheet "006-MOBILE-CALL-LETTER";
-                  // Attack panel "009-MOBILE-SURRENDER". over: "010-MOBILE-GAME-OVER". Sheets "MOBILE-MENU", "MOBILE-RULES"
-                  battle: 'scrBattle', over: 'scrOver' };
+                  // Attack panel "009-MOBILE-SURRENDER"; the Attack tab once the battle is over "010-MOBILE-GAME-OVER". Sheets "MOBILE-MENU", "MOBILE-RULES"
+                  battle: 'scrBattle' };
   var current = 'home';
 
   function show(name) {
@@ -368,7 +368,6 @@
     else if (current === 'setup' || current === 'opponent' || current === 'words') renderSetup();
     else if (current === 'deploy') renderDeploy();
     else if (current === 'battle') renderBattle();
-    else if (current === 'over') renderOver();
     applyFleetColors();
     refreshPanel();
     setMusicMood();
@@ -490,11 +489,10 @@
 
   // Pick up where the player left off; anything else starts fresh at 001-MOBILE-PREPARE.
   function resume() {
-    if (!S || S.phase === 'over') { newGame(); return show('setup'); }
+    if (!S) { newGame(); return show('setup'); }
     if (S.phase === 'setup') show(S.setupStep || 'setup');
     else if (S.phase === 'deploy') show('deploy');
-    else if (S.phase === 'battle') show('battle');
-    else show('over');
+    else show('battle');   // battle, or over (010-MOBILE-GAME-OVER is the battle screen's final state)
   }
 
   // ------------------------------------------------------------
@@ -765,11 +763,17 @@
       if (all) cellsOf(ship).forEach(function (p) { sunkCells[key(p.r, p.c)] = true; });
       return '<span class="bubble' + (all ? ' is-solved' : '') + '" title="' + SPECS[i].cls + (all ? ': sunk' : '') + '">' + SPECS[i].len + '</span>';
     }).join('');
+    var over = S.phase === 'over', fb = foeBoard();
+    $('tabAttack').setAttribute('data-screen', over ? '010-MOBILE-GAME-OVER' : '005-MOBILE-ATTACK');
+    $('attackSub').textContent = over ? (S.winner === 'me' ? 'Enemy Fleet Sunk' : 'Enemy Fleet Revealed') : 'Hunting the Enemy';
+    $('uncalled').hidden = over;
     paint($('gridAttack'), function (r, c) {
       var k = key(r, c);
       var s = S.myShots[k];
       var o = s && s.letter ? { cls: sunkCells[k] ? 'is-bull' : 'is-found', text: s.letter, off: true } : s && s.empty ? { cls: 'is-empty', off: true } :
         s && s.tried ? { cls: 'is-contact', text: '<span class="q">?</span>' + triedHtml(s) } : {};
+      // 010-MOBILE-GAME-OVER: the enemy fleet's unrevealed letters show too.
+      if (over && fb[k] && !(s && s.letter)) o = { cls: 'is-unfound', text: fb[k].letter, off: true };
       if (ui.sel === k && !(s && s.letter)) o.cls = (o.cls || '') + ' is-target';
       // The story of your call, told on the grid: new letters flip in one by one, and the square
       // you aimed at keeps a marker (gold ✓ when the letter was there) until your turn ends.
@@ -824,17 +828,25 @@
   function aiMoveLine(ev) {
     if (ev.skip) return 'you lost a turn (vowel)';
     return 'AI: <b>' + ev.letter + '</b> at <b>' + coordK(ev.square) + '</b> (' + ev.tally + ')' +
-      (ev.bonus ? ' \u2605 bonus' : '') + (ev.solve ? ', solved ' + (ev.solve.ok ? '<b>' + ev.solve.word + '</b>' : 'nothing') : '');
+      (ev.bonus ? ' \u2605 bonus' : '');
   }
 
   function renderCoach() {
     var el = $('coach');
-    var show = current === 'battle' && S && S.phase === 'battle' && !ui.demand;
+    var show = current === 'battle' && S && (S.phase === 'over' || (S.phase === 'battle' && !ui.demand));
     el.hidden = !show;
     if (!show) return;
     var mine = S.turn === 'me', r = S.result, info = r && r.info, hint = hintsOn();
     var step = '', main = '', pre = [], sub = [], btns = '', cls = '';   // pre: news above the instruction; sub: details below
-    if (!mine) {
+    if (S.phase === 'over') {
+      // 010-MOBILE-GAME-OVER: the result, how the battle went, and no buttons (New Battle is in the ☰ menu).
+      var o = overText(), called = Object.keys(S.myTallies);
+      cls = S.winner === 'me' ? 'is-bonus' : 'is-lost';
+      step = S.winner === 'me' ? '\u2605' : '\u2715';
+      main = '<span class="coach-eyebrow">' + o.eyebrow + '</span>' + o.title;
+      sub.push(o.quote);
+      sub.push(called.length + ' letters called \u00b7 ' + called.filter(isVowel).length + ' vowels \u00b7 ' + bullCount(S.myShots) + '/' + FLEET_CELLS + ' revealed');
+    } else if (!mine) {
       cls = 'is-wait';
       main = 'AI Captain is aiming<span class="dots"><i>.</i><i>.</i><i>.</i></span>';
       if (hint) sub.push('It calls a letter on your fleet. Watch the Defense Grid.');
@@ -1007,13 +1019,14 @@
       (bonus ? ' It was at ' + coordK(k) + ': bonus turn.' : '') + (vowel ? ' A vowel: the Human Captain loses the next turn.' : ''));
     sfx('select');
     sfx(t ? 'fill' : 'zero', 0.2);
+    if (sunk.length) log('me', sunk.join(', ') + ' sunk: every letter revealed.');
+    if (allRevealed(S.myShots, foeBoard())) { finish('me', 'reveal'); return; }   // the win fanfare takes over
     if (bonus) {
       sfx('bonus', 0.35);
       notifyBonus('\u2605 BONUS TURN!');
     }
     if (vowel) sfx('error', 0.6);
-    if (sunk.length) { sfx('solveOk', 0.5); log('me', sunk.join(', ') + ' sunk: every letter revealed.'); }
-    if (allRevealed(S.myShots, foeBoard())) { finish('me', 'reveal'); return; }
+    if (sunk.length) sfx('solveOk', 0.5);
     var html = '<div class="report ' + (t ? 'is-good' : 'is-warn') + '"><div class="report-q">' + coordK(k) + ': "Calling ' + NATO[L] + '!"</div><div class="report-a">"' + L + ' tally ' + t + '."</div></div>' +
       (t ? revealNote(L, cells, 'the AI Captain\'s') : '<p class="hint">' + L + ' is nowhere in the AI Captain\'s fleet.</p>') +
       (bonus ? '<p class="bonus">\u2605 Bonus turn! ' + L + ' was hiding at ' + coordK(k) + '.</p>' : (at ? '' : '<p class="hint">' + coordK(k) + ' is open water.</p>')) +
@@ -1024,24 +1037,6 @@
     save(); renderBattle();
   }
 
-  // --- the AI Captain solves a word-ship it has pinned down ---
-  // Fill in every square of the first unsolved word-ship spelling `word`.
-  function solveWord(shots, ships, word) {
-    for (var i = 0; i < ships.length; i++) {
-      var ship = ships[i];
-      if (ship.word !== word) continue;
-      var cells = cellsOf(ship);
-      if (cells.every(function (p) { var s = shots[key(p.r, p.c)]; return s && s.letter; })) continue;
-      var filled = [];
-      cells.forEach(function (p, j) {
-        var k = key(p.r, p.c);
-        if (!(shots[k] && shots[k].letter)) filled.push(k);
-        shots[k] = { hit: true, letter: word[j], wrong: (shots[k] && shots[k].wrong) || [] };
-      });
-      return { idx: i, cells: filled };
-    }
-    return null;
-  }
 
   function endMyTurn() {
     closeSheet();
@@ -1202,23 +1197,7 @@
     return pick(hidden);
   }
 
-  // Solve when the revealed letters pin a word down.
-  function foeTrySolve(lvl) {
-    var best = null, groups = {};
-    eachFit(2, function (e, seg, known, len) {
-      if (known / len < lvl.solve.known || (S.foeMissedSolves || []).indexOf(e.w) !== -1) return;
-      var g = groups[seg.join('.') + len] = groups[seg.join('.') + len] || { known: known, len: len, total: 0, top: null };
-      g.total += e.wt;
-      if (!g.top || e.wt > g.top.wt) g.top = e;
-    });
-    Object.keys(groups).forEach(function (id) {
-      var g = groups[id];
-      if (g.top.wt / g.total < lvl.solve.share) return;
-      var sc = g.known / g.len + g.top.wt / g.total;
-      if (!best || sc > best.score) best = { word: g.top.w, score: sc };
-    });
-    return best && best.word;
-  }
+
 
   function foeTurn() {
     ui.aiTimer = null;
@@ -1239,20 +1218,9 @@
     var ev = { letter: L, square: k, tally: t, vowel: vowel, bonus: bonus, cells: revealLetter(S.foeShots, myBoard(), L) };
     log('foe', coordK(k) + ': "Calling ' + NATO[L] + '!" &mdash; <span class="say">"' + L + ' tally ' + t + '."</span>' +
       (bonus ? ' It was at ' + coordK(k) + ': bonus turn.' : '') + (vowel ? ' A vowel: the AI Captain loses its next turn.' : ''));
-    if (t && lvl.solve && !allRevealed(S.foeShots, myBoard())) {
-      var guess = foeTrySolve(lvl);
-      if (guess) {
-        var res = solveWord(S.foeShots, S.me.ships, guess);
-        ev.solve = { word: guess, ok: !!res };
-        if (res) ev.cells = ev.cells.concat(res.cells);
-        else (S.foeMissedSolves = S.foeMissedSolves || []).push(guess);
-        log('foe', '"Solve: ' + guess + '!" &mdash; <span class="say">' + (res ? '"Correct."' : '"Negative."') + '</span>');
-      }
-    }
     sfx('incoming');
     sfx(t ? 'fill' : 'zero', 0.5);
     if (bonus) sfx('bull', 0.9);
-    if (ev.solve) sfx(ev.solve.ok ? 'solveOk' : 'solveBad', 1.1);
     if (allRevealed(S.foeShots, myBoard())) { finish('foe', 'foe-reveal'); return; }
     ev.unseen = true;
     S.lastFoe = ev;
@@ -1274,43 +1242,20 @@
     if (ui.aiTimer) { clearTimeout(ui.aiTimer); ui.aiTimer = null; }
     bumpRecord(winner === 'me');
     sfx(winner === 'me' ? 'win' : 'lose', 0.2);
+    ui.sel = null; ui.demand = false; ui.tab = 'Attack';
     save();
-    show('over');
+    show('battle');
+    window.scrollTo(0, 0);
   }
 
-  function renderOver() {
-    var won = S.winner === 'me';
-    setBar(null);   // the result shows in the card, not the header
-    var eyebrow, title, quote;
-    if (S.reason === 'reveal') { eyebrow = 'Total Victory'; title = 'Every letter of the ' + S.foe.name + ' is showing.'; quote = 'Their whole fleet is revealed. "You have won."'; }
-    else if (S.reason === 'foe-reveal') { eyebrow = 'Fleet Exposed'; title = 'The AI Captain revealed your whole fleet.'; quote = 'Every letter of the ' + S.me.name + ' is showing.'; }
-    else if (S.reason === 'demand-right') { eyebrow = 'Total Victory'; title = 'The ' + S.foe.name + ' surrenders.'; quote = '"You have won."'; }
-    else if (S.reason === 'demand-wrong') { eyebrow = 'Surrender Refused'; title = 'Your demand missed the mark.'; quote = '"Victory is mine! You lose! Good day sir!"'; }
-    else { eyebrow = 'Fleet Surrendered'; title = 'The ' + S.foe.name + ' named every word-ship.'; quote = 'You were obliged to answer: "You have won."'; }
-    $('overEyebrow').textContent = eyebrow;
-    $('overTitle').textContent = title;
-    $('overQuote').textContent = quote;
-    var called = Object.keys(S.myTallies);
-    $('overStats').innerHTML =
-      '<div class="stat"><b>' + called.length + '</b><span>Letters called</span></div>' +
-      '<div class="stat"><b>' + called.filter(isVowel).length + '</b><span>Vowels</span></div>' +
-      '<div class="stat"><b>' + bullCount(S.myShots) + '/' + FLEET_CELLS + '</b><span>Revealed</span></div>';
-    $('overFoeWords').textContent = S.foe.words.join(' • ');
-    $('overMyWords').textContent = S.me.words.join(' • ');
-    var fb = foeBoard(), mb = myBoard();
-    // Each fleet flies its flag: the AI Captain's Signal Orange & Black, yours in your scheme.
-    $('overFoeFlag').innerHTML = flagSvg(FOE_SCHEME, fleetInitials(S.foe.name) || 'AI');
-    $('overMyFlag').innerHTML = flagSvg(schemeOf(S.colors), fleetInitials(S.me.name) || 'WF');
-    paint($('gridOverFoe'), function (r, c) {
-      var k = key(r, c), cell = fb[k], s = S.myShots[k];
-      var cls = cell ? (s && s.letter ? 'is-bull' : 'is-ship') : s && s.empty ? 'is-empty' : '';
-      return { cls: cls, text: cell ? cell.letter : '' };
-    }, false);
-    paint($('gridOverMe'), function (r, c) {
-      var k = key(r, c), cell = mb[k], s = S.foeShots[k];
-      var cls = cell ? 'is-ship' + (s && s.letter ? ' is-ship-lost' : '') : s && s.empty ? 'is-empty' : '';
-      return { cls: cls, text: cell ? cell.letter : '' };
-    }, false);
+  // The words for how the battle ended.
+  function overText() {
+    var r = S.reason;
+    if (r === 'reveal') return { eyebrow: 'Total Victory', title: 'Every letter of the ' + S.foe.name + ' is showing.', quote: '"You have won."' };
+    if (r === 'foe-reveal') return { eyebrow: 'Fleet Exposed', title: 'The AI Captain revealed your whole fleet.', quote: 'Every letter of the ' + S.me.name + ' is showing.' };
+    if (r === 'demand-right') return { eyebrow: 'Total Victory', title: 'The ' + S.foe.name + ' surrenders.', quote: '"You have won."' };
+    if (r === 'demand-wrong') return { eyebrow: 'Surrender Refused', title: 'Your demand missed the mark.', quote: '"Victory is mine! You lose! Good day sir!"' };
+    return { eyebrow: 'Fleet Surrendered', title: 'The ' + S.foe.name + ' named every word-ship.', quote: 'You were obliged to answer: "You have won."' };
   }
 
   // ------------------------------------------------------------
@@ -1345,7 +1290,7 @@
       '<li>Tap a hidden square on the Attack Grid, then call a letter. Every square in the enemy fleet that holds it is revealed, wherever it is.</li>' +
       '<li><strong>Bonus turn:</strong> if the letter is in the square you tapped, you go again. Otherwise the turn passes.</li>' +
       '<li><strong>Vowels</strong> (A E I O U) can be called and reveal the same way, but the caller loses their next turn.</li>' +
-      '<li><strong>Solve a Word:</strong> after calling a letter that is in the enemy fleet, you may name one whole word-ship. Right, and every square of it is revealed.</li></ul>' +
+      '<li><strong>Sinking:</strong> a word-ship sinks when every one of its letters is revealed. Reveal the whole enemy fleet to win.</li></ul>' +
       '<h3>Winning</h3><ul>' +
       '<li>Reveal every letter of the enemy fleet and you win.</li>' +
       '<li><strong>Demand Surrender:</strong> instead of calling a letter, name every enemy word-ship and exactly where it sits. All correct: <span class="say">"You have won."</span> Anything wrong: <span class="say">"Victory is mine! You lose! Good day sir!"</span></li></ul>' +
@@ -1560,7 +1505,6 @@
     switchTab(tab);
   });
 
-  on($('btnAgain'), 'click', function () { newGame(); show('setup'); });
 
   // sheet
   on($('scrim'), 'click', function () {

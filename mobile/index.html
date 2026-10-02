@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Bump ?v= on every release (and CACHE in sw.js) so a new page never runs old code. -->
-  <link rel="stylesheet" href="app.css?v=138">
+  <link rel="stylesheet" href="app.css?v=139">
 </head>
 <body>
 
@@ -149,7 +149,7 @@
     <!-- Tapping a square opens 006-MOBILE-CALL-LETTER; "Demand Surrender" turns the panel below into 009-MOBILE-SURRENDER. -->
     <div class="tab" id="tabAttack" data-screen="005-MOBILE-ATTACK">
       <div class="gridbanner is-attack">
-        <div><b>ATTACK GRID</b><span>Hunting the Enemy</span></div>
+        <div><b>ATTACK GRID</b><span id="attackSub">Hunting the Enemy</span></div>
         <span class="bubbles" id="bubbles"></span>
       </div>
       <div class="card card--flush card--attack">
@@ -199,23 +199,6 @@
   </section>
 
   <!-- ============ 010-MOBILE-GAME-OVER (screen name: "010-MOBILE-GAME-OVER") ============ -->
-  <section class="screen" id="scrOver" data-screen="010-MOBILE-GAME-OVER">
-    <div class="card curtain">
-      <div class="curtain-eyebrow" id="overEyebrow">Total Victory</div>
-      <div class="curtain-title" id="overTitle">You have won.</div>
-      <p class="curtain-quote" id="overQuote"></p>
-      <div class="stats" id="overStats"></div>
-      <button class="btn btn--primary btn--wide" id="btnAgain" type="button">New Battle</button>
-    </div>
-    <div class="card card--flush">
-      <div class="grid-label"><span class="over-fleet"><i class="over-flag" id="overFoeFlag"></i>AI CAPTAIN'S FLEET</span> <span id="overFoeWords"></span></div>
-      <div class="grid" id="gridOverFoe"></div>
-    </div>
-    <div class="card card--flush">
-      <div class="grid-label"><span class="over-fleet"><i class="over-flag" id="overMyFlag"></i>HUMAN CAPTAIN'S DEFENSE GRID</span> <span id="overMyWords"></span></div>
-      <div class="grid" id="gridOverMe"></div>
-    </div>
-  </section>
 
 </main>
 
@@ -228,7 +211,7 @@
   <div class="sheet-body" id="sheetBody"></div>
 </div>
 
-<!-- ============ ATTACK POPUP: only for Solve a Word (005-MOBILE-SOLVE) and Demand Surrender (009-MOBILE-SURRENDER).
+<!-- ============ ATTACK POPUP: only for Demand Surrender (009-MOBILE-SURRENDER).
      Everything else in a turn is the coach bar. Sits under the letter-picker sheet. ============ -->
 <div class="scrim scrim--panel" id="panelScrim" hidden></div>
 <!-- COACH BAR: one line above the tabs during battle that says what to do next (renderCoach in app.js) -->
@@ -243,7 +226,7 @@
 <div class="coach coach--notice" id="notice" role="alert" aria-live="assertive" hidden></div>
 <div class="bonus-banner" id="bonusBanner" role="status" aria-live="assertive" hidden></div>
 
-<script src="audio.js?v=138"></script>
-<script src="app.js?v=138"></script>
+<script src="audio.js?v=139"></script>
+<script src="app.js?v=139"></script>
 </body>
 </html>
