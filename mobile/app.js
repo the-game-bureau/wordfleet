@@ -336,7 +336,34 @@
     else if (current === 'deploy') renderDeploy();
     else if (current === 'battle') renderBattle();
     else if (current === 'over') renderOver();
+    fitButtons();
   }
+
+  // Buttons are always one line: text that doesn't fit shrinks (down to 12px) instead of wrapping.
+  function fitButtons(root) {
+    var els = (root || document).querySelectorAll('.screen.is-on .btn, #sheet:not([hidden]) .btn');
+    Array.prototype.forEach.call(els, function (el) {
+      el.style.fontSize = '';
+      if (!el.offsetParent || el.scrollWidth <= el.clientWidth) return;
+      var size = parseFloat(getComputedStyle(el).fontSize);
+      while (el.scrollWidth > el.clientWidth && size > 12) el.style.fontSize = (size -= 1) + 'px';
+    });
+    // A row of choices (the captains) shrinks together until the whole row fits its box.
+    Array.prototype.forEach.call((root || document).querySelectorAll('.screen.is-on .seg'), function (seg) {
+      var btns = seg.querySelectorAll('button');
+      Array.prototype.forEach.call(btns, function (b) { b.style.fontSize = ''; });
+      if (!seg.offsetParent || !btns.length) return;
+      var size = parseFloat(getComputedStyle(btns[0]).fontSize);
+      var tooWide = function () {
+        return seg.scrollWidth > seg.clientWidth || Array.prototype.some.call(btns, function (b) { return b.scrollWidth > b.clientWidth; });
+      };
+      while (tooWide() && size > 11) {
+        size -= 1;
+        Array.prototype.forEach.call(btns, function (b) { b.style.fontSize = size + 'px'; });
+      }
+    });
+  }
+  window.addEventListener('resize', function () { fitButtons(); });
 
   var toastTimer = null;
   function toast(msg) {
@@ -354,6 +381,7 @@
     $('scrim').hidden = false;
     $('sheet').hidden = false;
     $('sheet').scrollTop = 0;
+    fitButtons();
   }
   function closeSheet() {
     $('scrim').hidden = true;
@@ -431,6 +459,7 @@
     $('wordList').innerHTML = html;
     Array.prototype.forEach.call($('wordList').querySelectorAll('[data-word]'), markWordInput);
     $('setupNote').textContent = '';
+    fitButtons();
   }
 
   // Fleet initials for the flags: first letter of each word ("SALTY ARMADA" -> SA, "LEGIÓN DE LA SIRENA" -> LDLS).
@@ -545,6 +574,7 @@
       var cell = b[key(r, c)];
       return cell ? { cls: 'is-ship', text: cell.letter } : {};
     }, true);
+    fitButtons();
   }
 
   // Taps on 004: a double tap on a ship's first letter turns it between across and down.
