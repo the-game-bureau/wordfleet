@@ -194,7 +194,7 @@ button.cell { cursor: pointer; }
   font-family: var(--mono); font-size: 12px; font-weight: 700; display: grid; place-items: center; color: var(--ink);
 }
 .bubble.is-located { background: var(--gold-wash); border-color: var(--gold); }
-.bubble.is-solved { background: var(--green); border-color: var(--green-dark); }
+.bubble.is-solved { background: var(--green-dark); border-color: var(--green-dark); color: #fff; }
 .fire-coord { font-family: var(--mono); font-size: 22px; font-weight: 700; letter-spacing: 0.04em; }
 .fire-call { font-family: var(--mono); font-size: 13px; color: var(--muted); margin-bottom: 12px; }
 .fire-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -731,9 +731,10 @@ button.uc:active { background: var(--mine, var(--navy)); color: var(--mine-ink, 
 .cell.is-empty { background: #d4e6f1; }
 .cell.is-empty::after { content: "\2248"; width: auto; height: auto; border-radius: 0; background: none;
   color: #3f7391; font-family: var(--mono); font-weight: 700; font-size: calc(var(--cell) * 0.62); line-height: 1; }
-/* Revealed letters are light green; a word-ship's squares turn full green once every letter is revealed (sunk) */
-.cell.is-found { background: #cfe8cb; color: var(--ink); } 
-.cell.is-bull.is-aim-hit { background: var(--green) !important; box-shadow: none; }
+/* Revealed letters are Wordle green; a sunk word-ship (every letter revealed) goes dark green with white letters */
+.cell.is-found { background: var(--green); color: var(--ink); }
+.cell.is-bull { background: var(--green-dark); color: #fff; }
+.cell.is-bull.is-aim-hit { background: var(--green-dark) !important; box-shadow: none; }
 /* 010-MOBILE-GAME-OVER: letters of the enemy fleet you never revealed, and a lost battle's coach bar */
 .cell.is-unfound { background: #e9ecef; color: #6b7280; }
 .coach.is-lost { background: var(--red-wash); }
