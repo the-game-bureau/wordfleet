@@ -71,7 +71,7 @@
   // ------------------------------------------------------------
   // dictionary
   // One JSON file per language in /dictionaries, listed in dictionaries/languages.json.
-  // Each file holds words in commonness tiers (see dictionaries/build-en-US.js).
+  // Each file holds words in commonness tiers (see dictionaries/build-en.js and build-hunspell.js).
   // ------------------------------------------------------------
   var TIER_WEIGHT = { common: 4, everyday: 2, rare: 1, extra: 0.5 };
   var languages = [];   // dictionaries/languages.json
@@ -249,11 +249,11 @@
   // ------------------------------------------------------------
   // screens + chrome
   // ------------------------------------------------------------
-  var SCREENS = { home: 'scrMobileHome',   // "001 Mobile Home"
-                  setup: 'scrSetup',         // "002 Prepare for Battle"
-                  opponent: 'scrOpponent',   // "003 Choose Your Opponent"
-                  words: 'scrWords',         // "004 Build Your Word-Ships"
-                  deploy: 'scrDeploy',       // "005 Deploy"
+  var SCREENS = { home: 'scrMobileHome',   // "MOBILE-HOME"
+                  setup: 'scrSetup',         // "001-MOBILE-PREPARE"
+                  opponent: 'scrOpponent',   // "002-MOBILE-OPPONENT"
+                  words: 'scrWords',         // "003-MOBILE-WORD-SHIPS"
+                  deploy: 'scrDeploy',       // "004-MOBILE-DEPLOY"
                   battle: 'scrBattle', over: 'scrOver' };
   var current = 'home';
 
@@ -334,7 +334,7 @@
     $('homeRecord').textContent = r.won + r.lost ? 'SERVICE RECORD: ' + r.won + ' WON / ' + r.lost + ' LOST' : '';
   }
 
-  // Pick up where the player left off; anything else starts fresh at 002 Prepare for Battle.
+  // Pick up where the player left off; anything else starts fresh at 001-MOBILE-PREPARE.
   function resume() {
     if (!S || S.phase === 'over') { newGame(); return show('setup'); }
     if (S.phase === 'setup') show(S.setupStep || 'setup');
@@ -1156,7 +1156,7 @@
     if (!S.wordsEdited) S.me.words = S.me.words.map(function (w, i) { return inDictionary(w) ? w : randomWordFor(i, S.me.words); });
     save(); renderSetup();
   });
-  // Prepare for Battle runs in three steps: 002 name/language, 003 opponent, 004 words.
+  // Prepare for Battle runs in three steps: 001 name/language, 002 opponent, 003 words.
   function setupStep(step) {
     if (step !== 'setup') {
       var name = (S.me.name || '').trim().toUpperCase().replace(/\s+/g, ' ');
@@ -1355,7 +1355,7 @@
     if (S && S.phase === 'setup' && !S.wordsEdited && !S.me.words.every(inDictionary)) {
       S.me.words = randomWords(); save();
     }
-    // 001 Mobile Home is parked: the app opens on 002 Prepare for Battle (or the battle in progress).
+    // MOBILE-HOME is parked: the app opens on 001-MOBILE-PREPARE (or the battle in progress).
     if (S && S.phase === 'battle' && S.incoming.length) ui.tab = 'Defense';
     resume();
   });

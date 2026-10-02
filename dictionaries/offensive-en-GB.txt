@@ -1,0 +1,15 @@
+# Possibly offensive British English words, added to offensive-en-US.txt for English (UK).
+# One word per line; add or remove freely, then rerun build-en.js ... GB.
+bint
+bonk
+git
+minge
+munter
+nonce
+pikey
+slag
+sod
+tosser
+twat
+wank
+wanker

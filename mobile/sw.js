@@ -1,17 +1,20 @@
 /* Word Fleet service worker: the whole game works offline once loaded. */
-var CACHE = 'wordfleet-v40';
+var CACHE = 'wordfleet-v41';
 var SHELL = [
   './',
   'index.html',
-  'app.css?v=40',
-  'app.js?v=40',
-  'audio.js?v=40',
+  'app.css?v=41',
+  'app.js?v=41',
+  'audio.js?v=41',
   'manifest.webmanifest',
   'icons/icon-180.png',
   'icons/icon-192.png',
   'icons/icon-512.png',
   '../dictionaries/languages.json',
-  '../dictionaries/en-US.json'
+  '../dictionaries/en-US.json',
+  '../dictionaries/en-GB.json',
+  '../dictionaries/es.json',
+  '../dictionaries/de.json'
 ];
 
 self.addEventListener('install', function (e) {

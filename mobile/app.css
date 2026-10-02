@@ -407,7 +407,7 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 .check--top { margin-top: 0; }
 .btn--sm-gap { margin-top: 10px; min-height: 40px; font-size: 14px; }
 
-/* --- Setup screens 002-004: large, easy-to-read text (elderly / phone friendly) --- */
+/* --- Setup screens 001-003: large, easy-to-read text (elderly / phone friendly) --- */
 .setup-big .card { padding: 22px 20px; }
 .setup-big .card-title { font-size: 17px; letter-spacing: 0.08em; padding-bottom: 12px; margin-bottom: 18px; }
 .setup-big .label--say { font-family: var(--sans); font-size: 19px; font-weight: 700; text-transform: none; letter-spacing: 0; line-height: 1.35; margin: 22px 0 10px; }
