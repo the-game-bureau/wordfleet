@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Bump ?v= on every release (and CACHE in sw.js) so a new page never runs old code. -->
-  <link rel="stylesheet" href="app.css?v=124">
+  <link rel="stylesheet" href="app.css?v=126">
 </head>
 <body>
 
@@ -153,6 +153,8 @@
         <span class="bubbles" id="bubbles"></span>
       </div>
       <div class="card card--flush card--attack">
+        <!-- Letters still to call; they disappear as you call them (called ones show on the grid) -->
+        <div class="uncalled" id="uncalled" aria-label="Letters not yet called"></div>
         <div class="grid" id="gridAttack"></div>
       </div>
     </div>
@@ -239,7 +241,7 @@
 <div class="coach coach--notice" id="notice" role="alert" aria-live="assertive" hidden></div>
 <div class="bonus-banner" id="bonusBanner" role="status" aria-live="assertive" hidden></div>
 
-<script src="audio.js?v=124"></script>
-<script src="app.js?v=124"></script>
+<script src="audio.js?v=126"></script>
+<script src="app.js?v=126"></script>
 </body>
 </html>

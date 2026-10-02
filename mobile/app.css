@@ -680,3 +680,14 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 .coach.coach--notice.is-warn { border-top-color: var(--red); }
 .coach.coach--notice.is-warn .coach-step { background: var(--red); color: #fff; }
 #setupNote { display: none; }   /* its message shows in the notice bar */
+
+/* 005: letters still to call, in a strip above the Attack Grid (vowels underlined in red: they cost a turn) */
+.uncalled { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 2px 2px 10px; }
+.uncalled-label { width: 100%; font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+.uc { flex: 0 0 auto; min-width: 22px; height: 26px; display: grid; place-items: center; font-family: var(--mono); font-size: 16px; font-weight: 700;
+  border: 1px solid var(--ink); background: var(--paper); }
+.uc.is-vowel { border-bottom: 3px solid var(--red); }
+/* Always at most two rows: 13 letters a row, sized to the grid's width */
+.uncalled { display: grid; grid-template-columns: repeat(13, 1fr); gap: 3px; }
+.uncalled-label { grid-column: 1 / -1; }
+.uc { min-width: 0; height: auto; aspect-ratio: 1 / 1.1; font-size: max(13px, calc(var(--cell) * 0.5)); }

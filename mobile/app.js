@@ -790,7 +790,11 @@
       if (fi !== -1) o.cls = (o.cls || '') + ' is-flip is-d' + Math.min(fi, 6);
       if (info && info.k === k) o.cls = (o.cls || '') + (info.bonus ? ' is-aim is-aim-hit' : ' is-aim');
       return o;
-    }, live, '<button type="button" class="cell is-label cell--abc" data-abc="1" aria-label="Attack Manifest: the letters you have called">ABC</button>');
+    }, live);
+    // Letters not yet called, A to Z; each drops out once called. Vowels are marked (they cost a turn).
+    var left = LETTERS.filter(function (L) { return S.myTallies[L] == null; });
+    $('uncalled').innerHTML = '<span class="uncalled-label">Letters left</span>' +
+      left.map(function (L) { return '<span class="uc' + (isVowel(L) ? ' is-vowel' : '') + '">' + L + '</span>'; }).join('');
     if (ui.flash) { clearTimeout(ui.flashTimer); ui.flashTimer = setTimeout(function () { ui.flash = null; }, 1800); }
 
 
@@ -1562,7 +1566,6 @@
     else if (act === 'submitDemandSure') submitDemand(true);
   });
   on($('gridAttack'), 'click', function (e) {
-    if (e.target.closest('[data-abc]')) { openAttackManifest(); return; }
     var c = e.target.closest('[data-k]');
     if (c) openManifest(c.getAttribute('data-k'));
   });
