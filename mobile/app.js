@@ -799,6 +799,8 @@
     var left = LETTERS.filter(function (L) { return S.myTallies[L] == null; });
     var picking = !!ui.sel && live;
     $('uncalled').classList.toggle('is-picking', picking);
+    // Like the manifest: the grid lights up when it is the thing to tap (your turn, nothing aimed yet).
+    $('gridAttack').classList.toggle('is-picking', live && !ui.sel);
     $('uncalled').innerHTML = manifestHtml('Letters Manifest', left, function (L, cls) {
         return picking ? '<button type="button" class="' + cls + '" data-letter="' + L + '" aria-label="Call ' + L + (isVowel(L) ? ' (vowel: costs your next turn)' : '') + '">' + L + '</button>'
                        : '<span class="' + cls + '">' + L + '</span>';

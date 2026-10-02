@@ -740,3 +740,5 @@ button.uc:active { background: var(--mine, var(--navy)); color: var(--mine-ink, 
 .coach.is-lost .coach-step { background: var(--red); color: #fff; }
 .coach-eyebrow { display: block; font-family: var(--mono); font-size: 13px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 2px; }
 .coach.is-lost .coach-eyebrow { color: var(--red); }
+/* Your turn, nothing aimed yet: the Attack Grid lights up like the letters manifest does when aiming */
+.grid.is-picking { outline: 3px solid var(--mine, var(--navy)); outline-offset: 3px; animation: pulse-out 1.2s ease-out 1; }
