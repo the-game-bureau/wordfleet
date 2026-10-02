@@ -27,13 +27,13 @@
   // Keys stay ensign/commander/admiral so saved games keep working; players see the names.
   var LEVELS = {
     ensign:    { name: 'Captain Rubber Duck',    tiers: ['common'],   example: 'PIANO • JUMP • BED',
-                 hint: 'Everyday words anyone knows. The AI Captain calls letters by gut, vowels and all.',
+                 hint: 'A cheerful rookie who has never sailed beyond the bathtub. Hides everyday words anyone knows and calls letters on a hunch, vowels and all.',
                  pattern: false, vowelCost: 1, noise: 1, solve: null },
     commander: { name: 'Captain Steady', tiers: ['everyday'], example: 'WHARF • HOOF • KEG',
-                 hint: 'Familiar but less frequent words. The AI Captain calls smart consonants and solves words when it can.',
+                 hint: 'A dependable old hand who has seen a few storms. Hides familiar words, calls sensible consonants, and solves your words once the clues line up.',
                  pattern: true, vowelCost: 0.45, noise: 0.15, solve: { known: 0.6, share: 1 } },
     admiral:   { name: 'Captain Lexicon',   tiers: ['rare'],     example: 'GLYPH • YURT • ASP',
-                 hint: 'Uncommon words that hide well. The AI Captain reads every revealed letter, rarely wastes a turn on a vowel, and solves early.',
+                 hint: 'A walking dictionary with a spyglass. Hides rare words that are hard to crack, studies every letter you reveal, almost never wastes a turn on a vowel, and solves early.',
                  pattern: true, vowelCost: 0.3, noise: 0.05, solve: { known: 0.4, share: 0.7 } }
   };
 
