@@ -824,6 +824,11 @@
       left.map(function (L) { return chip(L, 'uc' + (isVowel(L) ? ' is-vowel' : '')); }).join('');
   }
 
+  // Classes that draw one outline around a whole word-ship: each square gets the hull's sides it sits on.
+  function hullCls(ship, j) {
+    return ' hull hull-' + ship.dir + (j === 0 ? ' hull-start' : '') + (j === ship.word.length - 1 ? ' hull-end' : '');
+  }
+
   function pips(total, filled, cls) {
     var h = '';
     for (var i = 0; i < total; i++) h += '<i class="pip' + (i < filled ? ' ' + cls : '') + '"></i>';
@@ -857,10 +862,13 @@
     var info = S.result && S.result.info;
     // Ship circles change only when a word-ship is completely sunk (every letter showing);
     // they never hint at which ships are partly revealed.
-    var sunkCells = {};   // squares of word-ships with every letter revealed: these go green
+    var sunkCells = {};   // squares of sunk word-ships (every letter revealed): dark green, outlined as one hull
+    var fresh = info && ui.flash ? info.sunk || [] : [];   // sunk by the call just made: these sink, then settle
     $('bubbles').innerHTML = S.foe.ships.map(function (ship, i) {
       var all = cellsOf(ship).every(function (p) { var s = S.myShots[key(p.r, p.c)]; return s && s.letter; });
-      if (all) cellsOf(ship).forEach(function (p) { sunkCells[key(p.r, p.c)] = true; });
+      if (all) cellsOf(ship).forEach(function (p, j) {
+        sunkCells[key(p.r, p.c)] = hullCls(ship, j) + (fresh.indexOf(ship.word) !== -1 ? ' is-sinking' : '');
+      });
       return '<span class="bubble' + (all ? ' is-solved' : '') + '" title="' + SPECS[i].cls + (all ? ': sunk' : '') + '">' + SPECS[i].len + '</span>';
     }).join('');
     var over = S.phase === 'over', fb = foeBoard();
@@ -870,7 +878,7 @@
     paint($('gridAttack'), function (r, c) {
       var k = key(r, c);
       var s = S.myShots[k];
-      var o = s && s.letter ? { cls: sunkCells[k] ? 'is-bull' : 'is-found', text: s.letter, off: true } : s && s.empty ? { cls: 'is-empty', off: true } :
+      var o = s && s.letter ? { cls: sunkCells[k] ? 'is-bull' + sunkCells[k] : 'is-found', text: s.letter, off: true } : s && s.empty ? { cls: 'is-empty', off: true } :
         s && s.tried ? { cls: 'is-contact', text: '<span class="q">?</span>' + triedHtml(s) } : {};
       // 010-MOBILE-GAME-OVER: the enemy fleet's unrevealed letters show too.
       if (over && fb[k] && !(s && s.letter)) o = { cls: 'is-unfound', text: fb[k].letter, off: true };
@@ -1002,8 +1010,10 @@
     var ev = S.lastFoe;
     var flashing = ev && ev.unseen && ui.tab === 'Defense';
     // Your ship circles turn red only when the AI Captain has revealed a whole word-ship.
+    var lostCells = {};   // your sunk word-ships, outlined as one hull
     $('defBubbles').innerHTML = S.me.ships.map(function (ship, i) {
       var all = cellsOf(ship).every(function (p) { var s = S.foeShots[key(p.r, p.c)]; return s && s.letter; });
+      if (all) cellsOf(ship).forEach(function (p, j) { lostCells[key(p.r, p.c)] = hullCls(ship, j); });
       return '<span class="bubble' + (all ? ' is-lost' : '') + '" title="' + SPECS[i].cls + (all ? ': sunk' : '') + '">' + SPECS[i].len + '</span>';
     }).join('');
     // Outlined like the Attack Grid while it is where the action is: the AI Captain's turn.
@@ -1012,7 +1022,7 @@
       var k = key(r, c);
       var cell = b[k];
       var s = S.foeShots[k];
-      var cls = cell ? 'is-ship' + (s && s.letter ? ' is-ship-lost' : s && s.tried ? ' is-contact' : '') : s && s.empty ? 'is-empty' : '';
+      var cls = cell ? 'is-ship' + (s && s.letter ? ' is-ship-lost' + (lostCells[k] || '') : s && s.tried ? ' is-contact' : '') : s && s.empty ? 'is-empty' : '';
       if (ui.tab === 'Defense' && (S.incoming || []).some(function (e) { return e.square === k; })) cls += ' is-aimed';
       if (flashing && ev.cells && ev.cells.indexOf(k) !== -1) cls += ' is-flash';
       return { cls: cls, text: cell ? cell.letter + triedHtml(s) : '' };

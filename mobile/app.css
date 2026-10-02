@@ -768,3 +768,20 @@ button.uc:active { background: var(--mine, var(--navy)); color: var(--mine-ink, 
 .roll { display: grid; justify-items: end; gap: 4px; flex-shrink: 0; }
 .roll-label { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; }
 .fleet-info b, .fleet-info span { white-space: normal; overflow: visible; }
+/* A sunk word-ship: one thick outline around the whole word (its hull), drawn side by side per square */
+.cell.hull { --hull: 4px; --hc: var(--ink); }
+.cell.hull.hull-H { box-shadow: inset 0 var(--hull) 0 var(--hc), inset 0 calc(-1 * var(--hull)) 0 var(--hc); }
+.cell.hull.hull-H.hull-start { box-shadow: inset 0 var(--hull) 0 var(--hc), inset 0 calc(-1 * var(--hull)) 0 var(--hc), inset var(--hull) 0 0 var(--hc); }
+.cell.hull.hull-H.hull-end { box-shadow: inset 0 var(--hull) 0 var(--hc), inset 0 calc(-1 * var(--hull)) 0 var(--hc), inset calc(-1 * var(--hull)) 0 0 var(--hc); }
+.cell.hull.hull-V { box-shadow: inset var(--hull) 0 0 var(--hc), inset calc(-1 * var(--hull)) 0 0 var(--hc); }
+.cell.hull.hull-V.hull-start { box-shadow: inset var(--hull) 0 0 var(--hc), inset calc(-1 * var(--hull)) 0 0 var(--hc), inset 0 var(--hull) 0 var(--hc); }
+.cell.hull.hull-V.hull-end { box-shadow: inset var(--hull) 0 0 var(--hc), inset calc(-1 * var(--hull)) 0 0 var(--hc), inset 0 calc(-1 * var(--hull)) 0 var(--hc); }
+/* Just sunk: the word lists, dips under and settles */
+.cell.is-sinking { animation: sink 1.1s ease-in-out 0.35s both; }
+@keyframes sink {
+  0% { transform: none; }
+  25% { transform: translateY(8%) rotate(-6deg); }
+  50% { transform: translateY(22%) rotate(4deg); filter: brightness(0.7); }
+  75% { transform: translateY(6%) rotate(-2deg); }
+  100% { transform: none; }
+}
