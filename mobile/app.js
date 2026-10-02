@@ -404,30 +404,42 @@
     return null;
   }
 
-  function markWordInput(input) {
+  // Why word i can't sail, or null if it can. Checked when a word box loses focus and on Deploy.
+  function wordMessage(i) {
+    var w = S.me.words[i] || '', p = wordProblem(w, SPECS[i].len);
+    if (p) return SPECS[i].cls + ' ' + p + '.';
+    if (dictSet[w] && !allowed(w)) return w + ' may be offensive. Turn on "Possibly Offensive Words OK" to allow it.';
+    if (!inDictionary(w)) return w + " isn't in the " + lang.name + ' dictionary. Real words only, captain \u2014 no proper nouns or abbreviations.';
+    return null;
+  }
+
+  // Green border once a word is complete and valid; red once it is complete and not, or after a check (strict).
+  function markWordInput(input, strict) {
     var i = +input.getAttribute('data-word');
     var w = input.value;
     input.classList.remove('is-bad', 'is-good');
-    if (!w) return;
-    if (w.length === SPECS[i].len) input.classList.add(wordProblem(w, SPECS[i].len) || !inDictionary(w) ? 'is-bad' : 'is-good');
+    if (!w && !strict) return;
+    if (w.length === SPECS[i].len || strict) input.classList.add(wordMessage(i) ? 'is-bad' : 'is-good');
   }
 
+  function checkWordInput(input) {
+    markWordInput(input, true);
+    var i = +input.getAttribute('data-word'), msg = wordMessage(i);
+    if (msg) { $('setupNote').textContent = msg; noteFor = i; }
+    else if (noteFor === i) { $('setupNote').textContent = ''; noteFor = -1; }   // clear only this word's note
+  }
+  var noteFor = -1;   // which word the setup note is about
+
   function setupToDeploy() {
-    {   // every word is checked, typed or drawn
-      for (var i = 0; i < SPECS.length; i++) {
-        var p = wordProblem(S.me.words[i] || '', SPECS[i].len);
-        if (p) { $('setupNote').textContent = SPECS[i].cls + ' ' + p + '.'; return; }
-      }
-      var flagged = S.me.words.filter(function (w) { return dictSet[w] && !allowed(w); });
-      if (flagged.length) {
-        $('setupNote').textContent = flagged.join(', ') + ' may be offensive. Turn on "Possibly Offensive Words OK" to allow ' + (flagged.length > 1 ? 'them' : 'it') + '.';
-        return;
-      }
-      var unknown = S.me.words.filter(function (w) { return !inDictionary(w); });
-      if (unknown.length) {
-        $('setupNote').textContent = unknown.join(', ') + (unknown.length > 1 ? " aren't" : " isn't") + ' in the ' + lang.name + ' dictionary. Real words only, captain \u2014 no proper nouns or abbreviations.';
-        return;
-      }
+    var inputs = $('wordList').querySelectorAll('[data-word]'), first = -1;
+    for (var i = 0; i < SPECS.length; i++) {
+      if (inputs[i]) markWordInput(inputs[i], true);
+      if (first < 0 && wordMessage(i)) first = i;
+    }
+    if (first >= 0) {
+      $('setupNote').textContent = wordMessage(first);
+      noteFor = first;
+      return;
     }
     S.me.ships = S.me.words.map(function (w) { return { word: w, r: null, c: null, dir: 'H' }; });
     S.phase = 'deploy';
@@ -1168,6 +1180,10 @@
     S.wordsEdited = true;
     markWordInput(el);
     save();
+  });
+  // Check a typed word as soon as the captain leaves its box.
+  on($('wordList'), 'focusout', function (e) {
+    if (e.target.hasAttribute && e.target.hasAttribute('data-word')) checkWordInput(e.target);
   });
   on($('selLang'), 'change', function () {
     S.lang = this.value;

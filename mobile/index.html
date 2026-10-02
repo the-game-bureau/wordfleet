@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Bump ?v= on every release (and CACHE in sw.js) so a new page never runs old code. -->
-  <link rel="stylesheet" href="app.css?v=49">
+  <link rel="stylesheet" href="app.css?v=50">
 </head>
 <body>
 
@@ -101,10 +101,11 @@
         <span class="label label--say">Your five word-ships</span>
         <button class="btn btn--sm" id="btnRefreshAll" type="button" aria-label="Refresh all five words">&#x21bb; Refresh All</button>
       </div>
+      <p class="hint hint--label">Tap any word to type your own.</p>
       <div id="wordList"></div>
       <p class="note" id="setupNote"></p>
 
-      <button class="btn btn--wide btn--next btn--progress" style="--progress: 100%" id="btnToDeploy" type="button">Deploy Fleet</button>
+      <button class="btn btn--wide btn--next btn--progress" style="--progress: 100%" id="btnToDeploy" type="button">Next: Deploy Your Fleet</button>
       <button class="btn btn--ghost btn--wide" id="btnBackToOpponent" type="button">&larr; Back</button>
     </div>
   </section>
@@ -219,7 +220,7 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="audio.js?v=49"></script>
-<script src="app.js?v=49"></script>
+<script src="audio.js?v=50"></script>
+<script src="app.js?v=50"></script>
 </body>
 </html>
