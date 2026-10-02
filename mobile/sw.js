@@ -1,16 +1,17 @@
 /* Word Fleet service worker: the whole game works offline once loaded. */
-var CACHE = 'wordfleet-v41';
+var CACHE = 'wordfleet-v42';
 var SHELL = [
   './',
   'index.html',
-  'app.css?v=41',
-  'app.js?v=41',
-  'audio.js?v=41',
+  'app.css?v=42',
+  'app.js?v=42',
+  'audio.js?v=42',
   'manifest.webmanifest',
   'icons/icon-180.png',
   'icons/icon-192.png',
   'icons/icon-512.png',
   '../dictionaries/languages.json',
+  '../dictionaries/fleet-names.json',
   '../dictionaries/en-US.json',
   '../dictionaries/en-GB.json',
   '../dictionaries/es.json',

@@ -65,7 +65,21 @@
   function rnd(n) { return Math.floor(Math.random() * n); }
   function pad3(n) { return ('00' + n).slice(-3); }
   function countOf(word, L) { var n = 0; for (var i = 0; i < word.length; i++) if (word[i] === L) n++; return n; }
-  function randomFleetName() { return (pick(FLEET_ADJ) + ' ' + pick(FLEET_NOUN)).toUpperCase(); }
+  // Fleet names in other languages come from dictionaries/fleet-names.json (see its _about).
+  var fleetNames = {};
+  function fleetNameOnce(set) {
+    if (!set) return pick(FLEET_ADJ) + ' ' + pick(FLEET_NOUN);
+    var n = pick(set.noun), g = n.charAt(1) === ':' ? n.charAt(0) : '', a = pick(set.adj);
+    if (g) n = n.slice(2);
+    if (a.indexOf('|') !== -1) a = a.split('|')[g === 'f' ? 1 : 0];                       // Spanish m|f
+    else if (a.slice(-1) === '-') a = a.slice(0, -1) + ({ m: 'er', f: 'e', n: 'es' }[g] || 'e'); // German endings
+    return set.order === 'noun adj' ? n + ' ' + a : a + ' ' + n;
+  }
+  function randomFleetName() {
+    var set = fleetNames[(S && S.lang) || (lang && lang.code)], name;
+    for (var i = 0; i < 20; i++) { name = fleetNameOnce(set); if (name.length <= 20) break; }   // short enough to read at a large size
+    return name.toUpperCase();
+  }
   function allSame(w) { return w.split('').every(function (ch) { return ch === w[0]; }); }
 
   // ------------------------------------------------------------
@@ -79,6 +93,12 @@
   var offensiveSet = {};
   var dictSet = {};     // every playable word -> tier name
   var guessPool = {};   // length -> [{ w, wt }] for the AI Captain's letter reads
+
+  function loadFleetNames() {
+    return fetch('../dictionaries/fleet-names.json')
+      .then(function (res) { return res.ok ? res.json() : {}; })
+      .then(function (d) { fleetNames = d || {}; }, function () {});
+  }
 
   function loadDictionary(code) {
     return fetch('../dictionaries/languages.json')
@@ -349,6 +369,7 @@
   function renderSetup() {
     setBar(null);
     if (document.activeElement !== $('inFleet')) $('inFleet').value = S.me.name;
+    fitFleetName();
     $('selLang').innerHTML = languages.map(function (l) {
       return '<option value="' + esc(l.code) + '"' + (lang && l.code === lang.code ? ' selected' : '') + '>' + esc(l.name) + '</option>';
     }).join('');
@@ -1116,8 +1137,16 @@
   on($('btnHowTo'), 'click', openRules);
 
   // setup
-  on($('inFleet'), 'input', function () { S.me.name = this.value.toUpperCase(); save(); });
-  on($('btnRollName'), 'click', function () { S.me.name = randomFleetName(); $('inFleet').value = S.me.name; save(); });
+  // Shrink long fleet names so the whole name shows on small phones.
+  function fitFleetName() {
+    var el = $('inFleet'); if (!el) return;
+    el.style.fontSize = ''; el.style.letterSpacing = '';
+    if (el.scrollWidth > el.clientWidth) el.style.letterSpacing = '0';
+    var size = parseFloat(getComputedStyle(el).fontSize);
+    while (el.scrollWidth > el.clientWidth && size > 11) el.style.fontSize = (size -= 1) + 'px';
+  }
+  on($('inFleet'), 'input', function () { S.me.name = this.value.toUpperCase(); fitFleetName(); save(); });
+  on($('btnRollName'), 'click', function () { S.me.name = randomFleetName(); $('inFleet').value = S.me.name; fitFleetName(); save(); });
   on($('segLevel'), 'click', function (e) {
     var v = e.target.getAttribute('data-v');
     if (!v) return;
@@ -1146,7 +1175,9 @@
     S.lang = this.value;
     save();
     loadDictionary(S.lang).then(function () {
-      if (!S.wordsEdited) { S.me.words = randomWords(); save(); }
+      S.me.name = randomFleetName();   // a fresh fleet name in the new language
+      if (!S.wordsEdited) S.me.words = randomWords();
+      save();
       renderSetup();
     });
   });
@@ -1350,7 +1381,7 @@
   if (S && (S.v !== 2 || !LEVELS[S.level])) S = null;   // v1 saves used the old firing rules
   // Games saved while the launch-codes screen still existed go straight to battle.
   if (S && S.phase === 'codes') { S.phase = 'battle'; S.turn = 'me'; }
-  loadDictionary(S && S.lang).then(function () {
+  Promise.all([loadDictionary(S && S.lang), loadFleetNames()]).then(function () {
     if (S && S.phase === 'setup' && !S.me.name) { S.me.name = randomFleetName(); save(); }
     if (S && S.phase === 'setup' && !S.wordsEdited && !S.me.words.every(inDictionary)) {
       S.me.words = randomWords(); save();

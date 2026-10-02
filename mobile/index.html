@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Bump ?v= on every release (and CACHE in sw.js) so a new page never runs old code. -->
-  <link rel="stylesheet" href="app.css?v=41">
+  <link rel="stylesheet" href="app.css?v=42">
 </head>
 <body>
 
@@ -55,14 +55,14 @@
   <section class="screen setup-big" id="scrSetup" data-screen="001-MOBILE-PREPARE">
     <div class="card">
       <div class="card-title">Welcome Captain! Prepare for Battle</div>
+      <label class="label label--say" for="selLang">Choose your language</label>
+      <select class="select" id="selLang"></select>
+
       <label class="label label--say" for="inFleet">Roll the die or type your own fleet name</label>
       <div class="input-row">
         <input class="input" id="inFleet" maxlength="24" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="SALTY ARMADA">
         <button class="btn btn--sq" id="btnRollName" type="button" aria-label="Random fleet name">&#x1F3B2;</button>
       </div>
-
-      <label class="label label--say" for="selLang">Choose your language</label>
-      <select class="select" id="selLang"></select>
 
       <button class="btn btn--primary btn--wide btn--next" id="btnToOpponent" type="button">NEXT | STEP 2 OF 3 | CHOOSE YOUR OPPONENT</button>
     </div>
@@ -79,7 +79,7 @@
       </div>
       <p class="hint" id="levelHint"></p>
 
-      <button class="btn btn--primary btn--wide btn--next" id="btnToWords" type="button">STEP 3 of 3: Build Your Word-Ships</button>
+      <button class="btn btn--primary btn--wide btn--next" id="btnToWords" type="button">NEXT | STEP 3 OF 3 | BUILD YOUR WORD-SHIPS</button>
       <button class="btn btn--ghost btn--wide" id="btnBackToSetup" type="button">&larr; Back</button>
     </div>
   </section>
@@ -211,7 +211,7 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="audio.js?v=41"></script>
-<script src="app.js?v=41"></script>
+<script src="audio.js?v=42"></script>
+<script src="app.js?v=42"></script>
 </body>
 </html>
