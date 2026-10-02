@@ -1418,8 +1418,11 @@
   });
   on($('chkOffensive'), 'change', function () {
     S.offensiveOk = this.checked;
-    // Redraw any drawn word that is no longer allowed; typed words are checked at Deploy.
-    if (!S.wordsEdited) S.me.words = S.me.words.map(function (w, i) { return inDictionary(w) ? w : randomWordFor(i, S.me.words); });
+    // Switching it either way draws five fresh suggestions that follow the new setting
+    // (and the chosen AI Captain's word level), replacing any typed words.
+    S.me.words = randomWords();
+    S.wordsEdited = false;
+    sfx('select');
     save(); renderSetup();
   });
   // Prepare for Battle runs in four steps: 001 name/language, 002 opponent, 003 words, 004 deploy.
