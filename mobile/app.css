@@ -428,7 +428,7 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 .setup-big .input { letter-spacing: 0.06em; }
 .setup-big #inFleet { font-size: 18px; letter-spacing: 0.02em; padding: 10px; }
 
-/* "Preparing for Battle" header above the card on every setup screen (001-003) */
+/* "Prepare for Battle" header above the card on every setup screen (001-003) */
 .page-head { font-family: var(--mono); font-size: 22px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; line-height: 1.2; margin: 6px 2px 12px; color: var(--ink); }
 .setup-big .card-title { font-size: 20px; }
 .setup-big .label--say:first-of-type, .setup-big .card-title + .label--say { margin-top: 0; }
