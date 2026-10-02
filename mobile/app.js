@@ -314,6 +314,67 @@
   function record() {
     try { return JSON.parse(localStorage.getItem(RECORD)) || { won: 0, lost: 0 }; } catch (e) { return { won: 0, lost: 0 }; }
   }
+  // Saved fleets: name, colors, word-ships and their locations, kept on this device for later battles,
+  // with every finished battle's score. A fleet is matched by its id (S.me.id), which carries over
+  // from battle to battle; editing its words, colors or locations updates the saved fleet, while a
+  // new name makes it a new fleet.
+  var FLEETS = 'wordfleet-fleets';
+  function loadFleets() {
+    try { return JSON.parse(localStorage.getItem(FLEETS)) || []; } catch (e) { return []; }
+  }
+  function storeFleets(list) {
+    try { localStorage.setItem(FLEETS, JSON.stringify(list)); } catch (e) { /* private mode */ }
+  }
+  function newFleetId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  // Saves (or updates) the current fleet; result {score, won, level} adds a finished battle's score.
+  function recordFleet(result) {
+    if (!S || !S.me || !S.me.words || S.me.words.length !== SPECS.length) return null;
+    var list = loadFleets();
+    // A renamed fleet is a new fleet: keep the old one (and its scores) as it was.
+    var mine = list.filter(function (x) { return x.id === S.me.id; })[0];
+    if (!S.me.id || (mine && mine.name !== S.me.name)) S.me.id = newFleetId();
+    var f = list.filter(function (x) { return x.id === S.me.id; })[0];
+    if (!f) { f = { id: S.me.id, scores: [] }; list.unshift(f); }
+    f.name = S.me.name; f.colors = S.colors; f.lang = S.lang; f.words = S.me.words.slice();
+    f.ships = S.me.ships && S.me.ships.every(function (sh) { return sh.r != null; })
+      ? S.me.ships.map(function (sh) { return { word: sh.word, r: sh.r, c: sh.c, dir: sh.dir }; }) : null;
+    f.saved = Date.now();
+    if (result) { f.scores.unshift({ score: result.score, won: result.won, level: result.level, at: Date.now() }); f.scores = f.scores.slice(0, 50); }
+    storeFleets(list);
+    return f;
+  }
+  function fleetStats(f) {
+    var sc = f.scores || [];
+    if (!sc.length) return 'No battles yet';
+    var best = Math.max.apply(null, sc.map(function (x) { return x.score || 0; }));
+    var won = sc.filter(function (x) { return x.won; }).length;
+    return 'Best ' + best + ' \u00b7 ' + sc.length + (sc.length === 1 ? ' battle' : ' battles') + ' \u00b7 ' + won + ' won \u00b7 last ' + (sc[0].score || 0);
+  }
+  // MOBILE-FLEETS: the saved fleets, each with its scores; USE starts a new battle (at 001) with it.
+  function openFleets() {
+    var list = loadFleets();
+    openSheet('<h2>Saved Fleets</h2>' + (list.length ? '<div class="fleet-list">' + list.map(function (f) {
+      return '<div class="fleet-row"><i class="fleet-flag">' + flagSvg(schemeOf(f.colors), fleetInitials(f.name) || 'WF') + '</i>' +
+        '<div class="fleet-info"><b>' + esc(f.name) + '</b><span>' + f.words.join(' \u00b7 ') + '</span><span class="fleet-stats">' + fleetStats(f) + '</span></div>' +
+        '<div class="fleet-acts"><button class="btn btn--sm btn--primary" type="button" data-act="useFleet" data-id="' + f.id + '">Use</button>' +
+        '<button class="btn btn--sm btn--ghost" type="button" data-act="delFleet" data-id="' + f.id + '">Delete</button></div></div>';
+    }).join('') + '</div>' : '<p class="hint">No saved fleets yet. Every battle you finish saves its fleet and score here, or use SAVE THIS FLEET in the \u2630 menu.</p>') +
+      '<button class="btn btn--wide" type="button" data-act="close">Close</button>', true, 'MOBILE-FLEETS');
+  }
+  function useFleet(id) {
+    var f = loadFleets().filter(function (x) { return x.id === id; })[0];
+    if (!f) return false;
+    if (S && S.phase !== 'over' && S.phase !== 'setup' && !confirm('Abandon the current battle?')) return false;
+    if (ui.aiTimer) { clearTimeout(ui.aiTimer); ui.aiTimer = null; }
+    newGame();
+    S.me = { id: f.id, name: f.name, words: f.words.slice(), ships: f.ships ? f.ships.map(function (sh) { return { word: sh.word, r: sh.r, c: sh.c, dir: sh.dir }; }) : null };
+    S.colors = f.colors || S.colors;
+    if (f.lang) S.lang = f.lang;
+    save();
+    show('setup');
+    return true;
+  }
+
   function bumpRecord(won) {
     var r = record();
     if (won) r.won++; else r.lost++;
@@ -332,9 +393,9 @@
       offensiveOk: !!(S && S.offensiveOk),
       mode: (S && S.mode) || 'auto',
       colors: (prev && prev.colors) || pick(COLOR_SCHEMES).id,   // random for the first game; the captain can change it on 001
-      me: prev ? { name: prev.me.name, words: prev.me.words.slice(),
+      me: prev ? { id: prev.me.id, name: prev.me.name, words: prev.me.words.slice(),
                    ships: prev.me.ships ? prev.me.ships.map(function (sh) { return { word: sh.word, r: sh.r, c: sh.c, dir: sh.dir }; }) : null }
-               : { name: randomFleetName(), words: randomWords(), ships: null },
+               : { id: newFleetId(), name: randomFleetName(), words: randomWords(), ships: null },
       foe: null,
       myShots: {}, myTallies: {},
       foeShots: {}, foeTallies: {},
@@ -392,6 +453,7 @@
   function render() {
     if (current === 'home') renderHome();
     else if (current === 'setup' || current === 'opponent' || current === 'words') renderSetup();
+    if (current === 'setup') $('btnSavedFleets').hidden = !loadFleets().length;
     else if (current === 'deploy') renderDeploy();
     else if (current === 'battle') renderBattle();
     applyFleetColors();
@@ -804,7 +866,9 @@
     var over = S.phase === 'over', fb = foeBoard();
     $('tabAttack').setAttribute('data-screen', over ? '010-MOBILE-GAME-OVER' : '005-MOBILE-ATTACK');
     $('score').textContent = (S.score || 0) + ' points';
-    $('attackSub').textContent = over ? (S.winner === 'me' ? 'Enemy Fleet Sunk' : 'Enemy Fleet Revealed') : 'Hunting the Enemy';
+    // No subtitle during battle; once it is over it says how it ended.
+    $('attackSub').textContent = over ? (S.winner === 'me' ? 'Enemy Fleet Sunk' : 'Enemy Fleet Revealed') : '';
+    $('attackSub').hidden = !over;
     $('uncalled').hidden = over;
     paint($('gridAttack'), function (r, c) {
       var k = key(r, c);
@@ -1303,6 +1367,7 @@
       log('me', S.winPts.total + ' points (' + S.winPts.why.join(', ') + '). Final score ' + S.score + '.');
     }
     bumpRecord(winner === 'me');
+    recordFleet({ score: S.score || 0, won: winner === 'me', level: S.level });
     sfx(winner === 'me' ? 'win' : 'lose', 0.2);
     ui.sel = null; ui.demand = false; ui.tab = 'Attack';
     save();
@@ -1327,6 +1392,8 @@
     var live = S && S.phase !== 'over' && S.phase !== 'setup';
     openSheet('<h2>Word Fleet</h2><div class="menu-list">' +
       '<button class="btn btn--primary btn--wide" type="button" data-act="newBattle">New Battle</button>' +
+      '<button class="btn btn--wide" type="button" data-act="fleets">Saved Fleets</button>' +
+      (S && S.me && S.me.words && S.me.words.length === SPECS.length ? '<button class="btn btn--wide" type="button" data-act="saveFleet">Save This Fleet</button>' : '') +
       '<button class="btn btn--wide" type="button" data-act="rules">Rules of Engagement</button>' +
       (ui.installEvt ? '<button class="btn btn--wide" type="button" data-act="install">Install Word Fleet</button>' : '') +
       '<a class="btn btn--wide" href="https://thegamebureau.com/wordfleet/">Home Port</a>' +
@@ -1454,6 +1521,7 @@
     show(step);
   }
   on($('btnToOpponent'), 'click', function () { setupStep('opponent'); });
+  on($('btnSavedFleets'), 'click', openFleets);
   on($('btnToWords'), 'click', function () { setupStep('words'); });
   on($('btnBackToSetup'), 'click', function () { setupStep('setup'); });
   on($('btnBackToOpponent'), 'click', function () { setupStep('opponent'); });
@@ -1594,6 +1662,13 @@
     else if (act === 'menuDemand') { closeSheet(); ui.demand = true; switchTab('Attack'); }
     else if (act === 'home') { closeSheet(); show('home'); }
     else if (act === 'newBattle') { if (newBattle()) closeSheet(); }
+    else if (act === 'fleets') openFleets();
+    else if (act === 'saveFleet') { var sf = recordFleet(null); closeSheet(); if (sf) toast(sf.name + ' saved to Saved Fleets.'); }
+    else if (act === 'useFleet') { if (useFleet(b.getAttribute('data-id'))) closeSheet(); }
+    else if (act === 'delFleet') {
+      var id = b.getAttribute('data-id'), del = loadFleets().filter(function (x) { return x.id === id; })[0];
+      if (del && confirm('Delete ' + del.name + ' and its scores?')) { storeFleets(loadFleets().filter(function (x) { return x.id !== id; })); openFleets(); }
+    }
     else if (act === 'abandon') {
       if (!confirm('Abandon this battle? It counts as a loss.')) return;
       if (S.phase === 'battle') bumpRecord(false);

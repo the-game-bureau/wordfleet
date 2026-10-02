@@ -753,3 +753,18 @@ button.uc:active { background: var(--mine, var(--navy)); color: var(--mine-ink, 
 .gridbanner .banner-score { display: block; margin-top: 4px; font-family: var(--mono); font-size: 14px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 .coach-pts { font-weight: 700; color: var(--green-dark); }
 .coach.is-bonus .coach-pts, .coach.is-lost .coach-pts { color: var(--ink); }
+/* MOBILE-FLEETS: saved fleets with their scores */
+.fleet-list { display: grid; gap: 10px; margin-bottom: 14px; }
+.fleet-row { display: flex; align-items: center; gap: 10px; border: 1px solid var(--ink); padding: 8px 10px; }
+.fleet-flag { flex-shrink: 0; width: 34px; display: block; }
+.fleet-flag svg { width: 100%; height: auto; display: block; }
+.fleet-info { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.fleet-info b { font-family: var(--mono); letter-spacing: 0.06em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fleet-info span { font-family: var(--mono); font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fleet-info .fleet-stats { color: var(--ink); font-weight: 700; }
+.fleet-acts { display: grid; gap: 6px; flex-shrink: 0; }
+.fleet-acts .btn { min-height: 34px; padding: 4px 10px; font-size: 13px; }
+/* "Order of Battle": the ship circles in a grid banner, with their label */
+.roll { display: grid; justify-items: end; gap: 4px; flex-shrink: 0; }
+.roll-label { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; }
+.fleet-info b, .fleet-info span { white-space: normal; overflow: visible; }
