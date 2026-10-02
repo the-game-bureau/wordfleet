@@ -19,9 +19,9 @@ SCOWL ranks every word by size: 10 is the most common, 95 the most obscure. Word
 
 | Tier | SCOWL sizes | Used for |
 | --- | --- | --- |
-| `common` | 10–20 | AI Captain rank **Ensign** (PIANO, JUMP, BED) |
-| `everyday` | 35–40 | AI Captain rank **Commander** (WHARF, HOOF, KEG) |
-| `rare` | 50–60 | AI Captain rank **Admiral** (GLYPH, YURT, ASP) |
+| `common` | 10–20 | AI Captain **Cpt. Rubber Duck** (PIANO, JUMP, BED) |
+| `everyday` | 35–40 | AI Captain **Cpt. Steady** (WHARF, HOOF, KEG) |
+| `rare` | 50–60 | AI Captain **Cpt. Lexicon** (GLYPH, YURT, ASP) |
 | `extra` | 70 | Accepted when the Human Captain picks their own words; never chosen by the AI Captain |
 
 The Human Captain may use any word from any tier. Auto-generated words for both captains come from the tier that matches the chosen rank.

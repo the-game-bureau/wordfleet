@@ -24,14 +24,15 @@
   var RECORD = 'wordfleet-app-record';
 
   // Difficulty = how common the AI Captain's words are, and how cleverly it calls letters.
+  // Keys stay ensign/commander/admiral so saved games keep working; players see the names.
   var LEVELS = {
-    ensign:    { name: 'Ensign',    tiers: ['common'],   example: 'PIANO • JUMP • BED',
+    ensign:    { name: 'Cpt. Rubber Duck',    tiers: ['common'],   example: 'PIANO • JUMP • BED',
                  hint: 'Everyday words anyone knows. The AI Captain calls letters by gut, vowels and all.',
                  pattern: false, vowelCost: 1, noise: 1, solve: null },
-    commander: { name: 'Commander', tiers: ['everyday'], example: 'WHARF • HOOF • KEG',
+    commander: { name: 'Cpt. Steady', tiers: ['everyday'], example: 'WHARF • HOOF • KEG',
                  hint: 'Familiar but less frequent words. The AI Captain calls smart consonants and solves words when it can.',
                  pattern: true, vowelCost: 0.45, noise: 0.15, solve: { known: 0.6, share: 1 } },
-    admiral:   { name: 'Admiral',   tiers: ['rare'],     example: 'GLYPH • YURT • ASP',
+    admiral:   { name: 'Cpt. Lexicon',   tiers: ['rare'],     example: 'GLYPH • YURT • ASP',
                  hint: 'Uncommon words that hide well. The AI Captain reads every revealed letter, rarely wastes a turn on a vowel, and solves early.',
                  pattern: true, vowelCost: 0.3, noise: 0.05, solve: { known: 0.4, share: 0.7 } }
   };
@@ -944,7 +945,7 @@
     return options.sort(function (a, b) { return score[b] - score[a]; })[0];
   }
 
-  // Pick the hidden square most likely to hold L (random for an Ensign or with no clues).
+  // Pick the hidden square most likely to hold L (random for Cpt. Rubber Duck or with no clues).
   function foePickSquare(L, lvl) {
     var sh = S.foeShots, score = {}, best = null;
     if (lvl.pattern) {

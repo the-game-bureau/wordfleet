@@ -400,3 +400,5 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 .btn--next { margin-top: 18px; }
 
 .hint--label { margin: -2px 0 8px; }
+
+#segLevel button { white-space: normal; line-height: 1.2; }
