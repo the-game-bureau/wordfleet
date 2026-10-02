@@ -360,7 +360,7 @@
 
   // Buttons are always one line: text that doesn't fit shrinks (down to 12px) instead of wrapping.
   function fitButtons(root) {
-    var els = (root || document).querySelectorAll('.screen.is-on .btn, #sheet:not([hidden]) .btn');
+    var els = root ? root.querySelectorAll('.btn') : document.querySelectorAll('.screen.is-on .btn, #sheet:not([hidden]) .btn, #coach .btn');
     Array.prototype.forEach.call(els, function (el) {
       el.style.fontSize = '';
       if (!el.offsetParent || el.scrollWidth <= el.clientWidth) return;
@@ -707,17 +707,18 @@
           (t ? pips(t, t, 'is-found') : '<span class="mf-none">none</span>') + '</div>';
       }
       return '<button type="button" class="mf is-callable' + (v ? ' is-vowel' : '') + '" data-letter="' + L + '">' +
-        '<span class="mf-l">' + L + '</span>' + (v ? '<span class="mf-vowel">−1 turn</span>' : '<span class="pips"></span>') + '</button>';
+        '<span class="mf-l">' + L + '</span>' + (v ? '<span class="mf-vowel">\u22121</span>' : '<span class="pips"></span>') + '</button>';
     }).join('');
-    openSheet('<h2>Square ' + coordK(k) + '</h2>' +
-      '<p class="hint" style="margin:2px 0 0">Call a letter. If it\'s in ' + coordK(k) + ', you get a <strong>bonus turn</strong>. Vowels cost your next turn.</p>' +
-      '<div class="manifest manifest--pick">' + letters + '</div>' +
-      '<button class="btn btn--ghost btn--wide" type="button" data-act="close">Cancel</button>', true, '006-MOBILE-CALL-LETTER');
+    // Compact: the target in the title, vowels marked −1, tap outside to cancel.
+    openSheet('<h2>Calling for ' + coordK(k) + '</h2>' +
+      (hintsOn() ? '<p class="hint" style="margin:2px 0 0">If your letter is in ' + coordK(k) + ', you get a bonus turn. Vowels (\u22121) cost your next turn.</p>' : '') +
+      '<div class="manifest manifest--pick">' + letters + '</div>', true, '006-MOBILE-CALL-LETTER');
   }
 
   function renderAttack() {
     var mine = S.turn === 'me';
     var live = canCall();
+    var info = S.result && S.result.info;
     // Ship status: yellow once some of its letters show, green once all of them do.
     $('bubbles').innerHTML = S.foe.ships.map(function (ship, i) {
       var shots = cellsOf(ship).map(function (p) { return S.myShots[key(p.r, p.c)]; });
@@ -731,65 +732,106 @@
       var s = S.myShots[k];
       var o = s && s.letter ? { cls: 'is-bull', text: s.letter, off: true } : s && s.empty ? { cls: 'is-empty', off: true } : {};
       if (ui.sel === k && !(s && s.letter)) o.cls = (o.cls || '') + ' is-target';
-      if (ui.flash && ui.flash.indexOf(k) !== -1) o.cls = (o.cls || '') + ' is-flash';
+      // The story of your call, told on the grid: new letters flip in one by one, and the square
+      // you aimed at keeps a marker (gold ✓ when the letter was there) until your turn ends.
+      var fi = ui.flash ? ui.flash.indexOf(k) : -1;
+      if (fi !== -1) o.cls = (o.cls || '') + ' is-flip is-d' + Math.min(fi, 6);
+      if (info && info.k === k) o.cls = (o.cls || '') + (info.bonus ? ' is-aim is-aim-hit' : ' is-aim');
       return o;
     }, live);
+    if (ui.flash) { clearTimeout(ui.flashTimer); ui.flashTimer = setTimeout(function () { ui.flash = null; }, 1800); }
 
     // Attack Manifest (display only): called letters with one dot per square revealed.
     $('attackManifest').innerHTML = LETTERS.map(function (L) {
       var t = S.myTallies[L], cls = 'mf' + (isVowel(L) && t == null ? ' is-vowel' : '');
       var under = t == null ? '<span class="pips"></span>' : t ? pips(t, t, 'is-found') : '<span class="mf-none">none</span>';
       if (t != null) cls += t ? ' is-done' : ' is-zero';
+      if (info && info.L === L && ui.flash) cls += ' is-pulse';
       return '<div class="' + cls + '"><span class="mf-l">' + L + '</span>' + under + '</div>';
     }).join('');
 
+    // The popup is only for Solve a Word and Demand Surrender; everything else is the coach bar.
     var fp = $('firePanel');
-    // Demand Surrender lives in the \u2630 menu, not in these popups.
-    var pkey, dismissible;
-    if (ui.demand && mine) {
-      pkey = 'demand'; dismissible = true;
-      fp.innerHTML = demandForm();
-    } else if (S.result) {
-      pkey = 'result:' + S.log.length + (S.result.bonus ? ':bonus' : '');
-      dismissible = true;   // close it to look at the grid; the reopen button brings it back
-      fp.innerHTML = '<div class="card-title">' + S.result.title + '</div>' + S.result.html +
-        (S.result.solve ? solveBox() : '') +
-        (S.result.bonus ? '<button class="btn btn--bonus btn--wide" type="button" data-act="panelOk">\u2605 Take Your Bonus Turn</button>'
-                        : mine ? '<button class="btn btn--primary btn--wide" type="button" data-act="endTurn">End Turn</button>'
-                               : '<p class="waiting">AI Captain is choosing a square\u2026</p>');
-    } else if (!mine) {
-      pkey = 'wait'; dismissible = false;
-      fp.innerHTML = '<p class="waiting">AI Captain is choosing a square\u2026</p>';
-    } else {
-      pkey = 'turn:' + S.log.length; dismissible = true;   // a new key every move, so each turn pops up once
-      fp.innerHTML = '<div class="card-title">Your Turn</div>' +   // no count of letters in play
-        (S.notice ? '<p class="notice">' + S.notice + '</p>' : '') +
-        '<p class="hint" style="margin-top:0">Tap a square on the Attack Grid, then call a letter. Every square holding it is revealed. If it\'s in the square you picked, you get a <strong>bonus turn</strong>. Vowels cost your next turn.</p>' +
-        '<button class="btn btn--primary btn--wide" type="button" data-act="panelOk">To the Attack Grid</button>';
-    }
-    ui.panelKey = pkey; ui.panelDismissible = dismissible;
-    $('panelSheet').classList.toggle('is-bonus', !!(S.result && S.result.bonus && !ui.demand));
+    if (ui.demand && mine) fp.innerHTML = demandForm();
+    else if (ui.solving && mine && S.result && S.result.solve) fp.innerHTML = solveBox();
+    else { ui.demand = false; ui.solving = false; fp.innerHTML = ''; }
     refreshPanel();
+    renderCoach();
   }
 
-  // The turn panel is always a popup over the Attack Grid. It stays shut once closed until something new
-  // happens (a new key), and steps aside while the letter picker or menu is open.
   function refreshPanel() {
-    var show = current === 'battle' && S && S.phase === 'battle' && ui.tab === 'Attack' &&
-      ui.panelKey && ui.panelKey !== ui.panelClosed && $('sheet').hidden;
+    var mode = ui.demand ? 'demand' : ui.solving ? 'solve' : '';
+    var show = !!mode && current === 'battle' && S && S.phase === 'battle' && ui.tab === 'Attack' && $('sheet').hidden;
     $('panelSheet').hidden = !show;
     $('panelScrim').hidden = !show;
-    $('panelClose').hidden = !ui.panelDismissible;
-    // A closed result (not a bonus turn) leaves a button above the tabs to bring it back and end the turn.
-    $('panelReopen').hidden = show || !(current === 'battle' && S && S.phase === 'battle' && ui.tab === 'Attack' && $('sheet').hidden &&
-      ui.panelKey && ui.panelKey === ui.panelClosed && /^result:/.test(ui.panelKey) && !/:bonus$/.test(ui.panelKey));
-    $('panelSheet').setAttribute('data-screen', ui.panelKey === 'demand' ? '009-MOBILE-SURRENDER' : '005-MOBILE-ATTACK-POPUP');
+    $('panelSheet').setAttribute('data-screen', mode === 'demand' ? '009-MOBILE-SURRENDER' : '005-MOBILE-SOLVE');
     if (show) fitButtons($('panelSheet'));
+    renderCoach();
   }
   function closePanel() {
-    if (!ui.panelDismissible) return;
-    if (ui.panelKey === 'demand') { ui.demand = false; ui.panelClosed = null; renderAttack(); return; }
-    ui.panelClosed = ui.panelKey; refreshPanel();
+    ui.demand = false; ui.solving = false;
+    renderAttack();
+  }
+
+  // ------------------------------------------------------------
+  // COACH BAR: one line above the tabs that always says what to do next.
+  // ------------------------------------------------------------
+  var HINT_KEY = 'wordfleet-hints', CALLS_KEY = 'wordfleet-calls';
+  function getPref(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function setPref(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* ignore */ } }
+  // Longer hints for a captain's first two calls ever, or whenever Hints is switched on in the menu.
+  function hintsOn() { return getPref(HINT_KEY) === 'on' || (+getPref(CALLS_KEY) || 0) < 2; }
+
+  function aiMoveLine(ev) {
+    if (ev.skip) return 'You called a vowel, so you lost a turn.';
+    return 'AI Captain called <b>' + ev.letter + '</b> at <b>' + coordK(ev.square) + '</b> \u00b7 tally ' + ev.tally +
+      (ev.bonus ? ' \u00b7 \u2605 bonus turn' : '') + (ev.solve ? ' \u00b7 solved ' + (ev.solve.ok ? ev.solve.word : 'nothing') : '');
+  }
+
+  function renderCoach() {
+    var el = $('coach');
+    var show = current === 'battle' && S && S.phase === 'battle' && !ui.demand && !ui.solving;
+    el.hidden = !show;
+    if (!show) return;
+    var mine = S.turn === 'me', r = S.result, info = r && r.info, hint = hintsOn();
+    var step = '', main = '', pre = [], sub = [], btns = '', cls = '';   // pre: news above the instruction; sub: details below
+    if (!mine) {
+      cls = 'is-wait';
+      main = 'AI Captain is aiming<span class="dots"><i>.</i><i>.</i><i>.</i></span>';
+      if (hint) sub.push('It calls a letter on your fleet. Watch the Defense Grid.');
+    } else if (ui.sel) {
+      step = '2'; main = 'Call a letter for <b>' + coordK(ui.sel) + '</b>';
+    } else if (r && info && info.bonus) {
+      cls = 'is-bonus'; step = '\u2605';
+      main = 'Bonus turn! <b>' + info.L + '</b> was at <b>' + coordK(info.k) + '</b>. Tap another square.';
+      if (r.solveRes) sub.push('Solve ' + r.solveRes.word + ': ' + (r.solveRes.ok ? '<b>Correct.</b>' : '<b>Negative.</b>'));
+      if (r.solve && !r.solveRes) btns += '<button class="btn btn--sm" type="button" data-coach="solve">Solve a Word</button>';
+    } else if (r && info) {
+      step = '3';
+      main = '<span class="say">"' + info.L + ' tally ' + info.t + '."</span> ' +
+        (info.t ? 'Revealed at ' + info.cells.map(coordK).join(', ') + '.' : info.open ? coordK(info.k) + ' is open water.' : info.L + ' isn\'t in their fleet.');
+      if (info.vowel) sub.push('<span class="coach-warn">Vowel: you skip your next turn.</span>');
+      if (r.solveRes) sub.push('Solve ' + r.solveRes.word + ': ' + (r.solveRes.ok ? '<b>Correct.</b>' : '<b>Negative.</b>'));
+      else if (hint && r.solve) sub.push('Know a whole word? Solve it to reveal it.');
+      if (r.solve && !r.solveRes) btns += '<button class="btn btn--sm" type="button" data-coach="solve">Solve a Word</button>';
+      btns += '<button class="btn btn--sm btn--primary" type="button" data-coach="end">End Turn</button>';
+    } else if (r) {
+      // A result saved by an older version: no details, just the way on.
+      step = '3'; main = r.title;
+      btns = '<button class="btn btn--sm btn--primary" type="button" data-coach="end">End Turn</button>';
+    } else {
+      (S.incoming || []).forEach(function (ev) { pre.push(aiMoveLine(ev)); });
+      if (S.notice) pre.push(S.notice);
+      step = '1'; main = 'Your turn. Tap a square to aim.';
+      if (hint) sub.push('Then call a letter: every square holding it is revealed. Your letter in your square = bonus turn. Vowels cost a turn.');
+    }
+    el.className = 'coach ' + cls;
+    el.innerHTML = (step ? '<span class="coach-step">' + step + '</span>' : '') +
+      '<div class="coach-body">' + pre.map(function (x) { return '<div class="coach-news">' + x + '</div>'; }).join('') +
+      '<div class="coach-main">' + main + '</div>' +
+      sub.map(function (x) { return '<div class="coach-sub">' + x + '</div>'; }).join('') +
+      (btns ? '<div class="coach-btns">' + btns + '</div>' : '') + '</div>';
+    fitButtons(el);
   }
 
   function renderDefense() {
@@ -929,15 +971,18 @@
       (t ? revealNote(L, cells, 'the AI Captain\'s') : '<p class="hint">' + L + ' is nowhere in the AI Captain\'s fleet.</p>') +
       (bonus ? '<p class="bonus">\u2605 Bonus turn! ' + L + ' was hiding at ' + coordK(k) + '.</p>' : (at ? '' : '<p class="hint">' + coordK(k) + ' is open water.</p>')) +
       (vowel ? '<p class="notice">Vowel: you lose your next turn.</p>' : '');
+    setPref(CALLS_KEY, (+getPref(CALLS_KEY) || 0) + 1);
     showResult(bonus ? '\u2605 Bonus Turn!' : 'Calling ' + NATO[L], html, t > 0, bonus);
+    S.result.info = { L: L, t: t, k: k, cells: cells, bonus: bonus, vowel: vowel, open: !at };
+    save(); renderBattle();
   }
 
   // --- solve a word (after calling a letter that is in the fleet) ---
   function solveBox() {
-    return '<div class="solve" id="solveBox"><span class="label">Solve a Word (optional)</span>' +
+    return '<div class="card-title">Solve a Word</div><div class="solve" id="solveBox">' +
       '<div class="input-row"><input class="input" id="solveIn" maxlength="5" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="WORD">' +
-      '<button class="btn" type="button" data-act="solve">Solve</button></div>' +
-      '<p class="hint">Name one of the AI Captain\'s word-ships. Get it right and the whole word is revealed.</p></div>';
+      '<button class="btn btn--primary" type="button" data-act="solve">Solve</button></div>' +
+      (hintsOn() ? '<p class="hint">Name one of the AI Captain\'s word-ships. Get it right and the whole word is revealed.</p>' : '') + '</div>';
   }
 
   // Fill in every square of the first unsolved word-ship spelling `word`.
@@ -974,7 +1019,8 @@
       html = '<div class="report is-bad"><div class="report-q">"Solve: ' + word + '!"</div><div class="report-a">"Negative."</div></div>';
     }
     S.result.html += html;
-    S.result.solve = false;
+    S.result.solveRes = { word: word, ok: !!res };
+    ui.solving = false;
     save();
     renderBattle();
   }
@@ -1194,8 +1240,8 @@
     S.incoming.push(ev);
     if (!bonus) passTurn('me');     // a bonus turn keeps it with the AI Captain
     save();
-    // Show the damage on the Defense Grid; the report there leads back to the Attack Grid.
-    switchTab('Defense');
+    // Stay put: the coach bar reports the AI Captain's move and the Defense tab gets a dot.
+    renderBattle();
   }
 
   // ------------------------------------------------------------
@@ -1264,6 +1310,7 @@
       (window.WFAudio ? '<div class="switches">' +
         '<label class="switch-row"><span>Sound Effects</span><input type="checkbox" class="switch" data-audio="sfx"' + (window.WFAudio.sfxOn() ? ' checked' : '') + '></label>' +
         '<label class="switch-row"><span>Music</span><input type="checkbox" class="switch" data-audio="music"' + (window.WFAudio.musicOn() ? ' checked' : '') + '></label>' +
+        '<label class="switch-row"><span>Hints</span><input type="checkbox" class="switch" data-hints="1"' + (getPref(HINT_KEY) === 'on' ? ' checked' : '') + '></label>' +
         '</div>' : '') +
       '<button class="btn btn--ghost btn--wide" type="button" data-act="close">Close</button></div>', true, 'MOBILE-MENU');
   }
@@ -1468,7 +1515,6 @@
     if (!b) return;
     var act = b.getAttribute('data-act');
     if (act === 'demand') { ui.demand = true; renderAttack(); $('panelSheet').scrollTop = 0; }
-    else if (act === 'panelOk') closePanel();
     else if (act === 'belay') { ui.demand = false; renderAttack(); }
     else if (act === 'endTurn') endMyTurn();
     else if (act === 'solve') humanSolve();
@@ -1489,17 +1535,26 @@
     if (!b) return;
     var tab = b.getAttribute('data-tab');
     // Heading back to the Attack Grid counts as reading the incoming report.
-    if (tab === 'Attack' && S.turn === 'me' && S.incoming.length) { S.incoming = []; save(); }
     switchTab(tab);
   });
 
   on($('btnAgain'), 'click', function () { newGame(); show('setup'); });
 
   // sheet
-  on($('scrim'), 'click', function () { if (sheetDismissible) closeSheet(); });
+  on($('scrim'), 'click', function () {
+    if (!sheetDismissible) return;
+    closeSheet();
+    if (ui.sel && current === 'battle') { ui.sel = null; renderAttack(); }   // tapped outside the letter picker: cancel the aim
+  });
   on($('panelScrim'), 'click', closePanel);
   on($('panelClose'), 'click', closePanel);
-  on($('panelReopen'), 'click', function () { ui.panelClosed = null; refreshPanel(); });
+  on($('coach'), 'click', function (e) {
+    var b = e.target.closest('[data-coach]');
+    if (!b) return;
+    var act = b.getAttribute('data-coach');
+    if (act === 'end') endMyTurn();
+    else if (act === 'solve') { ui.solving = true; switchTab('Attack'); setTimeout(function () { var i = $('solveIn'); if (i) i.focus(); }, 50); }
+  });
   on($('sheetBody'), 'click', function (e) {
     var k = e.target.closest('[data-letter]');
     if (k) { humanCall(k.getAttribute('data-letter')); return; }
@@ -1508,7 +1563,7 @@
     var act = b.getAttribute('data-act');
     if (act === 'close') { closeSheet(); if (ui.sel && current === 'battle') { ui.sel = null; renderAttack(); } }
     else if (act === 'rules') openRules();
-    else if (act === 'menuDemand') { closeSheet(); ui.demand = true; ui.panelClosed = null; switchTab('Attack'); }
+    else if (act === 'menuDemand') { closeSheet(); ui.demand = true; switchTab('Attack'); }
     else if (act === 'home') { closeSheet(); show('home'); }
     else if (act === 'newBattle') { if (newBattle()) closeSheet(); }
     else if (act === 'abandon') {
@@ -1520,6 +1575,7 @@
     else if (act === 'install') { ui.installEvt.prompt(); ui.installEvt = null; closeSheet(); }
   });
   on($('sheetBody'), 'change', function (e) {
+    if (e.target.hasAttribute('data-hints')) { setPref(HINT_KEY, e.target.checked ? 'on' : 'off'); if (current === 'battle') renderBattle(); return; }
     var which = e.target.getAttribute('data-audio');
     if (which === 'sfx') window.WFAudio.setSfx(e.target.checked);
     if (which === 'music') window.WFAudio.setMusic(e.target.checked);
@@ -1556,7 +1612,6 @@
       S.me.words = randomWords(); save();
     }
     // MOBILE-HOME is parked: the app opens on 001-MOBILE-PREPARE (or the battle in progress).
-    if (S && S.phase === 'battle' && S.incoming.length) ui.tab = 'Defense';
     resume();
   });
 

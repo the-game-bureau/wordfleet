@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Bump ?v= on every release (and CACHE in sw.js) so a new page never runs old code. -->
-  <link rel="stylesheet" href="app.css?v=97">
+  <link rel="stylesheet" href="app.css?v=98">
 </head>
 <body>
 
@@ -231,19 +231,20 @@
   <div class="sheet-body" id="sheetBody"></div>
 </div>
 
-<!-- ============ ATTACK POPUP: the Attack tab's turn panel (your turn, call result, AI's turn,
-     009-MOBILE-SURRENDER) always shows here, over the grid. Sits under the letter-picker sheet. ============ -->
+<!-- ============ ATTACK POPUP: only for Solve a Word (005-MOBILE-SOLVE) and Demand Surrender (009-MOBILE-SURRENDER).
+     Everything else in a turn is the coach bar. Sits under the letter-picker sheet. ============ -->
 <div class="scrim scrim--panel" id="panelScrim" hidden></div>
-<button class="btn panel-reopen" id="panelReopen" type="button" hidden>&#x25B2; Back to Result &middot; End Turn</button>
+<!-- COACH BAR: one line above the tabs during battle that says what to do next (renderCoach in app.js) -->
+<div class="coach" id="coach" role="status" aria-live="polite" hidden></div>
 <div class="sheet sheet--panel" id="panelSheet" role="dialog" aria-modal="true" aria-label="Turn" hidden>
-  <button class="sheet-x" id="panelClose" type="button" aria-label="Close">&times;</button>
+  <button class="sheet-x" id="panelClose" type="button" aria-label="Cancel">&times;</button>
   <div id="firePanel"></div>
 </div>
 
 <div class="toast" id="toast" hidden></div>
 <div class="bonus-banner" id="bonusBanner" role="status" aria-live="assertive" hidden></div>
 
-<script src="audio.js?v=97"></script>
-<script src="app.js?v=97"></script>
+<script src="audio.js?v=98"></script>
+<script src="app.js?v=98"></script>
 </body>
 </html>
