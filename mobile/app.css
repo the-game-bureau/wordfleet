@@ -722,3 +722,5 @@ button.uc:active { background: var(--mine, var(--navy)); color: var(--mine-ink, 
 /* Letters manifests sit under their grid, inside the grid's card */
 .uncalled { padding: 10px 2px 2px; }
 #scrBattle .tab { padding-bottom: calc(var(--coach-h, 150px) + 16px); }
+/* The empty top-left corner of every grid: no shading, no top or left border */
+.cell.is-corner { background: var(--paper); margin: -1px 0 0 -1px; }

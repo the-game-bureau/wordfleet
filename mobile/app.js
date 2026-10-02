@@ -461,7 +461,7 @@
   // ------------------------------------------------------------
   // corner: optional HTML for the empty top-left cell (the Attack Grid tucks its ABC button there).
   function paint(el, cellFn, tappable, corner) {
-    var html = corner || '<div class="cell is-label"></div>';
+    var html = corner || '<div class="cell is-corner"></div>';
     for (var c = 0; c < 10; c++) html += '<div class="cell is-label">' + COLS[c] + '</div>';
     for (var r = 0; r < 10; r++) {
       html += '<div class="cell is-label">' + (r + 1) + '</div>';
