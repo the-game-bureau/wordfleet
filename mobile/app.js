@@ -26,13 +26,13 @@
   // Difficulty = how common the AI Captain's words are, and how cleverly it calls letters.
   // Keys stay ensign/commander/admiral so saved games keep working; players see the names.
   var LEVELS = {
-    ensign:    { name: 'Captain Rubber Duck',    tiers: ['common'],   example: 'PIANO • JUMP • BED',
+    ensign:    { name: 'Captain Rubber Duck',    tiers: ['common'],  
                  hint: 'A cheerful rookie who has never sailed beyond the bathtub. Hides everyday words anyone knows and calls letters on a hunch, vowels and all.',
                  pattern: false, vowelCost: 1, noise: 1, solve: null },
-    commander: { name: 'Captain Steady', tiers: ['everyday'], example: 'WHARF • HOOF • KEG',
+    commander: { name: 'Captain Steady', tiers: ['everyday'],
                  hint: 'A dependable old hand who has seen a few storms. Hides familiar words, calls sensible consonants, and solves your words once the clues line up.',
                  pattern: true, vowelCost: 0.45, noise: 0.15, solve: { known: 0.6, share: 1 } },
-    admiral:   { name: 'Captain Lexicon',   tiers: ['rare'],     example: 'GLYPH • YURT • ASP',
+    admiral:   { name: 'Captain Lexicon',   tiers: ['rare'],    
                  hint: 'A walking dictionary with a periscope. Hides rare words that are hard to crack, studies every letter you reveal, almost never wastes a turn on a vowel, and solves early.',
                  pattern: true, vowelCost: 0.3, noise: 0.05, solve: { known: 0.4, share: 0.7 } }
   };
@@ -102,6 +102,7 @@
   var languages = [];   // dictionaries/languages.json
   var lang = null;      // { code, name, tiers, offensive }
   var offensiveSet = {};
+  var unsafeSet = {};    // offensive words plus words built on them; never shown as examples
   var dictSet = {};     // every playable word -> tier name
   var guessPool = {};   // length -> [{ w, wt }] for the AI Captain's letter reads
 
@@ -130,11 +131,15 @@
         guessPool = {};
         offensiveSet = {};
         (d.offensive || []).forEach(function (w) { offensiveSet[w] = true; });
+        // Words built on an offensive stem of 4+ letters (FICK -> FICKT) are kept out of examples.
+        unsafeSet = {};
+        var stems = (d.offensive || []).filter(function (w) { return w.length >= 4; });
         Object.keys(d.tiers).forEach(function (tier) {
           Object.keys(d.tiers[tier]).forEach(function (len) {
             d.tiers[tier][len].forEach(function (w) {
               if (dictSet[w]) return;
               dictSet[w] = tier;
+              if (offensiveSet[w] || stems.some(function (st) { return w.indexOf(st) === 0; })) unsafeSet[w] = true;
               (guessPool[len] = guessPool[len] || []).push({ w: w, wt: TIER_WEIGHT[tier] || 1 });
             });
           });
@@ -146,6 +151,23 @@
   function allowed(w) { return !offensiveSet[w] || offensiveOk(); }
   function inDictionary(w) { return !!dictSet[w] && allowed(w); }
 
+  // Three example words (5, 4 and 3 letters) for a captain on 002, from that captain's tier of the chosen
+  // dictionary and never offensive. Kept per language and captain so they don't change on every tap.
+  var exampleCache = {};
+  function levelExamples(level) {
+    var k = (lang && lang.code) + ':' + level;
+    if (!exampleCache[k]) {
+      var tiers = (LEVELS[level] || LEVELS.ensign).tiers;
+      exampleCache[k] = [5, 4, 3].map(function (len) {
+        var pool = [];
+        tiers.forEach(function (t) { var byLen = lang && lang.tiers[t]; if (byLen && byLen[len]) pool = pool.concat(byLen[len]); });
+        pool = pool.filter(function (w) { return !unsafeSet[w]; });
+        return pool.length ? pick(pool) : pick(FALLBACK[len]);
+      }).join(' \u2022 ');
+    }
+    return exampleCache[k];
+  }
+
   // Words a fleet may be drawn from at this difficulty.
   function pickPool(len) {
     var tiers = (LEVELS[S && S.level] || LEVELS.ensign).tiers;
@@ -156,7 +178,8 @@
     });
     // Two-letter words are scarce in every tier: top up from the common tier.
     if (pool.length < 12 && lang && lang.tiers.common && lang.tiers.common[len]) pool = pool.concat(lang.tiers.common[len]);
-    pool = pool.filter(allowed);
+    // With offensive words off, drawn words also skip words built on an offensive stem.
+    pool = pool.filter(function (w) { return offensiveOk() || !unsafeSet[w]; });
     return pool.length ? pool : FALLBACK[len];
   }
 
@@ -389,7 +412,7 @@
     renderSchemes();
     $('chkOffensive').checked = offensiveOk();
     setSeg('segLevel', S.level);
-    $('levelHint').innerHTML = esc(LEVELS[S.level].hint) + ' <strong>e.g. ' + LEVELS[S.level].example + '</strong>';
+    $('levelHint').innerHTML = esc(LEVELS[S.level].hint) + ' <strong>e.g. ' + esc(levelExamples(S.level)) + '</strong>';
     var html = '<div class="words">';
     SPECS.forEach(function (spec, i) {
       var w = S.me.words[i] || '';
