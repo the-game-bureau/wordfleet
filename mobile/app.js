@@ -377,8 +377,6 @@
     $('chkOffensive').checked = offensiveOk();
     setSeg('segLevel', S.level);
     $('levelHint').innerHTML = esc(LEVELS[S.level].hint) + ' <strong>e.g. ' + LEVELS[S.level].example + '</strong>';
-    $('modeHint').textContent = 'Type over any word, tap \u21bb to redraw one, or Refresh All. Words must be in the ' +
-      (lang ? lang.name : '') + ' dictionary: no proper nouns or abbreviations.';
     var html = '<div class="words">';
     SPECS.forEach(function (spec, i) {
       var w = S.me.words[i] || '';
