@@ -1,5 +1,5 @@
 /* Word Fleet service worker: the whole game works offline once loaded. */
-var CACHE = 'wordfleet-v20';
+var CACHE = 'wordfleet-v21';
 var SHELL = [
   './',
   'index.html',

@@ -114,24 +114,50 @@
     SFX[name](ctx.currentTime + 0.01 + (delay || 0));
   }
 
-  // --- background music: a dark naval score -------------------------------
-  // Slow D minor (Dm - Bb - Gm - A), 16-bar cycle: a sparse opening of drone,
-  // strings and sonar, then a pulsing low-string ostinato and timpani, with a
-  // lonely horn line on alternate passes. Ocean swell underneath throughout.
-  var BPM = 66, EIGHTH = 60 / BPM / 2, BAR = EIGHTH * 8, CYCLE = 16;
-  var PROG = [
-    { root: 38, chord: [50, 53, 57] },   // Dm
-    { root: 34, chord: [50, 53, 58] },   // Bb
-    { root: 31, chord: [50, 55, 58] },   // Gm
-    { root: 33, chord: [49, 52, 57] }    // A
-  ];
+  // --- background music: a naval song in sections ---------------------------
+  // Intro, then Verse > Refrain > Chorus > Refrain > Verse 2 > Refrain > Chorus >
+  // Bridge > Chorus (up a step) > Refrain, looping back to the Verse (~3 minutes).
+  // Verses are dark D minor; the Refrain is a short horn hook that keeps coming
+  // back; the Chorus lifts into F major with a driving beat.
+  var BPM = 84, EIGHTH = 60 / BPM / 2, BAR = EIGHTH * 8;
+  var Dm = { root: 38, chord: [50, 53, 57] }, Bb = { root: 34, chord: [50, 53, 58] },
+      Gm = { root: 31, chord: [50, 55, 58] }, A = { root: 33, chord: [49, 52, 57] },
+      F = { root: 41, chord: [53, 57, 60] }, C = { root: 36, chord: [52, 55, 60] };
+  var MINOR = [Dm, Bb, Gm, A], CHORUS = [F, C, Dm, Bb, F, C, Dm, A];
   var OSTINATO = [0, 0, 7, 0, 0, 7, 8, 7];   // semitones over the bar's root; the 8 is the uneasy minor sixth
-  // Horn line for bars 8-15: [midi, eighths] pairs.
-  var HORN = [
-    [[69, 8]], [[65, 5], [67, 3]], [[70, 6], [69, 2]], [[64, 8]],
-    [[65, 4], [62, 4]], [[62, 8]], [[67, 5], [65, 3]], [[64, 8]]
+  // Melodies: one entry per bar, each a list of [midi, eighths].
+  var VERSE = [[[69, 8]], [[65, 5], [67, 3]], [[70, 6], [69, 2]], [[64, 8]],
+               [[65, 4], [62, 4]], [[62, 8]], [[67, 5], [65, 3]], [[64, 8]]];
+  var VERSE2 = [[[74, 8]], [[70, 5], [72, 3]], [[74, 6], [72, 2]], [[69, 8]],
+                [[70, 4], [67, 4]], [[65, 8]], [[67, 5], [69, 3]], [[69, 8]]];
+  var HOOK = [[[74, 1], [74, 1], [69, 2], [65, 2], [69, 1], [74, 1]], [[74, 2], [72, 2], [70, 4]],
+              [[70, 1], [70, 1], [67, 2], [62, 2], [67, 1], [70, 1]], [[69, 3], [67, 1], [64, 2], [61, 2]]];
+  var CHORUS_TUNE = [[[72, 2], [72, 1], [74, 1], [77, 2], [72, 2]], [[76, 3], [74, 1], [72, 4]],
+                     [[74, 2], [72, 1], [69, 1], [72, 2], [74, 2]], [[70, 2], [69, 2], [67, 4]],
+                     [[72, 2], [72, 1], [74, 1], [77, 2], [81, 2]], [[79, 3], [77, 1], [76, 4]],
+                     [[74, 2], [76, 2], [77, 2], [74, 2]], [[73, 4], [76, 4]]];
+  var BRIDGE = [[[62, 8]], [[65, 8]], [[67, 8]], [[70, 8]], [[69, 8]], [[65, 8]], [[64, 8]], [[61, 8]]];
+  var SONG = [
+    { style: 'intro',   chords: MINOR, bars: 4 },
+    { style: 'verse',   chords: MINOR, bars: 8, tune: VERSE },
+    { style: 'refrain', chords: MINOR, bars: 4, tune: HOOK },
+    { style: 'chorus',  chords: CHORUS, bars: 8, tune: CHORUS_TUNE },
+    { style: 'refrain', chords: MINOR, bars: 4, tune: HOOK },
+    { style: 'verse',   chords: MINOR, bars: 8, tune: VERSE2 },
+    { style: 'refrain', chords: MINOR, bars: 4, tune: HOOK },
+    { style: 'chorus',  chords: CHORUS, bars: 8, tune: CHORUS_TUNE },
+    { style: 'bridge',  chords: [Bb, Bb, Gm, Gm, Dm, Dm, A, A], bars: 8, tune: BRIDGE },
+    { style: 'chorus',  chords: CHORUS, bars: 8, tune: CHORUS_TUNE, up: 2 },
+    { style: 'refrain', chords: MINOR, bars: 4, tune: HOOK }
   ];
-  var step = 0, nextAt = 0, timer = null, cycle = 0, ocean = null;
+  // Flatten into bars; after the first pass the song loops from the first verse.
+  var BARS = [], LOOP_FROM = SONG[0].bars;
+  SONG.forEach(function (sec) {
+    for (var b = 0; b < sec.bars; b++) {
+      BARS.push({ style: sec.style, chord: sec.chords[b % sec.chords.length], tune: sec.tune && sec.tune[b], up: sec.up || 0, first: b === 0, last: b === sec.bars - 1 });
+    }
+  });
+  var step = 0, nextAt = 0, timer = null, ocean = null;
 
   function voice(type, f, t, dur, peak, attack, release, cutoff, detune) {
     var o = ctx.createOscillator(), g = ctx.createGain(), f1 = ctx.createBiquadFilter();
@@ -146,13 +172,15 @@
     o.start(t); o.stop(t + dur + 0.1);
   }
 
-  function pad(chord, root, t) {
+  function pad(chord, root, t, bright) {
     chord.forEach(function (m) {
-      voice('sawtooth', hz(m), t, BAR * 1.15, 0.035, 1.4, 1.2, 650, -7);
-      voice('sawtooth', hz(m), t, BAR * 1.15, 0.035, 1.4, 1.2, 650, 7);
+      voice('sawtooth', hz(m), t, BAR * 1.1, bright ? 0.03 : 0.035, bright ? 0.3 : 1.2, 1.0, bright ? 1400 : 650, -7);
+      voice('sawtooth', hz(m), t, BAR * 1.1, bright ? 0.03 : 0.035, bright ? 0.3 : 1.2, 1.0, bright ? 1400 : 650, 7);
     });
-    voice('triangle', hz(root), t, BAR * 1.1, 0.16, 0.8, 1.0, 400);        // low string bass
-    voice('sine', hz(root - 12), t, BAR * 1.1, 0.12, 1.2, 1.0, 200);       // sub drone
+    if (!bright) {
+      voice('triangle', hz(root), t, BAR * 1.05, 0.16, 0.6, 0.8, 400);     // low string bass
+      voice('sine', hz(root - 12), t, BAR * 1.05, 0.12, 1.0, 0.8, 200);    // sub drone
+    }
   }
 
   function sonar(t) {
@@ -165,30 +193,52 @@
     noise(musicBus, 'lowpass', 400, 120, t, 0.25, peak * 0.5);
   }
 
-  function scheduleStep(i, t) {
-    var bar = Math.floor(i / 8), inBar = i % 8, chord = PROG[bar % 4];
-    if (inBar === 0) {
-      pad(chord.chord, chord.root, t);
-      if (bar === 4 || bar === 8 || bar === 12) timpani(t, 0.4);
-      if (bar === 1 || bar === 9 || (bar === 13 && cycle % 2)) sonar(t + BAR * 0.4);
-      // Horn on alternate passes, once the ostinato is going.
-      if (bar >= 8 && cycle % 2 === 0) {
-        var at = t;
-        HORN[bar - 8].forEach(function (n) {
-          var d = n[1] * EIGHTH;
-          voice('sawtooth', hz(n[0]), at, d * 1.05, 0.045, 0.35, 0.5, 1100);
-          voice('triangle', hz(n[0] - 12), at, d * 1.05, 0.05, 0.35, 0.5, 900);
-          at += d;
-        });
+  function kick(t, peak) { tone(musicBus, 'sine', 120, 45, t, 0.22, peak, 0.003); }
+  function snare(t, peak) { noise(musicBus, 'highpass', 1600, 1600, t, 0.14, peak); tone(musicBus, 'triangle', 190, 150, t, 0.08, peak * 0.6, 0.002); }
+  function hat(t, peak) { noise(musicBus, 'highpass', 7000, 7000, t, 0.04, peak); }
+
+  // A melody bar: horn for verse/refrain, bright lead for the chorus, soft strings for the bridge.
+  function tune(notes, t, style, up) {
+    var at = t;
+    notes.forEach(function (n) {
+      var d = n[1] * EIGHTH, f = hz(n[0] + up);
+      if (style === 'chorus') {
+        voice('square', f, at, d * 0.95, 0.04, 0.02, 0.1, 2600);
+        voice('triangle', f * 2, at, d * 0.9, 0.025, 0.02, 0.1, 3000);
+      } else if (style === 'bridge') {
+        voice('triangle', f * 2, at, d * 1.05, 0.04, 0.8, 0.8, 1800);
+      } else {
+        voice('sawtooth', f, at, d * 1.05, 0.05, style === 'refrain' ? 0.04 : 0.3, 0.3, 1300);
+        voice('triangle', f / 2, at, d * 1.05, 0.05, style === 'refrain' ? 0.04 : 0.3, 0.3, 900);
       }
+      at += d;
+    });
+  }
+
+  function scheduleStep(i, t) {
+    var bar = BARS[Math.floor(i / 8)], inBar = i % 8, up = bar.up;
+    var root = bar.chord.root + up, style = bar.style;
+    if (inBar === 0) {
+      pad(bar.chord.chord.map(function (m) { return m + up; }), root, t, style === 'chorus');
+      if (bar.tune) tune(bar.tune, t, style, up);
+      if (bar.first && (style === 'verse' || style === 'refrain')) timpani(t, 0.35);
+      if ((style === 'intro' || style === 'bridge') && (bar.first || Math.floor(i / 8) % 4 === 2)) sonar(t + BAR * 0.4);
     }
-    // Pulsing low-string ostinato from bar 4 (every bar after the first pass).
-    if (bar >= 4 || cycle > 0) {
+    if (style === 'verse' || style === 'refrain') {
+      // Pulsing low-string ostinato.
       var accent = inBar === 0 || inBar === 3 || inBar === 6;
-      voice('sawtooth', hz(chord.root + 12 + OSTINATO[inBar]), t, EIGHTH * 0.8, accent ? 0.07 : 0.045, 0.01, 0.12, accent ? 900 : 650);
+      voice('sawtooth', hz(root + 12 + OSTINATO[inBar]), t, EIGHTH * 0.8, accent ? 0.065 : 0.04, 0.01, 0.12, accent ? 900 : 650);
+      if (inBar === 0) kick(t, 0.3);
+      if (style === 'refrain' && (inBar === 2 || inBar === 6)) snare(t, 0.12);
+      if (style === 'refrain' && bar.last && inBar >= 4) { snare(t, 0.06 + (inBar - 4) * 0.03); snare(t + EIGHTH / 2, 0.06 + (inBar - 4) * 0.03); }
+    } else if (style === 'chorus') {
+      // Driving: octave-bouncing bass, kick and backbeat, eighth-note hats.
+      voice('sawtooth', hz(root + (inBar % 2 ? 12 : 0)), t, EIGHTH * 0.85, 0.11, 0.005, 0.08, 700);
+      if (inBar === 0 || inBar === 3 || inBar === 4) kick(t, 0.45);
+      if (inBar === 2 || inBar === 6) snare(t, 0.16);
+      hat(t, inBar % 2 ? 0.05 : 0.03);
+      if (bar.last && inBar >= 6) { snare(t + EIGHTH / 2, 0.12); }
     }
-    // Timpani roll into the top of the cycle.
-    if (bar === 15 && inBar >= 4) timpani(t, 0.12 + (inBar - 4) * 0.06);
   }
 
   function tick() {
@@ -196,7 +246,7 @@
       scheduleStep(step, nextAt);
       nextAt += EIGHTH;
       step++;
-      if (step >= CYCLE * 8) { step = 0; cycle++; }
+      if (step >= BARS.length * 8) step = LOOP_FROM * 8;
     }
   }
 
@@ -216,7 +266,7 @@
 
   function startMusic() {
     if (!prefs.music || timer || !ensure()) return;
-    step = 0; cycle = 0;
+    step = 0;
     nextAt = ctx.currentTime + 0.1;
     musicBus.gain.cancelScheduledValues(ctx.currentTime);
     musicBus.gain.setValueAtTime(0.0001, ctx.currentTime);
