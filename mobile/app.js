@@ -90,7 +90,8 @@
   function sfx(name, delay) { if (window.WFAudio) window.WFAudio.play(name, delay); }
   function key(r, c) { return r + ':' + c; }
   function unkey(k) { var p = k.split(':'); return { r: +p[0], c: +p[1] }; }
-  function coord(r, c) { return COLS[c] + (r + 1); }
+  // Columns go by their NATO names (Alpha to Juliett), so grid letters never look like game letters.
+  function coord(r, c) { return NATO[COLS[c]] + ' ' + (r + 1); }
   function callOut(r, c) { return NATO[COLS[c]] + '-' + NUMBERS[r]; }
   function coordK(k) { var p = unkey(k); return coord(p.r, p.c); }
   function callK(k) { var p = unkey(k); return callOut(p.r, p.c); }
@@ -551,7 +552,7 @@
   // corner: optional HTML for the empty top-left cell (the Attack Grid tucks its ABC button there).
   function paint(el, cellFn, tappable, corner) {
     var html = corner || '<div class="cell is-corner"></div>';
-    for (var c = 0; c < 10; c++) html += '<div class="cell is-label">' + COLS[c] + '</div>';
+    for (var c = 0; c < 10; c++) html += '<div class="cell is-label is-col"><span>' + NATO[COLS[c]] + '</span></div>';
     for (var r = 0; r < 10; r++) {
       html += '<div class="cell is-label">' + (r + 1) + '</div>';
       for (c = 0; c < 10; c++) {
@@ -1190,7 +1191,7 @@
   function demandForm() {
     if (!S.claims) S.claims = SPECS.map(function () { return { word: '', c: '', r: '', dir: 'H' }; });
     var colOpts = function (v) {
-      return '<option value="">Col</option>' + COLS.split('').map(function (ch, i) { return '<option value="' + i + '"' + (String(v) === String(i) ? ' selected' : '') + '>' + ch + '</option>'; }).join('');
+      return '<option value="">Col</option>' + COLS.split('').map(function (ch, i) { return '<option value="' + i + '"' + (String(v) === String(i) ? ' selected' : '') + '>' + NATO[ch] + '</option>'; }).join('');
     };
     var rowOpts = function (v) {
       var h = '<option value="">Row</option>';
@@ -1241,7 +1242,7 @@
     var truth = S.foe.ships.map(sig).sort();
     var said = claims.map(function (cl) { return sig({ word: cl.word, r: +cl.r, c: +cl.c, dir: cl.dir }); }).sort();
     var right = truth.join('|') === said.join('|');
-    var summary = claims.map(function (cl) { return cl.word + ' at ' + COLS[+cl.c] + (+cl.r + 1) + (cl.dir === 'H' ? ' across' : ' down'); }).join(', ');
+    var summary = claims.map(function (cl) { return cl.word + ' at ' + coord(+cl.r, +cl.c) + (cl.dir === 'H' ? ' across' : ' down'); }).join(', ');
     log('me', '"I demand your surrender! Your fleet consists of: ' + esc(summary) + '!"');
     ui.demand = false;
     finish(right ? 'me' : 'foe', right ? 'demand-right' : 'demand-wrong');

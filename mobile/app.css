@@ -787,3 +787,7 @@ button.uc:active { background: var(--mine, var(--navy)); color: var(--mine-ink, 
 }
 /* A vowel you can't afford yet (under 100 points) while aiming */
 .uc.is-locked { opacity: 0.35; border-style: dashed; }
+/* Column headers by NATO name, read bottom to top in a taller header row */
+.grid { grid-template-rows: calc(var(--cell) * 1.75); }
+.cell.is-col { align-items: flex-end; padding-bottom: 3px; }
+.cell.is-col span { writing-mode: vertical-rl; transform: rotate(180deg); font-size: max(7px, calc(var(--cell) * 0.3)); letter-spacing: 0.02em; text-transform: uppercase; line-height: 1; white-space: nowrap; }
