@@ -555,7 +555,7 @@
   // Tapping a hidden square on the Attack Grid pops up the letter picker.
   function openManifest(k) {
     if (!canCall()) return;
-    if (S.myShots[k] && S.myShots[k].letter) return;
+    if (S.myShots[k] && (S.myShots[k].letter || S.myShots[k].empty)) return;
     ui.sel = k;
     if (S.result && S.result.bonus) S.result = null;
     renderAttack();
@@ -588,7 +588,7 @@
     paint($('gridAttack'), function (r, c) {
       var k = key(r, c);
       var s = S.myShots[k];
-      var o = s && s.letter ? { cls: 'is-bull', text: s.letter, off: true } : {};
+      var o = s && s.letter ? { cls: 'is-bull', text: s.letter, off: true } : s && s.empty ? { cls: 'is-empty', off: true } : {};
       if (ui.sel === k && !(s && s.letter)) o.cls = (o.cls || '') + ' is-target';
       if (ui.flash && ui.flash.indexOf(k) !== -1) o.cls = (o.cls || '') + ' is-flash';
       return o;
@@ -621,7 +621,7 @@
       var k = key(r, c);
       var cell = b[k];
       var s = S.foeShots[k];
-      var cls = cell ? 'is-ship' + (s && s.letter ? ' is-ship-lost' : '') : '';
+      var cls = cell ? 'is-ship' + (s && s.letter ? ' is-ship-lost' : '') : s && s.empty ? 'is-empty' : '';
       if (ui.tab === 'Defense' && (S.incoming || []).some(function (e) { return e.square === k; })) cls += ' is-aimed';
       if (flashing && ev.cells && ev.cells.indexOf(k) !== -1) cls += ' is-flash';
       return { cls: cls, text: cell ? cell.letter : '' };
@@ -710,6 +710,7 @@
     S.turns++;
     S.notice = null;
     ui.sel = null;
+    if (!at) S.myShots[k] = { empty: true };   // open water: marked with a white dot
     if (vowel) S.skip.me = true;
     var cells = revealLetter(S.myShots, foeBoard(), L);
     ui.flash = cells;
@@ -875,6 +876,7 @@
           var seg = [], keys = [], known = 0;
           for (var i = 0; i < len; i++) {
             var kk = dir === 'H' ? key(r, c + i) : key(r + i, c), s = sh[kk];
+            if (s && s.empty) return;          // open water: no ship runs through it
             keys.push(kk);
             seg.push(s && s.letter ? s.letter : null);
             if (s && s.letter) known++;
@@ -925,7 +927,7 @@
     }
     if (best) return best;
     var hidden = [];
-    for (var r = 0; r < 10; r++) for (var c = 0; c < 10; c++) if (!(sh[key(r, c)] && sh[key(r, c)].letter)) hidden.push(key(r, c));
+    for (var r = 0; r < 10; r++) for (var c = 0; c < 10; c++) if (!sh[key(r, c)]) hidden.push(key(r, c));
     return pick(hidden);
   }
 
@@ -960,6 +962,7 @@
     var bonus = !!(at && at.letter === L);
     S.turns++;
     S.foeTallies[L] = t;
+    if (!at) S.foeShots[k] = { empty: true };
     if (vowel) S.skip.foe = true;
     var ev = { letter: L, square: k, tally: t, vowel: vowel, bonus: bonus, cells: revealLetter(S.foeShots, myBoard(), L) };
     log('foe', coordK(k) + ': "Calling ' + NATO[L] + '!" &mdash; <span class="say">"' + L + ' tally ' + t + '."</span>' +
@@ -1025,12 +1028,12 @@
     var fb = foeBoard(), mb = myBoard();
     paint($('gridOverFoe'), function (r, c) {
       var k = key(r, c), cell = fb[k], s = S.myShots[k];
-      var cls = cell ? (s && s.letter ? 'is-bull' : 'is-ship') : '';
+      var cls = cell ? (s && s.letter ? 'is-bull' : 'is-ship') : s && s.empty ? 'is-empty' : '';
       return { cls: cls, text: cell ? cell.letter : '' };
     }, false);
     paint($('gridOverMe'), function (r, c) {
       var k = key(r, c), cell = mb[k], s = S.foeShots[k];
-      var cls = cell ? 'is-ship' + (s && s.letter ? ' is-ship-lost' : '') : '';
+      var cls = cell ? 'is-ship' + (s && s.letter ? ' is-ship-lost' : '') : s && s.empty ? 'is-empty' : '';
       return { cls: cls, text: cell ? cell.letter : '' };
     }, false);
   }
