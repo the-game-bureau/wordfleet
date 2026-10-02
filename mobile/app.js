@@ -259,7 +259,7 @@
       lang: (S && S.lang) || (lang && lang.code) || 'en-US',
       offensiveOk: !!(S && S.offensiveOk),
       mode: (S && S.mode) || 'auto',
-      colors: (S && S.colors) || COLOR_SCHEMES[0].id,
+      colors: pick(COLOR_SCHEMES).id,   // a random scheme each new game; the captain can change it on 001
       me: { name: randomFleetName(), words: randomWords(), ships: null },
       foe: null,
       myShots: {}, myTallies: {},
@@ -1131,7 +1131,7 @@
   on($('colorSchemes'), 'click', function (e) {
     var b = e.target.closest('[data-scheme]');
     if (!b) return;
-    S.colors = b.getAttribute('data-scheme'); save(); renderSetup();
+    S.colors = b.getAttribute('data-scheme'); S.colorsPicked = true; save(); renderSetup();
   });
   on($('btnRollName'), 'click', function () { S.me.name = randomFleetName(); $('inFleet').value = S.me.name; fitFleetName(); save(); });
   on($('segLevel'), 'click', function (e) {
@@ -1357,6 +1357,8 @@
   if (S && S.phase === 'codes') { S.phase = 'battle'; S.turn = 'me'; }
   Promise.all([loadDictionary(S && S.lang), loadFleetNames()]).then(function () {
     if (S && S.phase === 'setup' && !S.me.name) { S.me.name = randomFleetName(); save(); }
+    // On load, roll a random color scheme unless the captain has picked one for this game.
+    if (S && S.phase === 'setup' && !S.colorsPicked) { S.colors = pick(COLOR_SCHEMES).id; save(); }
     if (S && S.phase === 'setup' && !S.wordsEdited && !S.me.words.every(inDictionary)) {
       S.me.words = randomWords(); save();
     }
