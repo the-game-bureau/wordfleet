@@ -333,8 +333,9 @@
     $('homeRecord').textContent = r.won + r.lost ? 'SERVICE RECORD: ' + r.won + ' WON / ' + r.lost + ' LOST' : '';
   }
 
+  // Pick up where the player left off; anything else starts fresh at 002 Prepare for Battle.
   function resume() {
-    if (!S) return show('home');
+    if (!S || S.phase === 'over') { newGame(); return show('setup'); }
     if (S.phase === 'setup') show(S.setupStep || 'setup');
     else if (S.phase === 'deploy') show('deploy');
     else if (S.phase === 'battle') show('battle');
@@ -1073,7 +1074,6 @@
     openSheet('<h2>Word Fleet</h2><div class="menu-list">' +
       '<button class="btn btn--primary btn--wide" type="button" data-act="newBattle">New Battle</button>' +
       '<button class="btn btn--wide" type="button" data-act="rules">Rules of Engagement</button>' +
-      (current !== 'home' ? '<button class="btn btn--wide" type="button" data-act="home">Main Menu</button>' : '') +
       (ui.installEvt ? '<button class="btn btn--wide" type="button" data-act="install">Install Word Fleet</button>' : '') +
       '<a class="btn btn--wide" href="https://thegamebureau.com/wordfleet/">Home Port</a>' +
       '<a class="btn btn--wide" href="https://thegamebureau.com/">By The Game Bureau</a>' +
@@ -1325,7 +1325,7 @@
       if (!confirm('Abandon this battle? It counts as a loss.')) return;
       if (S.phase === 'battle') bumpRecord(false);
       closeSheet(); S = null; try { localStorage.removeItem(STORE); } catch (err) { /* ignore */ }
-      show('home');
+      newGame(); show('setup');
     }
     else if (act === 'install') { ui.installEvt.prompt(); ui.installEvt = null; closeSheet(); }
   });
@@ -1366,11 +1366,9 @@
     if (S && S.phase === 'setup' && S.mode === 'auto' && !S.me.words.every(inDictionary)) {
       S.me.words = randomWords(); save();
     }
-    if (S && S.phase === 'battle') {
-      if (S.incoming.length) ui.tab = 'Defense';
-      show('battle');
-    }
-    else show('home');
+    // 001 Mobile Home is parked: the app opens on 002 Prepare for Battle (or the battle in progress).
+    if (S && S.phase === 'battle' && S.incoming.length) ui.tab = 'Defense';
+    resume();
   });
 
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
