@@ -738,7 +738,7 @@
   // Can the Human Captain pick a square and call a letter right now?
   function canCall() { return S.turn === 'me' && (!S.result || S.result.bonus) && !ui.demand; }
 
-  // Tapping a hidden square aims at it; the Letters Manifest above the grid then takes the letter.
+  // Tapping a hidden square aims at it; the Letters Manifest under the grid then takes the letter.
   // Tapping the same square again cancels the aim.
   function openManifest(k) {
     if (!canCall()) return;
@@ -748,8 +748,12 @@
     if (S.result && S.result.bonus) S.result = null;
     sfx('select');
     renderAttack();
-    var strip = $('uncalled');
-    if (strip && strip.scrollIntoView) strip.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    // Bring the manifest (under the grid) into view above the coach bar.
+    var strip = $('uncalled'), coach = $('coach');
+    if (strip && coach) {
+      var gap = strip.getBoundingClientRect().bottom - coach.getBoundingClientRect().top + 12;
+      if (gap > 0) window.scrollBy({ top: gap, behavior: 'smooth' });
+    }
   }
 
   function renderAttack() {
@@ -765,7 +769,8 @@
     paint($('gridAttack'), function (r, c) {
       var k = key(r, c);
       var s = S.myShots[k];
-      var o = s && s.letter ? { cls: 'is-bull', text: s.letter, off: true } : s && s.empty ? { cls: 'is-empty', off: true } : {};
+      var o = s && s.letter ? { cls: 'is-bull', text: s.letter, off: true } : s && s.empty ? { cls: 'is-empty', off: true } :
+        s && s.tried ? { cls: 'is-contact', text: '<span class="q">?</span>' + triedHtml(s) } : {};
       if (ui.sel === k && !(s && s.letter)) o.cls = (o.cls || '') + ' is-target';
       // The story of your call, told on the grid: new letters flip in one by one, and the square
       // you aimed at keeps a marker (gold ✓ when the letter was there) until your turn ends.
@@ -837,7 +842,7 @@
       if (hint) sub.push('It calls a letter on your fleet. Watch the Defense Grid.');
     } else if (ui.sel) {
       step = '2'; main = 'Call a letter for <b>' + coordK(ui.sel) + '</b>: tap it in the Letters Manifest.';
-      if (hint) sub.push('Tap another square to re-aim, or ' + coordK(ui.sel) + ' again to cancel. Vowels (red) cost your next turn.');
+      if (hint) sub.push('Tap another square to re-aim, or ' + coordK(ui.sel) + ' again to cancel. Vowels (round) cost your next turn.');
     } else if (r && info && info.bonus) {
       cls = 'is-bonus'; step = '\u2605';
       main = 'Bonus turn! <b>' + info.L + '</b> was at <b>' + coordK(info.k) + '</b>. Tap another square.';
@@ -847,6 +852,7 @@
       step = '3';
       main = '<span class="say">"' + info.L + ' tally ' + info.t + '."</span> ' +
         (info.t ? 'Revealed at ' + info.cells.map(coordK).join(', ') + '.' : info.open ? coordK(info.k) + ' is open water.' : info.L + ' isn\'t in their fleet.');
+      if (!info.open && !info.bonus) sub.push(coordK(info.k) + ' holds a letter, not ' + info.L + ': marked ?');
       if (info.vowel) sub.push('<span class="coach-warn">Vowel: you skip your next turn.</span>');
       if (r.solveRes) sub.push('Solve ' + r.solveRes.word + ': ' + (r.solveRes.ok ? '<b>Correct.</b>' : '<b>Negative.</b>'));
       else if (hint && r.solve) sub.push('Know a whole word-ship? Solve it to reveal it.');
@@ -869,6 +875,8 @@
       sub.map(function (x) { return '<div class="coach-sub">' + x + '</div>'; }).join('') +
       (btns ? '<div class="coach-btns">' + btns + '</div>' : '') + '</div>';
     fitButtons(el);
+    // Leave room to scroll the bottom of the tab (the letters manifest) clear of the coach bar.
+    document.documentElement.style.setProperty('--coach-h', el.offsetHeight + 'px');
   }
 
   function renderDefense() {
@@ -885,10 +893,10 @@
       var k = key(r, c);
       var cell = b[k];
       var s = S.foeShots[k];
-      var cls = cell ? 'is-ship' + (s && s.letter ? ' is-ship-lost' : '') : s && s.empty ? 'is-empty' : '';
+      var cls = cell ? 'is-ship' + (s && s.letter ? ' is-ship-lost' : s && s.tried ? ' is-contact' : '') : s && s.empty ? 'is-empty' : '';
       if (ui.tab === 'Defense' && (S.incoming || []).some(function (e) { return e.square === k; })) cls += ' is-aimed';
       if (flashing && ev.cells && ev.cells.indexOf(k) !== -1) cls += ' is-flash';
-      return { cls: cls, text: cell ? cell.letter : '' };
+      return { cls: cls, text: cell ? cell.letter + triedHtml(s) : '' };
     }, false);
     // Letters the AI Captain has not called yet; the ones in your fleet (still at risk) are outlined in your colors.
     var mineCount = letterCounts(S.me.words);
@@ -923,6 +931,18 @@
   }
 
   // Every square holding L is revealed, wherever it is. Returns the newly revealed squares.
+  // A square known to hold a letter that is still hidden: remember the letters ruled out there.
+  function markContact(shots, k, L) {
+    var s = shots[k] || {};
+    if (s.letter) return;
+    s.tried = (s.tried || []).concat(L);
+    shots[k] = s;
+  }
+  // The ruled-out letters, small along the bottom of the square (the last three).
+  function triedHtml(s) {
+    return s && s.tried && !s.letter ? '<span class="tried">' + s.tried.slice(-3).join('') + '</span>' : '';
+  }
+
   function revealLetter(shots, board, L) {
     var cells = [];
     Object.keys(board).forEach(function (k) {
@@ -974,6 +994,7 @@
     S.notice = null;
     ui.sel = null;
     if (!at) S.myShots[k] = { empty: true };   // open water: marked with a white dot
+    else if (!bonus) markContact(S.myShots, k, L);   // holds another letter: marked ? with L ruled out
     if (vowel) S.skip.me = true;
     var cells = revealLetter(S.myShots, foeBoard(), L);
     ui.flash = cells;
@@ -1200,7 +1221,7 @@
     }
     if (best) return best;
     var hidden = [];
-    for (var r = 0; r < 10; r++) for (var c = 0; c < 10; c++) if (!sh[key(r, c)]) hidden.push(key(r, c));
+    for (var r = 0; r < 10; r++) for (var c = 0; c < 10; c++) { var h = sh[key(r, c)]; if (!h || !(h.letter || h.empty)) hidden.push(key(r, c)); }
     return pick(hidden);
   }
 
@@ -1236,6 +1257,7 @@
     S.turns++;
     S.foeTallies[L] = t;
     if (!at) S.foeShots[k] = { empty: true };
+    else if (!bonus) markContact(S.foeShots, k, L);
     if (vowel) S.skip.foe = true;
     var ev = { letter: L, square: k, tally: t, vowel: vowel, bonus: bonus, cells: revealLetter(S.foeShots, myBoard(), L) };
     log('foe', coordK(k) + ': "Calling ' + NATO[L] + '!" &mdash; <span class="say">"' + L + ' tally ' + t + '."</span>' +

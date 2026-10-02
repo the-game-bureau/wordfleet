@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Bump ?v= on every release (and CACHE in sw.js) so a new page never runs old code. -->
-  <link rel="stylesheet" href="app.css?v=130">
+  <link rel="stylesheet" href="app.css?v=131">
 </head>
 <body>
 
@@ -154,8 +154,8 @@
       </div>
       <div class="card card--flush card--attack">
         <!-- Letters still to call; they disappear as you call them (called ones show on the grid) -->
-        <div class="uncalled" id="uncalled" aria-label="Letters not yet called"></div>
         <div class="grid" id="gridAttack"></div>
+        <div class="uncalled" id="uncalled" aria-label="Letters not yet called"></div>
       </div>
     </div>
 
@@ -169,8 +169,8 @@
       </div>
       <div class="card card--flush card--defense">
         <!-- Letters the AI Captain hasn't called yet; yours (still at risk) outlined in your colors -->
-        <div class="uncalled" id="defUncalled" aria-label="Letters the AI Captain has not called yet"></div>
         <div class="grid" id="gridDefense"></div>
+        <div class="uncalled" id="defUncalled" aria-label="Letters the AI Captain has not called yet"></div>
       </div>
     </div>
 
@@ -243,7 +243,7 @@
 <div class="coach coach--notice" id="notice" role="alert" aria-live="assertive" hidden></div>
 <div class="bonus-banner" id="bonusBanner" role="status" aria-live="assertive" hidden></div>
 
-<script src="audio.js?v=130"></script>
-<script src="app.js?v=130"></script>
+<script src="audio.js?v=131"></script>
+<script src="app.js?v=131"></script>
 </body>
 </html>

@@ -710,3 +710,16 @@ button.uc:active { background: var(--mine, var(--navy)); color: var(--mine-ink, 
 .uc.is-vowel { border-radius: 50%; aspect-ratio: 1 / 1; }
 .uc-vowels-cap { grid-row: 4; grid-column: 9 / -1; font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: 0.02em;
   text-transform: uppercase; color: var(--muted); text-align: right; white-space: nowrap; overflow: hidden; }
+
+/* A square known to hold a hidden letter: "?" plus the letters already ruled out there */
+.cell.is-contact { background: #e9ecef; }
+.cell.is-contact .q { color: #5f6770; margin-top: -18%; }
+.cell .tried { position: absolute; left: 0; right: 0; bottom: 1px; font-size: max(8px, calc(var(--cell) * 0.3)); line-height: 1; font-weight: 700;
+  letter-spacing: 0; text-align: center; color: #5f6770; }
+.cell.is-target .q, .cell.is-target .tried { color: var(--paper); }
+.cell.is-ship.is-contact { background: var(--blue-wash); box-shadow: inset 0 0 0 2px #5f6770; }
+.cell.is-ship .tried { color: var(--ink); }
+
+/* Letters manifests sit under their grid, inside the grid's card */
+.uncalled { padding: 10px 2px 2px; }
+#scrBattle .tab { padding-bottom: calc(var(--coach-h, 150px) + 16px); }
