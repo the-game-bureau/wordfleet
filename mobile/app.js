@@ -549,41 +549,34 @@
     return '<span class="pips">' + h + '</span>';
   }
 
-  // Can the Human Captain call a letter right now?
-  function canCall() { return S.turn === 'me' && !S.result && !ui.demand; }
+  // Can the Human Captain pick a square and call a letter right now?
+  function canCall() { return S.turn === 'me' && (!S.result || S.result.bonus) && !ui.demand; }
 
-  // The Attack Manifest doubles as the letter picker: uncalled letters are buttons
-  // while you can call; called letters show one dot per square they revealed.
-  function manifestHtml() {
-    var live = canCall();
-    return LETTERS.map(function (L) {
-      var t = S.myTallies[L];
-      var v = isVowel(L);
-      var cls = 'mf', under;
-      if (t === 0) { cls += ' is-zero'; under = '<span class="mf-none">none</span>'; }
-      else if (t != null) { cls += ' is-done'; under = pips(t, t, 'is-found'); }
-      else under = v ? '<span class="mf-vowel">\u22121 turn</span>' : '<span class="pips"></span>';
-      if (v && t == null) cls += ' is-vowel';
-      if (live && t == null) {
-        return '<button type="button" class="' + cls + ' is-callable" data-letter="' + L + '"' +
-          (v ? ' aria-label="Call ' + L + ' (vowel: lose your next turn)"' : ' aria-label="Call ' + L + '"') + '>' +
-          '<span class="mf-l">' + L + '</span>' + under + '</button>';
-      }
-      return '<div class="' + cls + '"><span class="mf-l">' + L + '</span>' + under + '</div>';
-    }).join('');
-  }
-
-  // Tapping the Attack Grid pops up the Attack Manifest to pick a letter.
-  function openManifest() {
+  // Tapping a hidden square on the Attack Grid pops up the letter picker.
+  function openManifest(k) {
     if (!canCall()) return;
-    openSheet('<div class="sheet-eyebrow">Your turn</div><h2>Attack Manifest</h2>' +
-      '<p class="hint" style="margin:4px 0 0">Pick a letter to call. Every square holding it in the AI Captain\'s fleet is revealed. Shaded vowels cost your next turn.</p>' +
-      '<div class="manifest manifest--pick">' + manifestHtml() + '</div>' +
-      '<button class="btn btn--ghost btn--wide" type="button" data-act="close">Close</button>');
+    if (S.myShots[k] && S.myShots[k].letter) return;
+    ui.sel = k;
+    if (S.result && S.result.bonus) S.result = null;
+    renderAttack();
+    var letters = LETTERS.map(function (L) {
+      var t = S.myTallies[L], v = isVowel(L);
+      if (t != null) {
+        return '<div class="mf ' + (t ? 'is-done' : 'is-zero') + '"><span class="mf-l">' + L + '</span>' +
+          (t ? pips(t, t, 'is-found') : '<span class="mf-none">none</span>') + '</div>';
+      }
+      return '<button type="button" class="mf is-callable' + (v ? ' is-vowel' : '') + '" data-letter="' + L + '">' +
+        '<span class="mf-l">' + L + '</span>' + (v ? '<span class="mf-vowel">−1 turn</span>' : '<span class="pips"></span>') + '</button>';
+    }).join('');
+    openSheet('<h2>Square ' + coordK(k) + '</h2>' +
+      '<p class="hint" style="margin:2px 0 0">Call a letter. If it\'s in ' + coordK(k) + ', you get a <strong>bonus turn</strong>. Vowels cost your next turn.</p>' +
+      '<div class="manifest manifest--pick">' + letters + '</div>' +
+      '<button class="btn btn--ghost btn--wide" type="button" data-act="close">Cancel</button>');
   }
 
   function renderAttack() {
     var mine = S.turn === 'me';
+    var live = canCall();
     // Ship status: yellow once some of its letters show, green once all of them do.
     $('bubbles').innerHTML = S.foe.ships.map(function (ship, i) {
       var shots = cellsOf(ship).map(function (p) { return S.myShots[key(p.r, p.c)]; });
@@ -595,78 +588,61 @@
     paint($('gridAttack'), function (r, c) {
       var k = key(r, c);
       var s = S.myShots[k];
-      var o = s && s.letter ? { cls: 'is-bull', text: s.letter } : {};
+      var o = s && s.letter ? { cls: 'is-bull', text: s.letter, off: true } : {};
+      if (ui.sel === k && !(s && s.letter)) o.cls = (o.cls || '') + ' is-target';
       if (ui.flash && ui.flash.indexOf(k) !== -1) o.cls = (o.cls || '') + ' is-flash';
       return o;
-    }, canCall());
+    }, live);
 
     var fp = $('firePanel');
-    var found = bullCount(S.myShots);
-    var demandBtn = '<button class="btn btn--danger btn--wide" type="button" data-act="demand">Demand Surrender</button>';
-    if (ui.demand && mine && !S.result) {
+    var links = '<div class="panel-links">' +
+      '<button class="linkbtn is-danger" type="button" data-act="demand">Demand Surrender</button></div>';
+    if (ui.demand && mine) {
       fp.innerHTML = demandForm();
     } else if (S.result) {
-      fp.innerHTML = '<div class="card-title">' + S.result.title + '</div>' + S.result.html +
-        (mine && S.result.solve ? solveBox() : '') +
-        (mine ? '<button class="btn btn--primary btn--wide" type="button" data-act="endTurn">End Turn</button>'
-              : '<p class="waiting">AI Captain is choosing a letter…</p>');
+      fp.innerHTML = S.result.html +
+        (S.result.solve ? solveBox() : '') +
+        (S.result.bonus ? '<p class="status">Tap another square for your bonus turn.</p>' + links
+                        : mine ? '<button class="btn btn--primary btn--wide" type="button" data-act="endTurn">End Turn</button>'
+                               : '<p class="waiting">AI Captain is choosing…</p>');
     } else if (!mine) {
-      fp.innerHTML = '<p class="waiting">AI Captain is choosing a letter…</p>';
+      fp.innerHTML = '<p class="waiting">AI Captain is choosing…</p>';
     } else {
-      fp.innerHTML = '<div class="card-title">Your Turn &middot; ' + found + ' of ' + FLEET_CELLS + ' letters revealed</div>' +
-        (S.notice ? '<p class="notice">' + S.notice + '</p>' : '') +
-        '<p class="hint" style="margin-top:0">Call a letter: tap one in the <strong>Attack Manifest</strong> below, or tap the Attack Grid to bring it up. Every square holding that letter in the AI Captain\'s fleet is revealed. Vowels reveal too, but cost you your next turn. Reveal every letter to win.</p>' +
-        '<button class="btn btn--primary btn--wide" type="button" data-act="pick">Call a Letter</button>' + demandBtn;
+      fp.innerHTML = (S.notice ? '<p class="notice">' + S.notice + '</p>' : '') +
+        '<p class="status"><strong>Your turn.</strong> Tap a square, then call a letter.</p>' + links;
     }
-
-    $('attackManifest').innerHTML = manifestHtml();
-    $('attackManifest').classList.toggle('is-live', canCall());
   }
 
   function renderDefense() {
     var b = myBoard();
     var ev = S.lastFoe;
     var flashing = ev && ev.unseen && ui.tab === 'Defense';
-    $('defenseWords').textContent = S.me.name + ' • ' + S.me.words.join(' ');
     paint($('gridDefense'), function (r, c) {
       var k = key(r, c);
       var cell = b[k];
       var s = S.foeShots[k];
       var cls = cell ? 'is-ship' + (s && s.letter ? ' is-ship-lost' : '') : '';
+      if (ui.tab === 'Defense' && (S.incoming || []).some(function (e) { return e.square === k; })) cls += ' is-aimed';
       if (flashing && ev.cells && ev.cells.indexOf(k) !== -1) cls += ' is-flash';
       return { cls: cls, text: cell ? cell.letter : '' };
     }, false);
     if (flashing) { ev.unseen = false; save(); $('defDot').hidden = true; }
 
-    // The AI Captain's moves since your last turn, reported on the page.
+    // The AI Captain's moves since your last turn, one line each.
     var ic = $('incomingCard');
     var list = S.incoming || [];
     ic.hidden = !list.length;
-    ic.innerHTML = list.length ? '<div class="incoming-title">The AI Captain\'s move' + (list.filter(function (e) { return !e.skip; }).length > 1 ? 's' : '') + '</div>' +
-      list.map(incomingHtml).join('') +
-      (S.turn === 'me' ? '<button class="btn btn--primary btn--wide" type="button" data-act="returnFire">Your Turn: Call a Letter → Attack Grid</button>'
+    ic.innerHTML = list.length ? list.map(incomingHtml).join('') +
+      (S.turn === 'me' ? '<button class="btn btn--primary btn--wide" type="button" data-act="returnFire">Your Turn → Attack Grid</button>'
                        : '<p class="waiting">The AI Captain goes again…</p>') : '';
-
-    var counts = letterCounts(S.me.words);
-    var lost = {};
-    Object.keys(S.foeShots).forEach(function (k) { var L = S.foeShots[k].letter; if (L) lost[L] = (lost[L] || 0) + 1; });
-    $('defenseManifest').innerHTML = LETTERS.map(function (L) {
-      var n = counts[L];
-      var cls = 'mf' + (n === 0 ? ' is-dim' : '') + (isVowel(L) && n ? ' is-vowel' : '');
-      return '<div class="' + cls + '"><span class="mf-l">' + L + '</span>' + pips(n, lost[L] || 0, 'is-lost') + '</div>';
-    }).join('');
   }
 
   function incomingHtml(ev) {
     if (ev.skip) return '<p class="notice">You called a vowel, so you lose this turn.</p>';
-    var h = '<div class="report ' + (ev.tally ? 'is-bad' : 'is-good') + '"><div class="report-q">"Calling ' + NATO[ev.letter] + '!"</div>' +
-      '<div class="report-a">"' + ev.letter + ' tally ' + ev.tally + '."</div></div>';
-    if (ev.cells && ev.cells.length) h += revealNote(ev.letter, ev.cells, 'your');
-    if (ev.vowel) h += '<p class="notice">The AI Captain called a vowel, so it loses its next turn.</p>';
-    if (ev.solve) {
-      h += '<div class="report ' + (ev.solve.ok ? 'is-bad' : 'is-good') + '"><div class="report-q">"Solve: ' + ev.solve.word + '!"</div><div class="report-a">' + (ev.solve.ok ? '"Correct."' : '"Negative."') + '</div></div>' +
-        (ev.solve.ok ? '<p class="hint">Your word-ship <strong>' + ev.solve.word + '</strong> is fully exposed.</p>' : '');
-    }
+    var h = '<p class="call"><b>AI Captain:</b> ' + coordK(ev.square) + ' · <b>' + ev.letter + '</b> — ' +
+      (ev.tally ? ev.tally + ' revealed in your fleet' : 'not in your fleet') +
+      (ev.bonus ? ' <span class="tag">Bonus turn</span>' : '') + (ev.vowel ? ' <span class="tag is-red">Vowel: loses a turn</span>' : '') + '</p>';
+    if (ev.solve) h += '<p class="call"><b>AI Captain solves:</b> ' + ev.solve.word + ' — ' + (ev.solve.ok ? 'correct, the whole word is exposed' : 'wrong') + '</p>';
     return h;
   }
 
@@ -715,41 +691,46 @@
     S.turn = to;
   }
 
-  function showResult(title, html, solve) {
-    S.result = { title: title, html: html, solve: !!solve };
+  function showResult(html, solve, bonus) {
+    S.result = { html: html, solve: !!solve, bonus: !!bonus };
     save();
     renderBattle();
-    $('firePanel').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 
-  // --- the Human Captain calls a letter ---
+  // --- the Human Captain picks a square, then calls a letter ---
   function humanCall(L) {
-    if (S.turn !== 'me' || S.result || S.myTallies[L] != null) return;
+    var k = ui.sel;
+    if (!k || !canCall() || S.myTallies[L] != null) return;
+    closeSheet();
     var t = countOf(S.foe.words.join(''), L);
     var vowel = isVowel(L);
+    var at = foeBoard()[k];
+    var bonus = !!(at && at.letter === L);
     S.myTallies[L] = t;
     S.turns++;
     S.notice = null;
+    ui.sel = null;
     if (vowel) S.skip.me = true;
     var cells = revealLetter(S.myShots, foeBoard(), L);
     ui.flash = cells;
-    log('me', '"Calling ' + NATO[L] + '!" &mdash; <span class="say">"' + L + ' tally ' + t + '."</span>' + (vowel ? ' A vowel: the Human Captain loses the next turn.' : ''));
+    log('me', coordK(k) + ': "Calling ' + NATO[L] + '!" &mdash; <span class="say">"' + L + ' tally ' + t + '."</span>' +
+      (bonus ? ' It was at ' + coordK(k) + ': bonus turn.' : '') + (vowel ? ' A vowel: the Human Captain loses the next turn.' : ''));
     sfx('select');
     sfx(t ? 'fill' : 'zero', 0.2);
+    if (bonus) sfx('bull', 0.5);
     if (vowel) sfx('error', 0.6);
     if (allRevealed(S.myShots, foeBoard())) { finish('me', 'reveal'); return; }
-    var html = '<div class="report ' + (t ? 'is-good' : 'is-warn') + '"><div class="report-q">"Calling ' + NATO[L] + '!"</div><div class="report-a">"' + L + ' tally ' + t + '."</div></div>' +
-      (t ? revealNote(L, cells, 'the AI Captain\'s') : '<p class="hint">' + L + ' is nowhere in the AI Captain\'s fleet.</p>') +
-      (vowel ? '<p class="notice">You called a vowel, so you lose your next turn.</p>' : '');
-    showResult('Calling ' + NATO[L], html, t > 0);
+    var html = '<p class="call"><b>' + coordK(k) + ' · ' + L + '</b> — ' + (t ? t + ' revealed' : 'not in their fleet') + '</p>' +
+      (bonus ? '<p class="bonus">Bonus turn! ' + L + ' was at ' + coordK(k) + '.</p>' : '') +
+      (vowel ? '<p class="notice">Vowel: you lose your next turn.</p>' : '');
+    showResult(html, t > 0, bonus);
   }
 
   // --- solve a word (after calling a letter that is in the fleet) ---
   function solveBox() {
-    return '<div class="solve" id="solveBox"><span class="label">Solve a Word (optional)</span>' +
-      '<div class="input-row"><input class="input" id="solveIn" maxlength="5" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="WORD">' +
-      '<button class="btn" type="button" data-act="solve">Solve</button></div>' +
-      '<p class="hint">Name one of the AI Captain\'s word-ships. Get it right and the whole word is revealed. One try per turn.</p></div>';
+    return '<div class="solve" id="solveBox">' +
+      '<div class="input-row"><input class="input" id="solveIn" maxlength="5" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="SOLVE A WORD">' +
+      '<button class="btn" type="button" data-act="solve">Solve</button></div></div>';
   }
 
   // Fill in every square of the first unsolved word-ship spelling `word`.
@@ -780,12 +761,10 @@
       ui.flash = res.cells;
       log('me', '"Solve: ' + word + '!" &mdash; <span class="say">"Correct."</span>');
       if (allRevealed(S.myShots, foeBoard())) { finish('me', 'reveal'); return; }
-      html = '<div class="report is-good"><div class="report-q">"Solve: ' + word + '!"</div><div class="report-a">"Correct."</div></div>' +
-        '<p class="hint"><strong>' + word + '</strong> revealed' + (res.cells.length ? ' at ' + res.cells.map(coordK).join(', ') : '') + '.</p>';
+      html = '<p class="call"><b>Solve ' + word + '</b> \u2014 correct, the whole word is revealed.</p>';
     } else {
       log('me', '"Solve: ' + word + '!" &mdash; <span class="say">"Negative."</span>');
-      html = '<div class="report is-bad"><div class="report-q">"Solve: ' + word + '!"</div><div class="report-a">"Negative."</div></div>' +
-        '<p class="hint">No unsolved word-ship ' + word + ' in the AI Captain\'s fleet.</p>';
+      html = '<p class="call"><b>Solve ' + word + '</b> \u2014 wrong.</p>';
     }
     S.result.html += html;
     S.result.solve = false;
@@ -796,6 +775,7 @@
   function endMyTurn() {
     closeSheet();
     S.result = null;
+    ui.sel = null;
     S.incoming = [];
     passTurn('foe');
     save();
@@ -892,9 +872,10 @@
       for (var r = 0; r < 10; r++) for (var c = 0; c < 10; c++) {
         ['H', 'V'].forEach(function (dir) {
           if (dir === 'H' ? c + len > 10 : r + len > 10) return;
-          var seg = [], known = 0;
+          var seg = [], keys = [], known = 0;
           for (var i = 0; i < len; i++) {
-            var s = sh[dir === 'H' ? key(r, c + i) : key(r + i, c)];
+            var kk = dir === 'H' ? key(r, c + i) : key(r + i, c), s = sh[kk];
+            keys.push(kk);
             seg.push(s && s.letter ? s.letter : null);
             if (s && s.letter) known++;
           }
@@ -906,7 +887,7 @@
               var ch = e.w[j];
               if (seg[j] ? seg[j] !== ch : called[ch] != null) ok = false;
             }
-            if (ok) fn(e, seg, known, len, mult);
+            if (ok) fn(e, seg, known, len, mult, keys);
           }
         });
       }
@@ -933,6 +914,21 @@
     return options.sort(function (a, b) { return score[b] - score[a]; })[0];
   }
 
+  // Pick the hidden square most likely to hold L (random for an Ensign or with no clues).
+  function foePickSquare(L, lvl) {
+    var sh = S.foeShots, score = {}, best = null;
+    if (lvl.pattern) {
+      eachFit(1, function (e, seg, known, len, mult, keys) {
+        for (var j = 0; j < len; j++) if (!seg[j] && e.w[j] === L) score[keys[j]] = (score[keys[j]] || 0) + e.wt * mult * known;
+      });
+      Object.keys(score).forEach(function (k) { if (!best || score[k] > score[best]) best = k; });
+    }
+    if (best) return best;
+    var hidden = [];
+    for (var r = 0; r < 10; r++) for (var c = 0; c < 10; c++) if (!(sh[key(r, c)] && sh[key(r, c)].letter)) hidden.push(key(r, c));
+    return pick(hidden);
+  }
+
   // Solve when the revealed letters pin a word down.
   function foeTrySolve(lvl) {
     var best = null, groups = {};
@@ -957,13 +953,17 @@
     var lvl = LEVELS[S.level];
     S.notice = null;
     var L = foeCallLetter(lvl);
+    var k = foePickSquare(L, lvl);
+    var at = myBoard()[k];
     var t = countOf(S.me.words.join(''), L);
     var vowel = isVowel(L);
+    var bonus = !!(at && at.letter === L);
     S.turns++;
     S.foeTallies[L] = t;
     if (vowel) S.skip.foe = true;
-    var ev = { letter: L, tally: t, vowel: vowel, cells: revealLetter(S.foeShots, myBoard(), L) };
-    log('foe', '"Calling ' + NATO[L] + '!" &mdash; <span class="say">"' + L + ' tally ' + t + '."</span>' + (vowel ? ' A vowel: the AI Captain loses its next turn.' : ''));
+    var ev = { letter: L, square: k, tally: t, vowel: vowel, bonus: bonus, cells: revealLetter(S.foeShots, myBoard(), L) };
+    log('foe', coordK(k) + ': "Calling ' + NATO[L] + '!" &mdash; <span class="say">"' + L + ' tally ' + t + '."</span>' +
+      (bonus ? ' It was at ' + coordK(k) + ': bonus turn.' : '') + (vowel ? ' A vowel: the AI Captain loses its next turn.' : ''));
     if (t && lvl.solve && !allRevealed(S.foeShots, myBoard())) {
       var guess = foeTrySolve(lvl);
       if (guess) {
@@ -976,12 +976,13 @@
     }
     sfx('incoming');
     sfx(t ? 'fill' : 'zero', 0.5);
+    if (bonus) sfx('bull', 0.9);
     if (ev.solve) sfx(ev.solve.ok ? 'solveOk' : 'solveBad', 1.1);
     if (allRevealed(S.foeShots, myBoard())) { finish('foe', 'foe-reveal'); return; }
     ev.unseen = true;
     S.lastFoe = ev;
     S.incoming.push(ev);
-    passTurn('me');
+    if (!bonus) passTurn('me');     // a bonus turn keeps it with the AI Captain
     save();
     // Show the damage on the Defense Grid; the report there leads back to the Attack Grid.
     switchTab('Defense');
@@ -1062,7 +1063,8 @@
       '<li>Ships may touch but not overlap. No proper nouns, abbreviations, or suffixes.</li></ul>' +
       '<h3>Who Goes First?</h3><p>Against the AI Captain, the Human Captain always goes first.</p>' +
       '<h3>Your Turn: Call a Letter</h3><ul>' +
-      '<li>Call any letter. Every square in the opponent\'s fleet that holds it is revealed, wherever it is, and you hear the tally: <span class="say">"S tally 3."</span> Then the turn passes.</li>' +
+      '<li>Tap a hidden square on the Attack Grid, then call a letter. Every square in the opponent\'s fleet that holds it is revealed, wherever it is.</li>' +
+      '<li><strong>Bonus turn:</strong> if the letter is in the square you tapped, you go again. Otherwise the turn passes.</li>' +
       '<li><strong>Vowels</strong> (A E I O U) can be called and reveal the same way, but the caller loses their next turn.</li>' +
       '<li><strong>Solve a Word:</strong> after calling a letter that is in the opponent\'s fleet, you may name one whole word-ship. Right, and every square of it is revealed.</li></ul>' +
       '<h3>Winning</h3><ul>' +
@@ -1236,18 +1238,16 @@
     var b = e.target.closest('[data-act]');
     if (!b) return;
     var act = b.getAttribute('data-act');
-    if (act === 'pick') openManifest();
-    else if (act === 'demand') { ui.demand = true; renderAttack(); $('firePanel').scrollIntoView({ block: 'start', behavior: 'smooth' }); }
+    if (act === 'demand') { ui.demand = true; renderAttack(); $('firePanel').scrollIntoView({ block: 'start', behavior: 'smooth' }); }
     else if (act === 'belay') { ui.demand = false; renderAttack(); }
     else if (act === 'endTurn') endMyTurn();
     else if (act === 'solve') humanSolve();
     else if (act === 'submitDemand') submitDemand(false);
     else if (act === 'submitDemandSure') submitDemand(true);
   });
-  on($('gridAttack'), 'click', function (e) { if (e.target.closest('[data-k]')) openManifest(); });
-  on($('attackManifest'), 'click', function (e) {
-    var k = e.target.closest('[data-letter]');
-    if (k) humanCall(k.getAttribute('data-letter'));
+  on($('gridAttack'), 'click', function (e) {
+    var c = e.target.closest('[data-k]');
+    if (c) openManifest(c.getAttribute('data-k'));
   });
   on($('firePanel'), 'input', function (e) { if (e.target.hasAttribute('data-claim')) claimInput(e.target); });
   on($('firePanel'), 'change', function (e) { if (e.target.hasAttribute('data-claim')) claimInput(e.target); });
@@ -1269,11 +1269,11 @@
   on($('scrim'), 'click', function () { if (sheetDismissible) closeSheet(); });
   on($('sheetBody'), 'click', function (e) {
     var k = e.target.closest('[data-letter]');
-    if (k) { closeSheet(); humanCall(k.getAttribute('data-letter')); return; }
+    if (k) { humanCall(k.getAttribute('data-letter')); return; }
     var b = e.target.closest('[data-act]');
     if (!b) return;
     var act = b.getAttribute('data-act');
-    if (act === 'close') closeSheet();
+    if (act === 'close') { closeSheet(); if (ui.sel && current === 'battle') { ui.sel = null; renderAttack(); } }
     else if (act === 'rules') openRules();
     else if (act === 'home') { closeSheet(); show('home'); }
     else if (act === 'newBattle') { if (newBattle()) closeSheet(); }

@@ -9,7 +9,8 @@ Sink or Spell
 
 `mobile/` is Word Fleet on a phone: a Human Captain against an AI Captain. Mobile Mode plays a letter-calling version of the game (Pen & Paper Mode keeps the original firing rules):
 
-- Each turn, a captain calls one letter. Every square in the opponent's fleet holding that letter is revealed, wherever it is, and the tally is announced. Then the turn passes.
+- Each turn, a captain taps a hidden square on the Attack Grid and calls a letter. Every square in the opponent's fleet holding that letter is revealed, wherever it is.
+- Bonus turn: if the letter is in the square that was tapped, the captain goes again; otherwise the turn passes.
 - Vowels can be called and reveal the same way, but the caller loses their next turn.
 - Solve a Word: after calling a letter that is in the opponent's fleet, a captain may name a whole word-ship; if right, the entire word is revealed.
 - Win by revealing every letter of the opponent's fleet, or by Demand Surrender (name every word-ship and where it sits; anything wrong loses).

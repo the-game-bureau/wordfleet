@@ -370,3 +370,16 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* --- compact battle panel --- */
+.status { font-size: 15px; margin: 0; }
+.call { font-size: 15px; margin: 2px 0 6px; }
+.call b { font-family: var(--mono); letter-spacing: 0.04em; }
+.bonus { font-weight: 700; color: var(--green-dark); background: var(--green-wash); border: 1px solid var(--green-dark); padding: 8px 10px; margin: 6px 0; }
+.tag { display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; background: var(--green-wash); color: var(--green-dark); border: 1px solid var(--green-dark); padding: 0 5px; margin-left: 2px; }
+.tag.is-red { background: var(--red-wash); color: var(--red); border-color: var(--red); }
+.panel-links { display: flex; justify-content: flex-end; margin-top: 8px; }
+.linkbtn { border: none; background: none; padding: 6px 0; font-size: 13px; font-weight: 600; text-decoration: underline; cursor: pointer; }
+.linkbtn.is-danger { color: var(--red); }
+.solve { margin: 8px 0; }
+.cell.is-aimed { outline: 3px solid var(--navy); outline-offset: -3px; }
