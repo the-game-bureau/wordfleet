@@ -855,6 +855,11 @@
     var b = myBoard();
     var ev = S.lastFoe;
     var flashing = ev && ev.unseen && ui.tab === 'Defense';
+    // Your ship circles turn red only when the AI Captain has revealed a whole word-ship.
+    $('defBubbles').innerHTML = S.me.ships.map(function (ship, i) {
+      var all = cellsOf(ship).every(function (p) { var s = S.foeShots[key(p.r, p.c)]; return s && s.letter; });
+      return '<span class="bubble' + (all ? ' is-lost' : '') + '" title="' + SPECS[i].cls + (all ? ': sunk' : '') + '">' + SPECS[i].len + '</span>';
+    }).join('');
     paint($('gridDefense'), function (r, c) {
       var k = key(r, c);
       var cell = b[k];
@@ -863,37 +868,24 @@
       if (ui.tab === 'Defense' && (S.incoming || []).some(function (e) { return e.square === k; })) cls += ' is-aimed';
       if (flashing && ev.cells && ev.cells.indexOf(k) !== -1) cls += ' is-flash';
       return { cls: cls, text: cell ? cell.letter : '' };
-    }, false);
+    }, false, '<button type="button" class="cell is-label cell--abc cell--def" data-def="1" aria-label="Defense Manifest: your letters the AI Captain has revealed">DEF</button>');
     if (flashing) { ev.unseen = false; save(); $('defDot').hidden = true; }
+  }
 
+  // Defense Manifest: every letter in your fleet, a dot per copy, filled red once the AI Captain reveals it.
+  function defenseManifestHtml() {
     var counts = letterCounts(S.me.words), lost = {};
     Object.keys(S.foeShots).forEach(function (k) { var L = S.foeShots[k].letter; if (L) lost[L] = (lost[L] || 0) + 1; });
-    $('defenseManifest').innerHTML = LETTERS.map(function (L) {
+    return LETTERS.map(function (L) {
       var n = counts[L];
       return '<div class="mf' + (n === 0 ? ' is-dim' : '') + (isVowel(L) && n ? ' is-vowel' : '') + '"><span class="mf-l">' + L + '</span>' + pips(n, lost[L] || 0, 'is-lost') + '</div>';
     }).join('');
-
-    // The AI Captain's moves since your last turn, one line each.
-    var ic = $('incomingCard');
-    var list = S.incoming || [];
-    ic.hidden = !list.length;
-    ic.innerHTML = list.length ? '<div class="incoming-title">Incoming fire from the AI Captain</div>' + list.map(incomingHtml).join('') +
-      (S.turn === 'me' ? '<button class="btn btn--primary btn--wide" type="button" data-act="returnFire">Your Turn: Return Fire \u2192 Attack Grid</button>'
-                       : '<p class="waiting">The AI Captain goes again…</p>') : '';
   }
-
-  function incomingHtml(ev) {
-    if (ev.skip) return '<p class="notice">You called a vowel, so you lose this turn.</p>';
-    var h = '<div class="report ' + (ev.tally ? 'is-bad' : 'is-good') + '"><div class="report-q">' + coordK(ev.square) + ': "Calling ' + NATO[ev.letter] + '!"</div>' +
-      '<div class="report-a">"' + ev.letter + ' tally ' + ev.tally + '."</div></div>';
-    if (ev.cells && ev.cells.length && ev.tally) h += revealNote(ev.letter, ev.cells.slice(0, ev.tally), 'your');
-    if (ev.bonus) h += '<p class="bonus is-foe">★ ' + ev.letter + ' was at ' + coordK(ev.square) + ': the AI Captain takes a bonus turn.</p>';
-    if (ev.vowel) h += '<p class="notice">The AI Captain called a vowel, so it loses its next turn.</p>';
-    if (ev.solve) {
-      h += '<div class="report ' + (ev.solve.ok ? 'is-bad' : 'is-good') + '"><div class="report-q">"Solve: ' + ev.solve.word + '!"</div><div class="report-a">' + (ev.solve.ok ? '"Correct."' : '"Negative."') + '</div></div>' +
-        (ev.solve.ok ? '<p class="hint">Your word-ship <strong>' + ev.solve.word + '</strong> is fully exposed.</p>' : '');
-    }
-    return h;
+  function openDefenseManifest() {
+    openSheet('<h2>Defense Manifest</h2>' +
+      '<p class="hint" style="margin:2px 0 0"><span class="pip-key"><i class="pip is-lost"></i> revealed by the AI Captain</span> <span class="pip-key"><i class="pip"></i> still hidden</span></p>' +
+      '<div class="manifest">' + defenseManifestHtml() + '</div>' +
+      '<button class="btn btn--ghost btn--wide" type="button" data-act="close">Close</button>', true, 'MOBILE-DEFENSE-MANIFEST');
   }
 
   // 008-MOBILE-LOG: newest first, an anchor bullet on every entry. Your moves and the AI Captain's
@@ -1545,9 +1537,7 @@
   });
   on($('firePanel'), 'input', function (e) { if (e.target.hasAttribute('data-claim')) claimInput(e.target); });
   on($('firePanel'), 'change', function (e) { if (e.target.hasAttribute('data-claim')) claimInput(e.target); });
-  on($('tabDefense'), 'click', function (e) {
-    if (e.target.closest('[data-act="returnFire"]')) { S.incoming = []; save(); switchTab('Attack'); }
-  });
+  on($('gridDefense'), 'click', function (e) { if (e.target.closest('[data-def]')) openDefenseManifest(); });
   on($('tabbar'), 'click', function (e) {
     var b = e.target.closest('[data-tab]');
     if (!b) return;

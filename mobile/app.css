@@ -657,3 +657,7 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
   font-family: var(--mono); font-weight: 700; font-size: calc(var(--cell) * 0.3); letter-spacing: 0; }
 .cell.cell--abc:active { filter: brightness(0.9); }
 .cell.cell--abc { font-size: max(11px, calc(var(--cell) * 0.36)); }
+
+/* 007 Defense Grid, built like the Attack Grid: DEF corner button and ship circles in your colors */
+.cell.cell--def { background: var(--mine, var(--navy)); color: var(--mine-ink, #fff); }
+.bubble.is-lost { background: var(--red); border-color: var(--red); color: #fff; }

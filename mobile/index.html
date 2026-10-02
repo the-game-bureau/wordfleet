@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Bump ?v= on every release (and CACHE in sw.js) so a new page never runs old code. -->
-  <link rel="stylesheet" href="app.css?v=103">
+  <link rel="stylesheet" href="app.css?v=104">
 </head>
 <body>
 
@@ -159,17 +159,14 @@
 
     <!-- ============ 007-MOBILE-DEFENSE (screen name: "007-MOBILE-DEFENSE") ============ -->
     <div class="tab" id="tabDefense" data-screen="007-MOBILE-DEFENSE" hidden>
+      <!-- Built like the Attack Grid, in your fleet colors. The AI Captain's moves are reported in the coach bar;
+           DEF in the top-left corner opens the Defense Manifest (MOBILE-DEFENSE-MANIFEST). -->
       <div class="gridbanner is-defense">
-        <div><b>DEFENSE GRID</b><span><span id="defFleetName">Your fleet</span> &middot; the AI Captain's picks</span></div>
+        <div><b>DEFENSE GRID</b><span id="defFleetName">Your fleet</span></div>
+        <span class="bubbles" id="defBubbles"></span>
       </div>
-      <div class="card is-incoming" id="incomingCard" hidden></div>
       <div class="card card--flush card--defense">
         <div class="grid" id="gridDefense"></div>
-      </div>
-      <div class="card card--manifest">
-        <div class="card-title">Defense Manifest</div>
-        <p class="hint hint--tight"><span class="pip-key"><i class="pip is-lost"></i> revealed by the AI Captain</span> <span class="pip-key"><i class="pip"></i> still hidden</span></p>
-        <div class="manifest" id="defenseManifest"></div>
       </div>
     </div>
 
@@ -240,7 +237,7 @@
 <div class="toast" id="toast" hidden></div>
 <div class="bonus-banner" id="bonusBanner" role="status" aria-live="assertive" hidden></div>
 
-<script src="audio.js?v=103"></script>
-<script src="app.js?v=103"></script>
+<script src="audio.js?v=104"></script>
+<script src="app.js?v=104"></script>
 </body>
 </html>
