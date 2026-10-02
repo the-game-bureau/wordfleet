@@ -1013,7 +1013,11 @@
     var lostCells = {};   // your sunk word-ships, outlined as one hull
     $('defBubbles').innerHTML = S.me.ships.map(function (ship, i) {
       var all = cellsOf(ship).every(function (p) { var s = S.foeShots[key(p.r, p.c)]; return s && s.letter; });
-      if (all) cellsOf(ship).forEach(function (p, j) { lostCells[key(p.r, p.c)] = hullCls(ship, j); });
+      // Sunk by the AI Captain's latest call (shown the first time you look): it sinks, then settles.
+      var fresh = all && flashing && (ev.cells || []).some(function (k) {
+        return cellsOf(ship).some(function (p) { return key(p.r, p.c) === k; });
+      });
+      if (all) cellsOf(ship).forEach(function (p, j) { lostCells[key(p.r, p.c)] = hullCls(ship, j) + (fresh ? ' is-sinking' : ''); });
       return '<span class="bubble' + (all ? ' is-lost' : '') + '" title="' + SPECS[i].cls + (all ? ': sunk' : '') + '">' + SPECS[i].len + '</span>';
     }).join('');
     // Outlined like the Attack Grid while it is where the action is: the AI Captain's turn.
