@@ -594,6 +594,14 @@
       return o;
     }, live);
 
+    // Attack Manifest (display only): called letters with one dot per square revealed.
+    $('attackManifest').innerHTML = LETTERS.map(function (L) {
+      var t = S.myTallies[L], cls = 'mf' + (isVowel(L) && t == null ? ' is-vowel' : '');
+      var under = t == null ? '<span class="pips"></span>' : t ? pips(t, t, 'is-found') : '<span class="mf-none">none</span>';
+      if (t != null) cls += t ? ' is-done' : ' is-zero';
+      return '<div class="' + cls + '"><span class="mf-l">' + L + '</span>' + under + '</div>';
+    }).join('');
+
     var fp = $('firePanel');
     var links = '<div class="panel-links">' +
       '<button class="linkbtn is-danger" type="button" data-act="demand">Demand Surrender</button></div>';

@@ -387,3 +387,7 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 /* Open water: a square that was picked and holds no letter. */
 .cell.is-empty { background: #8f979f; }
 .cell.is-empty::after { content: ''; width: 28%; height: 28%; border-radius: 50%; background: #fff; }
+
+.card--manifest { padding: 10px 12px; }
+.card--manifest .card-title { margin-bottom: 8px; padding-bottom: 6px; }
+.card--manifest .mf { min-height: 38px; }
