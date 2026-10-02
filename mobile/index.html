@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Bump ?v= on every release (and CACHE in sw.js) so a new page never runs old code. -->
-  <link rel="stylesheet" href="app.css?v=83">
+  <link rel="stylesheet" href="app.css?v=87">
 </head>
 <body>
 
@@ -165,7 +165,7 @@
     <!-- ============ 007-MOBILE-DEFENSE (screen name: "007-MOBILE-DEFENSE") ============ -->
     <div class="tab" id="tabDefense" data-screen="007-MOBILE-DEFENSE" hidden>
       <div class="gridbanner is-defense">
-        <div><b>DEFENSE GRID</b><span>Your fleet &middot; the AI Captain's picks</span></div>
+        <div><b>DEFENSE GRID</b><span><span id="defFleetName">Your fleet</span> &middot; the AI Captain's picks</span></div>
       </div>
       <div class="card is-incoming" id="incomingCard" hidden></div>
       <div class="card card--flush card--defense">
@@ -180,8 +180,10 @@
 
     <!-- ============ 008-MOBILE-LOG (screen name: "008-MOBILE-LOG") ============ -->
     <div class="tab" id="tabLog" data-screen="008-MOBILE-LOG" hidden>
+      <!-- Header in the Prepare style: small label, then your flag and fleet name -->
+      <p class="page-head">Captain's Log</p>
+      <h1 class="page-line fleet-tag" data-fleet-tag></h1>
       <div class="card">
-        <div class="card-title">Captain's Log</div>
         <div class="log" id="log"></div>
       </div>
     </div>
@@ -197,7 +199,7 @@
       </button>
       <button type="button" data-tab="Log">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h11l3 3v15H5z M8 9h8M8 13h8M8 17h5"/></svg>
-        Log
+        Captain's Log
       </button>
     </nav>
   </section>
@@ -234,7 +236,7 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="audio.js?v=83"></script>
-<script src="app.js?v=83"></script>
+<script src="audio.js?v=87"></script>
+<script src="app.js?v=87"></script>
 </body>
 </html>

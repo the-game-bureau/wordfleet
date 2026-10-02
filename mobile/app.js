@@ -90,6 +90,17 @@
     else if (a.slice(-1) === '-') a = a.slice(0, -1) + ({ m: 'er', f: 'e', n: 'es' }[g] || 'e'); // German endings
     return set.order === 'noun adj' ? n + ' ' + a : a + ' ' + n;
   }
+  // The AI Captain's fleet name shares no word with yours (KRAKEN'S REEF never meets KRAKEN'S ARMADA or SALTY REEF).
+  function foeFleetName(mine) {
+    var words = function (n) { return (n || '').toUpperCase().split(/[\s-]+/).map(function (w) { return w.replace(/[^A-ZÀ-Ý]/g, '').replace(/S$/, ''); }).filter(Boolean); };
+    var taken = words(mine), name;
+    for (var i = 0; i < 200; i++) {
+      name = randomFleetName();
+      if (!words(name).some(function (w) { return taken.indexOf(w) !== -1; })) return name;
+    }
+    return name;
+  }
+
   function randomFleetName() {
     var set = fleetNames[(S && S.lang) || (lang && lang.code)], name;
     for (var i = 0; i < 20; i++) { name = fleetNameOnce(set); if (name.length <= 20) break; }   // short enough to read at a large size
@@ -342,6 +353,7 @@
     else if (current === 'deploy') renderDeploy();
     else if (current === 'battle') renderBattle();
     else if (current === 'over') renderOver();
+    applyFleetColors();
     fitButtons();
   }
 
@@ -499,6 +511,14 @@
     });
   }
 
+  // Your fleet's colors as CSS variables (--mine behind, --mine-ink for text), used by your side's banners.
+  function applyFleetColors() {
+    if (!S) return;
+    var cs = schemeOf(S.colors), root = document.documentElement.style;
+    root.setProperty('--mine', cs.colors[0]);
+    root.setProperty('--mine-ink', cs.colors[1]);
+  }
+
   function renderSchemes() {
     // A saved scheme that no longer exists gets a fresh random one.
     if (!COLOR_SCHEMES.some(function (cs) { return cs.id === S.colors; })) { S.colors = pick(COLOR_SCHEMES).id; save(); }
@@ -610,7 +630,7 @@
 
   function confirmDeploy() {
     var foeWords = randomWords();
-    S.foe = { name: randomFleetName(), words: foeWords, ships: scatter(foeWords) };
+    S.foe = { name: foeFleetName(S.me.name), words: foeWords, ships: scatter(foeWords) };
     // Against the AI Captain, the Human Captain always fires first.
     startBattle('me');
   }
@@ -731,6 +751,7 @@
   }
 
   function renderDefense() {
+    $('defFleetName').textContent = S.me.name || 'Your fleet';
     var b = myBoard();
     var ev = S.lastFoe;
     var flashing = ev && ev.unseen && ui.tab === 'Defense';
@@ -776,6 +797,7 @@
   }
 
   function renderLog() {
+    renderFleetTags();
     $('log').innerHTML = S.log.length ? S.log.map(function (l) {
       return '<div class="log-item' + (l.who === 'foe' ? ' is-foe' : '') + '"><span class="log-who">' +
         (l.who === 'foe' ? 'AI Captain · ' + esc(S.foe.name) : l.who === 'me' ? 'Human Captain · ' + esc(S.me.name) : 'Fleet Command') + '</span>' + l.text + '</div>';

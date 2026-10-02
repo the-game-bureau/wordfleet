@@ -551,3 +551,8 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 .gridbanner.is-attack { background: var(--foe); color: var(--foe-ink); }
 .gridbanner.is-attack span { opacity: 1; }
 .card--attack { border-top-color: var(--foe); }
+
+/* Your side flies your fleet colors (set from S.colors as --mine / --mine-ink) */
+.gridbanner.is-defense { background: var(--mine, var(--navy)); color: var(--mine-ink, #fff); }
+.gridbanner.is-defense span { opacity: 1; }
+.card--defense { border-top-color: var(--mine, var(--navy)); }
