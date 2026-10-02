@@ -215,7 +215,7 @@
 
   // With "Allow possibly offensive words" on, each drawn word has a small extra chance of being one
   // (from the same level; never-suggested words are already out of the pool).
-  var OFFENSIVE_NUDGE = 0.07;
+  var OFFENSIVE_NUDGE = 0.10;
   function randomWordFor(i, others) {
     var pool = pickPool(SPECS[i].len);
     if (offensiveOk() && Math.random() < OFFENSIVE_NUDGE) {
