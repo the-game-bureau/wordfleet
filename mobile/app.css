@@ -571,3 +571,12 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 .log-flag svg { display: block; width: 100%; height: auto; }
 .log-text strong, .log-text b { font-family: var(--mono); }
 .log-empty { font-size: 17px; color: var(--muted); font-style: italic; }
+
+/* 008-MOBILE-LOG, simplified: a plain list, an anchor bullet on every entry, newest on top */
+.log { display: block; background: var(--paper); border: 1px solid var(--ink); padding: 4px 16px; }
+.log-item { display: flex; gap: 12px; align-items: flex-start; background: none; border: none; border-bottom: 1px solid var(--faint); padding: 14px 0; }
+.log-item:last-child { border-bottom: none; }
+.log-anchor { flex-shrink: 0; font-size: 20px; line-height: 1.3; color: var(--ink); }
+.log-body { flex: 1; min-width: 0; }
+.log-who { margin-bottom: 4px; }
+.log-anchor { font-family: "Segoe UI Symbol", "Noto Sans Symbols", "DejaVu Sans", sans-serif; font-variant-emoji: text; }

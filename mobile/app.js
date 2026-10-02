@@ -796,20 +796,19 @@
     return h;
   }
 
-  // 008-MOBILE-LOG: each entry is a card flying its side's flag. Yours in your fleet colors,
-  // the AI Captain's in Signal Orange & Black, Fleet Command plain. Newest first.
+  // 008-MOBILE-LOG: newest first, an anchor bullet on every entry. Your moves and the AI Captain's
+  // carry that side's flag and fleet name; Fleet Command notices are just the text.
   function renderLog() {
     renderFleetTags();
     var mine = schemeOf(S.colors);
     $('log').innerHTML = S.log.length ? S.log.map(function (l) {
-      var side = l.who === 'foe' ? 'is-foe' : l.who === 'me' ? 'is-me' : 'is-command';
-      var flag = l.who === 'foe' ? flagSvg(FOE_SCHEME, fleetInitials(S.foe.name) || 'AI')
-        : l.who === 'me' ? flagSvg(mine, fleetInitials(S.me.name) || 'WF') : '';
-      var who = l.who === 'foe' ? esc(S.foe.name) : l.who === 'me' ? esc(S.me.name) : 'Fleet Command';   // the flag says whose side
-      return '<div class="log-item ' + side + '"><div class="log-who">' + (flag ? '<span class="log-flag">' + flag + '</span>' : '') +
-        '<span>' + who + '</span></div><div class="log-text">' + l.text + '</div></div>';
+      var who = l.who === 'foe' ? '<span class="log-flag">' + flagSvg(FOE_SCHEME, fleetInitials(S.foe.name) || 'AI') + '</span>' + esc(S.foe.name)
+        : l.who === 'me' ? '<span class="log-flag">' + flagSvg(mine, fleetInitials(S.me.name) || 'WF') + '</span>' + esc(S.me.name) : '';
+      return '<div class="log-item"><span class="log-anchor" aria-hidden="true">\u2693\uFE0E</span><div class="log-body">' +
+        (who ? '<div class="log-who">' + who + '</div>' : '') + '<div class="log-text">' + l.text + '</div></div></div>';
     }).join('') : '<p class="log-empty">No letters called yet.</p>';
   }
+
 
 
   function switchTab(tab) {
