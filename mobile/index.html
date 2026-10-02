@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Bump ?v= on every release (and CACHE in sw.js) so a new page never runs old code. -->
-  <link rel="stylesheet" href="app.css?v=91">
+  <link rel="stylesheet" href="app.css?v=92">
 </head>
 <body>
 
@@ -148,6 +148,10 @@
     <!-- ============ 005-MOBILE-ATTACK (screen name: "005-MOBILE-ATTACK") ============ -->
     <!-- Tapping a square opens 006-MOBILE-CALL-LETTER; "Demand Surrender" turns the panel below into 009-MOBILE-SURRENDER. -->
     <div class="tab" id="tabAttack" data-screen="005-MOBILE-ATTACK">
+      <div class="card card--manifest card--manifest-top">
+        <div class="card-title">Attack Manifest</div>
+        <div class="manifest" id="attackManifest"></div>
+      </div>
       <div class="gridbanner is-attack">
         <div><b>ATTACK GRID</b><span>Hunting the AI Captain's fleet</span></div>
         <span class="bubbles" id="bubbles"></span>
@@ -155,11 +159,6 @@
       <div class="card card--flush card--attack">
         <div class="grid" id="gridAttack"></div>
       </div>
-      <div class="card card--manifest">
-        <div class="card-title">Attack Manifest</div>
-        <div class="manifest" id="attackManifest"></div>
-      </div>
-      <div class="card" id="firePanel"></div>
     </div>
 
     <!-- ============ 007-MOBILE-DEFENSE (screen name: "007-MOBILE-DEFENSE") ============ -->
@@ -232,9 +231,17 @@
   <div class="sheet-body" id="sheetBody"></div>
 </div>
 
+<!-- ============ ATTACK POPUP: the Attack tab's turn panel (your turn, call result, AI's turn,
+     009-MOBILE-SURRENDER) always shows here, over the grid. Sits under the letter-picker sheet. ============ -->
+<div class="scrim scrim--panel" id="panelScrim" hidden></div>
+<div class="sheet sheet--panel" id="panelSheet" role="dialog" aria-modal="true" aria-label="Turn" hidden>
+  <button class="sheet-x" id="panelClose" type="button" aria-label="Close">&times;</button>
+  <div id="firePanel"></div>
+</div>
+
 <div class="toast" id="toast" hidden></div>
 
-<script src="audio.js?v=91"></script>
-<script src="app.js?v=91"></script>
+<script src="audio.js?v=92"></script>
+<script src="app.js?v=92"></script>
 </body>
 </html>

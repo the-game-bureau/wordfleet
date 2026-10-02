@@ -354,6 +354,7 @@
     else if (current === 'battle') renderBattle();
     else if (current === 'over') renderOver();
     applyFleetColors();
+    refreshPanel();
     fitButtons();
   }
 
@@ -402,12 +403,14 @@
     $('sheet').hidden = false;
     $('sheet').scrollTop = 0;
     fitButtons();
+    refreshPanel();
   }
   function closeSheet() {
     $('sheet').setAttribute('data-screen', '');
     $('scrim').hidden = true;
     $('sheet').hidden = true;
     $('sheetBody').innerHTML = '';
+    refreshPanel();
   }
 
   // ------------------------------------------------------------
@@ -732,22 +735,48 @@
     var fp = $('firePanel');
     var found = bullCount(S.myShots);
     var demandBtn = '<button class="btn btn--danger btn--wide" type="button" data-act="demand">Demand Surrender</button>';
+    var pkey, dismissible;
     if (ui.demand && mine) {
+      pkey = 'demand'; dismissible = true;
       fp.innerHTML = demandForm();
     } else if (S.result) {
+      pkey = 'result:' + S.log.length + (S.result.bonus ? ':bonus' : '');
+      dismissible = !!S.result.bonus;   // a bonus turn means tapping the grid next
       fp.innerHTML = '<div class="card-title">' + S.result.title + '</div>' + S.result.html +
         (S.result.solve ? solveBox() : '') +
         (S.result.bonus ? '<p class="hint" style="margin-bottom:6px">Tap another square on the Attack Grid to take your bonus turn.</p>' + demandBtn
                         : mine ? '<button class="btn btn--primary btn--wide" type="button" data-act="endTurn">End Turn</button>'
                                : '<p class="waiting">AI Captain is choosing a square\u2026</p>');
     } else if (!mine) {
+      pkey = 'wait'; dismissible = false;
       fp.innerHTML = '<p class="waiting">AI Captain is choosing a square\u2026</p>';
     } else {
+      pkey = 'turn:' + S.log.length; dismissible = true;   // a new key every move, so each turn pops up once
       fp.innerHTML = '<div class="card-title">Your Turn &middot; ' + found + ' of ' + FLEET_CELLS + ' letters revealed</div>' +
         (S.notice ? '<p class="notice">' + S.notice + '</p>' : '') +
         '<p class="hint" style="margin-top:0">Tap a square on the Attack Grid, then call a letter. Every square holding it is revealed. If it\'s in the square you picked, you get a <strong>bonus turn</strong>. Vowels cost your next turn.</p>' +
-        demandBtn;
+        demandBtn +
+        '<button class="btn btn--primary btn--wide" type="button" data-act="panelOk">To the Attack Grid</button>';
     }
+    ui.panelKey = pkey; ui.panelDismissible = dismissible;
+    refreshPanel();
+  }
+
+  // The turn panel is always a popup over the Attack Grid. It stays shut once closed until something new
+  // happens (a new key), and steps aside while the letter picker or menu is open.
+  function refreshPanel() {
+    var show = current === 'battle' && S && S.phase === 'battle' && ui.tab === 'Attack' &&
+      ui.panelKey && ui.panelKey !== ui.panelClosed && $('sheet').hidden;
+    $('panelSheet').hidden = !show;
+    $('panelScrim').hidden = !show;
+    $('panelClose').hidden = !ui.panelDismissible;
+    $('panelSheet').setAttribute('data-screen', ui.panelKey === 'demand' ? '009-MOBILE-SURRENDER' : '005-MOBILE-ATTACK-POPUP');
+    if (show) fitButtons($('panelSheet'));
+  }
+  function closePanel() {
+    if (!ui.panelDismissible) return;
+    if (ui.panelKey === 'demand') { ui.demand = false; ui.panelClosed = null; renderAttack(); return; }
+    ui.panelClosed = ui.panelKey; refreshPanel();
   }
 
   function renderDefense() {
@@ -814,6 +843,7 @@
   function switchTab(tab) {
     ui.tab = tab;
     renderBattle();
+    refreshPanel();
     window.scrollTo(0, 0);
   }
 
@@ -1213,6 +1243,7 @@
       (ui.installEvt ? '<button class="btn btn--wide" type="button" data-act="install">Install Word Fleet</button>' : '') +
       '<a class="btn btn--wide" href="https://thegamebureau.com/wordfleet/">Home Port</a>' +
       '<a class="btn btn--wide" href="https://thegamebureau.com/">By The Game Bureau</a>' +
+      (S && S.phase === 'battle' && S.turn === 'me' && !S.result ? '<button class="btn btn--danger btn--wide" type="button" data-act="menuDemand">Demand Surrender</button>' : '') +
       (live ? '<button class="btn btn--danger btn--wide" type="button" data-act="abandon">Abandon Battle</button>' : '') +
       (window.WFAudio ? '<div class="switches">' +
         '<label class="switch-row"><span>Sound Effects</span><input type="checkbox" class="switch" data-audio="sfx"' + (window.WFAudio.sfxOn() ? ' checked' : '') + '></label>' +
@@ -1420,7 +1451,8 @@
     var b = e.target.closest('[data-act]');
     if (!b) return;
     var act = b.getAttribute('data-act');
-    if (act === 'demand') { ui.demand = true; renderAttack(); $('firePanel').scrollIntoView({ block: 'start', behavior: 'smooth' }); }
+    if (act === 'demand') { ui.demand = true; renderAttack(); $('panelSheet').scrollTop = 0; }
+    else if (act === 'panelOk') closePanel();
     else if (act === 'belay') { ui.demand = false; renderAttack(); }
     else if (act === 'endTurn') endMyTurn();
     else if (act === 'solve') humanSolve();
@@ -1449,6 +1481,8 @@
 
   // sheet
   on($('scrim'), 'click', function () { if (sheetDismissible) closeSheet(); });
+  on($('panelScrim'), 'click', closePanel);
+  on($('panelClose'), 'click', closePanel);
   on($('sheetBody'), 'click', function (e) {
     var k = e.target.closest('[data-letter]');
     if (k) { humanCall(k.getAttribute('data-letter')); return; }
@@ -1457,6 +1491,7 @@
     var act = b.getAttribute('data-act');
     if (act === 'close') { closeSheet(); if (ui.sel && current === 'battle') { ui.sel = null; renderAttack(); } }
     else if (act === 'rules') openRules();
+    else if (act === 'menuDemand') { closeSheet(); ui.demand = true; ui.panelClosed = null; switchTab('Attack'); }
     else if (act === 'home') { closeSheet(); show('home'); }
     else if (act === 'newBattle') { if (newBattle()) closeSheet(); }
     else if (act === 'abandon') {

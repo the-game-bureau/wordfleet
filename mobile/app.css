@@ -580,3 +580,15 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 .log-body { flex: 1; min-width: 0; }
 .log-who { margin-bottom: 4px; }
 .log-anchor { font-family: "Segoe UI Symbol", "Noto Sans Symbols", "DejaVu Sans", sans-serif; font-variant-emoji: text; }
+
+/* 005: Attack Manifest above the grid */
+.card--manifest-top + .gridbanner { margin-top: 12px; }
+/* The Attack tab's turn panel is a popup (under the letter-picker sheet, over the tab bar) */
+.scrim--panel { z-index: 30; }
+.sheet--panel { z-index: 31; padding-top: 18px; }
+.sheet--panel #firePanel { background: none; border: none; padding: 0; }
+.sheet-x { position: absolute; top: 6px; right: 8px; width: 44px; height: 44px; border: none; background: none; font-size: 30px; line-height: 1; cursor: pointer; color: var(--ink); }
+.sheet--panel .card-title { padding-right: 40px; }
+/* The popup sits between the top bar and the tab bar, so the menu and the tabs stay usable */
+.scrim--panel { top: calc(var(--bar-h) + var(--safe-t)); bottom: calc(var(--tab-h) + var(--safe-b)); }
+.sheet--panel { bottom: calc(var(--tab-h) + var(--safe-b)); max-height: calc(100vh - var(--bar-h) - var(--tab-h) - var(--safe-t) - var(--safe-b) - 16px); padding-bottom: 16px; border-bottom: 1px solid var(--ink); }
