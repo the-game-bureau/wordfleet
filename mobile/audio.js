@@ -91,6 +91,17 @@
     fire: function (t) { noise(sfxBus, 'bandpass', 300, 2600, t, 0.4, 0.45, 1.5); tone(sfxBus, 'sine', 320, 70, t, 0.35, 0.35); },
     miss: function (t) { noise(sfxBus, 'lowpass', 2200, 180, t, 0.6, 0.5); tone(sfxBus, 'sine', 500, 180, t, 0.25, 0.12); },
     hit: function (t) { noise(sfxBus, 'lowpass', 1400, 70, t, 0.9, 0.9); tone(sfxBus, 'sine', 140, 38, t, 0.6, 0.9); },
+    // Right letter in the right square: two ship's-bell strikes, a rising fanfare, a sparkle on top.
+    bonus: function (t) {
+      [0, 0.22].forEach(function (d) {
+        tone(sfxBus, 'sine', 1319, 1319, t + d, 1.4, 0.22, 0.005);      // bell
+        tone(sfxBus, 'sine', 2637, 2637, t + d, 0.7, 0.07, 0.005);      // its ring
+        tone(sfxBus, 'triangle', 659, 659, t + d, 0.9, 0.1, 0.005);     // its body
+      });
+      notes(sfxBus, 'square', [67, 72, 76, 79], t + 0.5, 0.08, 0.22, 0.09);
+      notes(sfxBus, 'triangle', [null, null, null, 84], t + 0.5, 0.08, 0.9, 0.22);
+      notes(sfxBus, 'sine', [96, 100, 103, 108], t + 0.86, 0.045, 0.3, 0.08);
+    },
     bull: function (t) { notes(sfxBus, 'sine', [88, 95], t, 0.12, 0.6, 0.3); notes(sfxBus, 'triangle', [76, 83], t, 0.12, 0.5, 0.12); },
     tally: function (t) { notes(sfxBus, 'square', [67, 62], t, 0.13, 0.12, 0.08); },
     zero: function (t) { tone(sfxBus, 'sawtooth', 110, 100, t, 0.35, 0.1); },

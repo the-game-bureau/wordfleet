@@ -385,6 +385,17 @@
   window.addEventListener('resize', function () { fitButtons(); });
 
   var toastTimer = null;
+  // A bonus turn gets a banner across the top and, on phones that can, a short buzz.
+  function notifyBonus(msg) {
+    var el = $('bonusBanner');
+    el.textContent = msg;
+    el.hidden = false;
+    el.classList.remove('is-pop'); void el.offsetWidth; el.classList.add('is-pop');
+    clearTimeout(ui.bonusTimer);
+    ui.bonusTimer = setTimeout(function () { el.hidden = true; }, 3200);
+    try { if (navigator.vibrate) navigator.vibrate([70, 50, 140]); } catch (e) { /* no buzz */ }
+  }
+
   function toast(msg) {
     var el = $('toast');
     el.textContent = msg;
@@ -744,7 +755,7 @@
       dismissible = !!S.result.bonus;   // a bonus turn means tapping the grid next
       fp.innerHTML = '<div class="card-title">' + S.result.title + '</div>' + S.result.html +
         (S.result.solve ? solveBox() : '') +
-        (S.result.bonus ? '<p class="hint" style="margin-bottom:6px">Tap another square on the Attack Grid to take your bonus turn.</p>' + demandBtn
+        (S.result.bonus ? '<button class="btn btn--bonus btn--wide" type="button" data-act="panelOk">\u2605 Take Your Bonus Turn</button>' + demandBtn
                         : mine ? '<button class="btn btn--primary btn--wide" type="button" data-act="endTurn">End Turn</button>'
                                : '<p class="waiting">AI Captain is choosing a square\u2026</p>');
     } else if (!mine) {
@@ -759,6 +770,7 @@
         '<button class="btn btn--primary btn--wide" type="button" data-act="panelOk">To the Attack Grid</button>';
     }
     ui.panelKey = pkey; ui.panelDismissible = dismissible;
+    $('panelSheet').classList.toggle('is-bonus', !!(S.result && S.result.bonus && !ui.demand));
     refreshPanel();
   }
 
@@ -906,14 +918,17 @@
       (bonus ? ' It was at ' + coordK(k) + ': bonus turn.' : '') + (vowel ? ' A vowel: the Human Captain loses the next turn.' : ''));
     sfx('select');
     sfx(t ? 'fill' : 'zero', 0.2);
-    if (bonus) sfx('bull', 0.5);
+    if (bonus) {
+      sfx('bonus', 0.35);
+      notifyBonus('\u2605 BONUS TURN!');
+    }
     if (vowel) sfx('error', 0.6);
     if (allRevealed(S.myShots, foeBoard())) { finish('me', 'reveal'); return; }
     var html = '<div class="report ' + (t ? 'is-good' : 'is-warn') + '"><div class="report-q">' + coordK(k) + ': "Calling ' + NATO[L] + '!"</div><div class="report-a">"' + L + ' tally ' + t + '."</div></div>' +
       (t ? revealNote(L, cells, 'the AI Captain\'s') : '<p class="hint">' + L + ' is nowhere in the AI Captain\'s fleet.</p>') +
       (bonus ? '<p class="bonus">\u2605 Bonus turn! ' + L + ' was hiding at ' + coordK(k) + '.</p>' : (at ? '' : '<p class="hint">' + coordK(k) + ' is open water.</p>')) +
       (vowel ? '<p class="notice">Vowel: you lose your next turn.</p>' : '');
-    showResult('Calling ' + NATO[L], html, t > 0, bonus);
+    showResult(bonus ? '\u2605 Bonus Turn!' : 'Calling ' + NATO[L], html, t > 0, bonus);
   }
 
   // --- solve a word (after calling a letter that is in the fleet) ---

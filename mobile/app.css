@@ -592,3 +592,21 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 /* The popup sits between the top bar and the tab bar, so the menu and the tabs stay usable */
 .scrim--panel { top: calc(var(--bar-h) + var(--safe-t)); bottom: calc(var(--tab-h) + var(--safe-b)); }
 .sheet--panel { bottom: calc(var(--tab-h) + var(--safe-b)); max-height: calc(100vh - var(--bar-h) - var(--tab-h) - var(--safe-t) - var(--safe-b) - 16px); padding-bottom: 16px; border-bottom: 1px solid var(--ink); }
+
+/* Bonus turn: gold popup, gold button, a banner across the top */
+:root { --gold-bonus: #ffd24a; }
+.sheet--panel.is-bonus { border-top: 6px solid var(--gold-bonus); animation: rise 0.18s ease-out, bonus-glow 1.2s ease-out; }
+.sheet--panel.is-bonus .card-title { font-size: 22px; color: var(--ink); background: var(--gold-bonus); margin: -6px -16px 12px; padding: 12px 16px; border-bottom: 1px solid var(--ink); }
+.btn--bonus { background: var(--gold-bonus); font-weight: 700; }
+.btn--bonus:active:not(:disabled) { background: #f0bf20; color: var(--ink); }
+@keyframes bonus-glow { 0% { box-shadow: 0 0 0 0 rgba(255, 210, 74, 0.9); } 100% { box-shadow: 0 0 0 24px rgba(255, 210, 74, 0); } }
+.bonus-banner { position: fixed; left: 50%; top: calc(var(--bar-h) + var(--safe-t) + 8px); transform: translateX(-50%); z-index: 60;
+  max-width: calc(100vw - 24px); background: var(--gold-bonus); color: var(--ink); border: 2px solid var(--ink);
+  font-family: var(--mono); font-size: 17px; font-weight: 700; letter-spacing: 0.04em; padding: 10px 16px; text-align: center; box-shadow: 0 6px 18px rgba(0,0,0,0.25); }
+.bonus-banner.is-pop { animation: bonus-pop 0.45s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes bonus-pop { 0% { transform: translateX(-50%) scale(0.6); opacity: 0; } 100% { transform: translateX(-50%) scale(1); opacity: 1; } }
+
+.sheet--panel.is-bonus { padding-top: 0; border-top: none; }
+.sheet--panel.is-bonus .card-title { margin: 0 -16px 12px; padding: 14px 56px 14px 16px; }
+.sheet--panel.is-bonus .bonus { color: var(--ink); background: #fff4cc; border-color: #c99a00; }
+.bonus-banner { top: calc(var(--safe-t) + 6px); white-space: nowrap; font-size: 18px; padding: 8px 18px; }
