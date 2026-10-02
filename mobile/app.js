@@ -1304,7 +1304,7 @@
     else if (S.reason === 'foe-reveal') { eyebrow = 'Fleet Exposed'; title = 'The AI Captain revealed your whole fleet.'; quote = 'Every letter of the ' + S.me.name + ' is showing.'; }
     else if (S.reason === 'demand-right') { eyebrow = 'Total Victory'; title = 'The ' + S.foe.name + ' surrenders.'; quote = '"You have won."'; }
     else if (S.reason === 'demand-wrong') { eyebrow = 'Surrender Refused'; title = 'Your demand missed the mark.'; quote = '"Victory is mine! You lose! Good day sir!"'; }
-    else { eyebrow = 'Fleet Surrendered'; title = 'The ' + S.foe.name + ' named every ship.'; quote = 'You were obliged to answer: "You have won."'; }
+    else { eyebrow = 'Fleet Surrendered'; title = 'The ' + S.foe.name + ' named every word-ship.'; quote = 'You were obliged to answer: "You have won."'; }
     $('overEyebrow').textContent = eyebrow;
     $('overTitle').textContent = title;
     $('overQuote').textContent = quote;
@@ -1357,7 +1357,7 @@
       '<h3>Fleet Deployment</h3><ul>' +
       '<li>Five word-ships: KETCH (5), SHIP (4), SUB (3), ARK (3), PT (2).</li>' +
       '<li>Place them left-to-right or top-to-bottom. No diagonals or backwards.</li>' +
-      '<li>Ships may touch but not overlap. No proper nouns, abbreviations, or suffixes.</li></ul>' +
+      '<li>Word-ships may touch but not overlap. No proper nouns, abbreviations, or suffixes.</li></ul>' +
       '<h3>Who Goes First?</h3><p>Against the AI Captain, the Human Captain always goes first.</p>' +
       '<h3>Your Turn: Call a Letter</h3><ul>' +
       '<li>Tap a hidden square on the Attack Grid, then call a letter. Every square in the enemy fleet that holds it is revealed, wherever it is.</li>' +
