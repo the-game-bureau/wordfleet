@@ -403,3 +403,6 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 
 #segLevel button { white-space: normal; line-height: 1.2; padding: 6px 4px; }
 #segLevel .cpt { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.75; }
+
+.check--top { margin-top: 0; }
+.btn--sm-gap { margin-top: 10px; min-height: 40px; font-size: 14px; }

@@ -252,7 +252,7 @@
   var SCREENS = { home: 'scrMobileHome',   // "001 Mobile Home"
                   setup: 'scrSetup',         // "002 Prepare for Battle"
                   opponent: 'scrOpponent',   // "003 Choose Your Opponent"
-                  words: 'scrWords',         // "004 Choose Your Words"
+                  words: 'scrWords',         // "004 Build Your Word-Ships"
                   deploy: 'scrDeploy',       // "005 Deploy"
                   battle: 'scrBattle', over: 'scrOver' };
   var current = 'home';
@@ -354,31 +354,23 @@
     }).join('');
     $('selLang').disabled = languages.length < 2;
     $('chkOffensive').checked = offensiveOk();
-    setSeg('segMode', S.mode);
     setSeg('segLevel', S.level);
     $('levelHint').innerHTML = esc(LEVELS[S.level].hint) + ' <strong>e.g. ' + LEVELS[S.level].example + '</strong>';
-    $('modeHint').textContent = S.mode === 'auto'
-      ? 'Words are drawn from the ' + (lang ? lang.name : '') + ' dictionary at your chosen difficulty. Tap \u21bb to redraw one. The AI Captain draws its fleet the same way.'
-      : 'Pick your own words \u2014 they must be in the ' + (lang ? lang.name : '') + ' dictionary. No proper nouns, abbreviations, or suffixes. The AI Captain draws its fleet at your chosen difficulty.';
+    $('modeHint').textContent = 'Type over any word, tap \u21bb to redraw one, or Refresh All. Words must be in the ' +
+      (lang ? lang.name : '') + ' dictionary: no proper nouns or abbreviations.';
     var html = '<div class="words">';
     SPECS.forEach(function (spec, i) {
       var w = S.me.words[i] || '';
       html += '<div class="word"><div class="word-class"><b>' + spec.cls + '</b>' + spec.len + ' letters</div>';
-      if (S.mode === 'auto') {
-        html += '<div class="word-fixed">' + esc(w) + '</div>' +
-          '<button class="btn btn--sq" type="button" data-reroll="' + i + '" aria-label="Redraw ' + spec.cls + '">↻</button>';
-      } else {
-        html += '<input class="input" data-word="' + i + '" maxlength="' + spec.len + '" value="' + esc(w) + '" ' +
-          'autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="' + '_'.repeat(spec.len) + '">' +
-          '<span></span>';
-      }
+      // Every word is editable; the ↻ redraws just that one.
+      html += '<input class="input" data-word="' + i + '" maxlength="' + spec.len + '" value="' + esc(w) + '" ' +
+        'autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="' + '_'.repeat(spec.len) + '">' +
+        '<button class="btn btn--sq" type="button" data-reroll="' + i + '" aria-label="Redraw ' + spec.cls + '">\u21bb</button>';
       html += '</div>';
     });
     html += '</div>';
     $('wordList').innerHTML = html;
-    if (S.mode === 'manual') {
-      Array.prototype.forEach.call($('wordList').querySelectorAll('[data-word]'), markWordInput);
-    }
+    Array.prototype.forEach.call($('wordList').querySelectorAll('[data-word]'), markWordInput);
     $('setupNote').textContent = '';
   }
 
@@ -402,7 +394,7 @@
   }
 
   function setupToDeploy() {
-    if (S.mode === 'manual') {
+    {   // every word is checked, typed or drawn
       for (var i = 0; i < SPECS.length; i++) {
         var p = wordProblem(S.me.words[i] || '', SPECS[i].len);
         if (p) { $('setupNote').textContent = SPECS[i].cls + ' ' + p + '.'; return; }
@@ -1126,18 +1118,11 @@
   // setup
   on($('inFleet'), 'input', function () { S.me.name = this.value.toUpperCase(); save(); });
   on($('btnRollName'), 'click', function () { S.me.name = randomFleetName(); $('inFleet').value = S.me.name; save(); });
-  on($('segMode'), 'click', function (e) {
-    var v = e.target.getAttribute('data-v');
-    if (!v || v === S.mode) return;
-    S.mode = v;
-    S.me.words = v === 'auto' ? randomWords() : ['', '', '', '', ''];
-    save(); renderSetup();
-  });
   on($('segLevel'), 'click', function (e) {
     var v = e.target.getAttribute('data-v');
     if (!v) return;
     S.level = v;
-    if (S.mode === 'auto') S.me.words = randomWords();
+    if (!S.wordsEdited) S.me.words = randomWords();   // drawn words follow the opponent; typed ones stay
     save(); renderSetup();
   });
   on($('wordList'), 'click', function (e) {
@@ -1153,6 +1138,7 @@
     var v = el.value.toUpperCase().replace(/[^A-Z]/g, '');
     if (el.value !== v) el.value = v;
     S.me.words[+el.getAttribute('data-word')] = v;
+    S.wordsEdited = true;
     markWordInput(el);
     save();
   });
@@ -1160,13 +1146,14 @@
     S.lang = this.value;
     save();
     loadDictionary(S.lang).then(function () {
-      if (S.mode === 'auto') { S.me.words = randomWords(); save(); }
+      if (!S.wordsEdited) { S.me.words = randomWords(); save(); }
       renderSetup();
     });
   });
   on($('chkOffensive'), 'change', function () {
     S.offensiveOk = this.checked;
-    if (S.mode === 'auto' && !S.me.words.every(inDictionary)) S.me.words = randomWords();
+    // Redraw any drawn word that is no longer allowed; typed words are checked at Deploy.
+    if (!S.wordsEdited) S.me.words = S.me.words.map(function (w, i) { return inDictionary(w) ? w : randomWordFor(i, S.me.words); });
     save(); renderSetup();
   });
   // Prepare for Battle runs in three steps: 002 name/language, 003 opponent, 004 words.
@@ -1183,6 +1170,7 @@
   on($('btnToWords'), 'click', function () { setupStep('words'); });
   on($('btnBackToSetup'), 'click', function () { setupStep('setup'); });
   on($('btnBackToOpponent'), 'click', function () { setupStep('opponent'); });
+  on($('btnRefreshAll'), 'click', function () { S.me.words = randomWords(); S.wordsEdited = false; save(); renderSetup(); });
   on($('btnToDeploy'), 'click', setupToDeploy);
 
   // deploy
@@ -1364,7 +1352,7 @@
   if (S && S.phase === 'codes') { S.phase = 'battle'; S.turn = 'me'; }
   loadDictionary(S && S.lang).then(function () {
     if (S && S.phase === 'setup' && !S.me.name) { S.me.name = randomFleetName(); save(); }
-    if (S && S.phase === 'setup' && S.mode === 'auto' && !S.me.words.every(inDictionary)) {
+    if (S && S.phase === 'setup' && !S.wordsEdited && !S.me.words.every(inDictionary)) {
       S.me.words = randomWords(); save();
     }
     // 001 Mobile Home is parked: the app opens on 002 Prepare for Battle (or the battle in progress).

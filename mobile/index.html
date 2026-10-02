@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Bump ?v= on every release (and CACHE in sw.js) so a new page never runs old code. -->
-  <link rel="stylesheet" href="app.css?v=37">
+  <link rel="stylesheet" href="app.css?v=38">
 </head>
 <body>
 
@@ -80,28 +80,22 @@
       </div>
       <p class="hint" id="levelHint"></p>
 
-      <button class="btn btn--primary btn--wide btn--next" id="btnToWords" type="button">STEP 3 of 3: Choose Your Words</button>
+      <button class="btn btn--primary btn--wide btn--next" id="btnToWords" type="button">STEP 3 of 3: Build Your Word-Ships</button>
       <button class="btn btn--ghost btn--wide" id="btnBackToSetup" type="button">&larr; Back</button>
     </div>
   </section>
 
-  <!-- ============ 004 CHOOSE YOUR WORDS (screen name: "004 Choose Your Words") ============ -->
-  <section class="screen" id="scrWords" data-screen="004 Choose Your Words">
+  <!-- ============ 004 BUILD YOUR WORD-SHIPS (screen name: "004 Build Your Word-Ships") ============ -->
+  <section class="screen" id="scrWords" data-screen="004 Build Your Word-Ships">
     <div class="card">
-      <div class="step">Step 3 of 3</div>
-      <div class="card-title">Choose Your Words</div>
-      <span class="label">Word-ships</span>
-      <div class="seg" id="segMode">
-        <button type="button" data-v="auto" class="is-on">Auto-Generated</button>
-        <button type="button" data-v="manual">Captain's Choice</button>
-      </div>
-      <p class="hint" id="modeHint"></p>
-
-      <div id="wordList"></div>
-      <p class="note" id="setupNote"></p>
-
-      <label class="check"><input type="checkbox" id="chkOffensive"> Possibly Offensive Words OK</label>
+      <div class="card-title">Build Your Word-Ships</div>
+      <label class="check check--top"><input type="checkbox" id="chkOffensive"> Possibly Offensive Words OK</label>
       <p class="hint hint--tight">Unchecked, neither captain may use words that could offend. Applies to both fleets.</p>
+
+      <p class="hint hint--label" id="modeHint"></p>
+      <div id="wordList"></div>
+      <button class="btn btn--wide btn--sm-gap" id="btnRefreshAll" type="button">&#x21bb; Refresh All</button>
+      <p class="note" id="setupNote"></p>
 
       <button class="btn btn--primary btn--wide btn--next" id="btnToDeploy" type="button">Deploy Fleet</button>
       <button class="btn btn--ghost btn--wide" id="btnBackToOpponent" type="button">&larr; Back</button>
@@ -218,7 +212,7 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="audio.js?v=37"></script>
-<script src="app.js?v=37"></script>
+<script src="audio.js?v=38"></script>
+<script src="app.js?v=38"></script>
 </body>
 </html>
