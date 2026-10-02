@@ -548,11 +548,11 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 
 /* The AI Captain's colors (FOE_SCHEME in app.js): Signal Orange & Black */
 :root { --foe: #ff7f27; --foe-ink: #111111; }
-.gridbanner.is-attack { background: var(--foe); color: var(--foe-ink); }
-.gridbanner.is-attack span { opacity: 1; }
-.card--attack { border-top-color: var(--foe); }
 
-/* Your side flies your fleet colors (set from S.colors as --mine / --mine-ink) */
+/* Your side flies your fleet colors (set from S.colors as --mine / --mine-ink): both your grids */
+.gridbanner.is-attack { background: var(--mine, var(--navy)); color: var(--mine-ink, #fff); }
+.gridbanner.is-attack span { opacity: 1; }
+.card--attack { border-top-color: var(--mine, var(--navy)); }
 .gridbanner.is-defense { background: var(--mine, var(--navy)); color: var(--mine-ink, #fff); }
 .gridbanner.is-defense span { opacity: 1; }
 .card--defense { border-top-color: var(--mine, var(--navy)); }
@@ -699,8 +699,8 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 .coach-news { font-size: 15px; line-height: 1.35; }
 
 /* Aiming: the Letters Manifest lights up and its letters become buttons */
-.uncalled.is-picking { background: #fff1e6; outline: 3px solid var(--foe); outline-offset: 2px; animation: pulse-out 1.2s ease-out 1; }
+.uncalled.is-picking { background: #fff; outline: 3px solid var(--mine, var(--navy)); outline-offset: 2px; animation: pulse-out 1.2s ease-out 1; }
 .uncalled.is-picking .uncalled-label { color: var(--ink); }
 button.uc { cursor: pointer; padding: 0; color: var(--ink); }
-button.uc:active { background: var(--foe); }
-@keyframes pulse-out { 0% { outline-color: rgba(255,127,39,0); } 50% { outline-color: var(--foe); } }
+button.uc:active { background: var(--mine, var(--navy)); color: var(--mine-ink, #fff); }
+@keyframes pulse-out { 0% { outline-color: transparent; } 50% { outline-color: var(--mine, var(--navy)); } }
