@@ -455,7 +455,6 @@
     setBar(null);
     var ships = S.me.ships;
     var placed = ships.filter(function (s) { return s.r != null; }).length;
-    $('deployCount').textContent = placed + ' of 5 deployed';
     setSeg('segDir', ui.dir);
     var b = boardOf(ships);
     paint($('gridDeploy'), function (r, c) {

@@ -472,3 +472,8 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 
 /* deployed word-ships show green on 004 */
 #gridDeploy .cell.is-ship { background: var(--green); }
+
+/* 004: Defense Grid dressed like the in-game one (navy banner, framed card with a navy top edge) */
+.deploy-board { margin: 0 0 4px; }
+.deploy-frame { border: 1px solid var(--ink); border-top: 4px solid var(--navy); padding: 10px 0; background: var(--paper); }
+.deploy-board { --board: min(calc(100vw - 54px), 468px); }
