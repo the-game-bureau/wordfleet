@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Bump ?v= on every release (and CACHE in sw.js) so a new page never runs old code. -->
-  <link rel="stylesheet" href="app.css?v=55">
+  <link rel="stylesheet" href="app.css?v=56">
 </head>
 <body>
 
@@ -64,6 +64,10 @@
         <input class="input" id="inFleet" maxlength="24" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="SALTY ARMADA">
         <button class="btn btn--sq" id="btnRollName" type="button" aria-label="Random fleet name">&#x1F3B2;</button>
       </div>
+
+      <span class="label label--say" id="lblColors">Choose your color scheme</span>
+      <div class="swatches" id="colorSchemes" role="radiogroup" aria-labelledby="lblColors"></div>
+      <p class="hint hint--label swatch-name" id="colorSchemeName"></p>
 
       <button class="btn btn--wide btn--next btn--progress" style="--progress: 25%" id="btnToOpponent" type="button" aria-label="Next: Choose Your Opponent (step 1 of 4 done)">Next: Choose Your Opponent</button>
       <a class="btn btn--ghost btn--wide" id="lnkHome" href="../">&larr; Back</a>
@@ -218,7 +222,7 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="audio.js?v=55"></script>
-<script src="app.js?v=55"></script>
+<script src="audio.js?v=56"></script>
+<script src="app.js?v=56"></script>
 </body>
 </html>

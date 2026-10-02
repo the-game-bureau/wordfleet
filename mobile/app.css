@@ -477,3 +477,12 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 .deploy-board { margin: 0 0 4px; }
 .deploy-frame { border: 1px solid var(--ink); border-top: 4px solid var(--navy); padding: 10px 0; background: var(--paper); }
 .deploy-board { --board: min(calc(100vw - 54px), 468px); }
+
+/* 001: color scheme swatches, two colors each */
+.swatches { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.swatch { display: flex; height: 52px; padding: 0; border: 1px solid var(--ink); background: var(--paper); cursor: pointer; overflow: hidden; }
+.swatch i { flex: 1; }
+.swatch.is-on { outline: 3px solid var(--ink); outline-offset: 2px; }
+.swatch:focus-visible { outline: 3px solid var(--green-dark); outline-offset: 2px; }
+.setup-big .swatch-name { margin: 10px 0 0; font-weight: 600; color: var(--ink); }
+.setup-big #lblColors { margin-top: 22px; }

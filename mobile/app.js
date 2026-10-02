@@ -37,6 +37,15 @@
                  pattern: true, vowelCost: 0.3, noise: 0.05, solve: { known: 0.4, share: 0.7 } }
   };
 
+  // Color schemes offered on 001 (two colors each). Saved as S.colors; where they apply is decided later.
+  var COLOR_SCHEMES = [
+    { id: 'navy-green',      name: 'Navy & Green',      colors: ['#1f3a5f', '#6aaa64'] },
+    { id: 'crimson-gold',    name: 'Crimson & Gold',    colors: ['#9b1b1f', '#e8b10a'] },
+    { id: 'teal-coral',      name: 'Teal & Coral',      colors: ['#0f6e6a', '#ff7f5c'] },
+    { id: 'midnight-silver', name: 'Midnight & Silver', colors: ['#1e1b4b', '#b8bec8'] },
+    { id: 'ocean-sand',      name: 'Ocean & Sand',      colors: ['#0369a1', '#e9c46a'] }
+  ];
+
   var FLEET_ADJ = ['Salty', 'Barnacle-Crusted', 'Rum-Soaked', 'Royal', 'Crabby', 'Peg-Legged', 'Stormy', 'Treacherous', 'Cursed', 'Ghostly', 'Iron-Bound', 'Sea-Worn', 'Soggy-Bottom', 'Windswept', 'Ironclad', 'Thunderhead', 'Bloodwake', 'Scurvy', "Admiral's", "Commodore's", 'Steel-Hulled', 'Storm-Battered', 'Salt-Crusted', 'Rust-Stained', 'Sun-Bleached', 'Cannon-Heavy', 'Torpedo-Laden', 'Merciless', 'Grog-Fueled', 'Hook-Handed', "Kraken's", "Siren's", "Neptune's", 'Abyssal', 'Phantom', 'Half-Sunk', 'Creaking', 'Patched-Up', 'Battle-Scarred'];
   var FLEET_NOUN = ['Armada', 'Fleet', 'Flotilla', 'Squadron', 'Convoy', 'Navy', 'Task Force', 'Krewe', 'Battlegroup', 'Regatta', 'Patrol', 'Strike Force', 'Vanguard', 'Blockade', 'Tempest', 'Gale', 'Maelstrom', 'Admiralty', 'Legion', 'Brotherhood', 'Alliance', 'Trench', 'Reef', 'Harbor', 'Siege', 'Bombardment', 'Expedition', 'Voyage', 'Odyssey',
                     'Wolfpack', 'Corsairs', 'Privateers', 'Buccaneers', 'Marauders', 'Raiders', 'Escort', 'Picket Line', 'Dreadnoughts', 'Mariners'];
@@ -249,6 +258,7 @@
       lang: (S && S.lang) || (lang && lang.code) || 'en-US',
       offensiveOk: !!(S && S.offensiveOk),
       mode: (S && S.mode) || 'auto',
+      colors: (S && S.colors) || COLOR_SCHEMES[0].id,
       me: { name: randomFleetName(), words: randomWords(), ships: null },
       foe: null,
       myShots: {}, myTallies: {},
@@ -374,6 +384,12 @@
       return '<option value="' + esc(l.code) + '"' + (lang && l.code === lang.code ? ' selected' : '') + '>' + esc(l.name) + '</option>';
     }).join('');
     $('selLang').disabled = languages.length < 2;
+    var scheme = S.colors || COLOR_SCHEMES[0].id;
+    $('colorSchemes').innerHTML = COLOR_SCHEMES.map(function (cs) {
+      return '<button type="button" class="swatch' + (cs.id === scheme ? ' is-on' : '') + '" data-scheme="' + cs.id + '" role="radio" aria-checked="' + (cs.id === scheme) + '" aria-label="' + esc(cs.name) + '">' +
+        '<i style="background:' + cs.colors[0] + '"></i><i style="background:' + cs.colors[1] + '"></i></button>';
+    }).join('');
+    $('colorSchemeName').textContent = COLOR_SCHEMES.filter(function (cs) { return cs.id === scheme; })[0].name;
     $('chkOffensive').checked = offensiveOk();
     setSeg('segLevel', S.level);
     $('levelHint').innerHTML = esc(LEVELS[S.level].hint) + ' <strong>e.g. ' + LEVELS[S.level].example + '</strong>';
@@ -1111,6 +1127,11 @@
     while (el.scrollWidth > el.clientWidth && size > 11) el.style.fontSize = (size -= 1) + 'px';
   }
   on($('inFleet'), 'input', function () { S.me.name = this.value.toUpperCase(); fitFleetName(); save(); });
+  on($('colorSchemes'), 'click', function (e) {
+    var b = e.target.closest('[data-scheme]');
+    if (!b) return;
+    S.colors = b.getAttribute('data-scheme'); save(); renderSetup();
+  });
   on($('btnRollName'), 'click', function () { S.me.name = randomFleetName(); $('inFleet').value = S.me.name; fitFleetName(); save(); });
   on($('segLevel'), 'click', function (e) {
     var v = e.target.getAttribute('data-v');
