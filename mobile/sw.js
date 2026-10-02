@@ -1,11 +1,11 @@
 /* Word Fleet service worker: the whole game works offline once loaded. */
-var CACHE = 'wordfleet-v27';
+var CACHE = 'wordfleet-v28';
 var SHELL = [
   './',
   'index.html',
-  'app.css',
-  'app.js',
-  'audio.js',
+  'app.css?v=28',
+  'app.js?v=28',
+  'audio.js?v=28',
   'manifest.webmanifest',
   'icons/icon-180.png',
   'icons/icon-192.png',
@@ -34,7 +34,8 @@ self.addEventListener('fetch', function (e) {
   var fonts = /fonts\.(googleapis|gstatic)\.com$/.test(url.hostname);
   if (!mine && !fonts) return;
   e.respondWith(
-    fetch(e.request).then(function (res) {
+    // Same-origin files skip the browser's HTTP cache, so the page and its code always match.
+    (mine ? fetch(e.request.url, { cache: 'no-cache', credentials: 'same-origin' }) : fetch(e.request)).then(function (res) {
       if (res.ok || res.type === 'opaque') {
         var copy = res.clone();
         caches.open(CACHE).then(function (c) { c.put(e.request, copy); });
