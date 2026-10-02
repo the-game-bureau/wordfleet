@@ -718,6 +718,16 @@
   }
 
   function isVowel(L) { return VOWELS.indexOf(L) !== -1; }
+  // A letters manifest: consonants first, then the vowels in their own group (round chips) at the
+  // end of the second row, captioned with what they cost. chip(L, cls) returns one chip's HTML.
+  function manifestHtml(label, left, chip) {
+    var cons = left.filter(function (L) { return !isVowel(L); });
+    var vows = left.filter(isVowel);
+    return '<span class="uncalled-label">' + label + '</span>' +
+      cons.map(function (L) { return chip(L, 'uc'); }).join('') +
+      (vows.length ? '<span class="uc-vowels" style="grid-column: span ' + vows.length + ' / -1; grid-template-columns: repeat(' + vows.length + ', 1fr)">' + vows.map(function (L) { return chip(L, 'uc is-vowel'); }).join('') + '</span>' +
+        '<span class="uc-vowels-cap">Vowels: \u22121 turn</span>' : '');
+  }
 
   function pips(total, filled, cls) {
     var h = '';
@@ -764,17 +774,14 @@
       if (info && info.k === k) o.cls = (o.cls || '') + (info.bonus ? ' is-aim is-aim-hit' : ' is-aim');
       return o;
     }, live);
-    // Letters not yet called, A to Z; each drops out once called. Vowels are marked (they cost a turn).
     // Letters Manifest: letters not yet called. Once you aim at a square they become buttons to call.
     var left = LETTERS.filter(function (L) { return S.myTallies[L] == null; });
     var picking = !!ui.sel && live;
     $('uncalled').classList.toggle('is-picking', picking);
-    $('uncalled').innerHTML = '<span class="uncalled-label">' + (picking ? 'Letters Manifest \u00b7 for ' + coordK(ui.sel) : 'Letters Manifest') + '</span>' +
-      left.map(function (L) {
-        var cls = 'uc' + (isVowel(L) ? ' is-vowel' : '');
+    $('uncalled').innerHTML = manifestHtml(picking ? 'Letters Manifest \u00b7 for ' + coordK(ui.sel) : 'Letters Manifest', left, function (L, cls) {
         return picking ? '<button type="button" class="' + cls + '" data-letter="' + L + '" aria-label="Call ' + L + (isVowel(L) ? ' (vowel: costs your next turn)' : '') + '">' + L + '</button>'
                        : '<span class="' + cls + '">' + L + '</span>';
-      }).join('');
+      });
     if (ui.flash) { clearTimeout(ui.flashTimer); ui.flashTimer = setTimeout(function () { ui.flash = null; }, 1800); }
 
 
@@ -886,8 +893,9 @@
     // Letters the AI Captain has not called yet; the ones in your fleet (still at risk) are outlined in your colors.
     var mineCount = letterCounts(S.me.words);
     var aiLeft = LETTERS.filter(function (L) { return S.foeTallies[L] == null; });
-    $('defUncalled').innerHTML = '<span class="uncalled-label">AI Letters Manifest</span>' +
-      aiLeft.map(function (L) { return '<span class="uc' + (isVowel(L) ? ' is-vowel' : '') + (mineCount[L] ? ' is-mine' : '') + '">' + L + '</span>'; }).join('');
+    $('defUncalled').innerHTML = manifestHtml('AI Letters Manifest', aiLeft, function (L, cls) {
+      return '<span class="' + cls + (mineCount[L] ? ' is-mine' : '') + '">' + L + '</span>';
+    });
     if (flashing) { ev.unseen = false; save(); $('defDot').hidden = true; }
   }
 

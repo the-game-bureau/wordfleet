@@ -630,7 +630,7 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 .coach-sub { font-size: 15px; color: #444; line-height: 1.4; margin-top: 3px; }
 .coach-warn { color: var(--red); font-weight: 700; }
 .coach-btns { display: flex; gap: 8px; margin-top: 8px; }
-.coach-btns .btn { flex: 1; min-height: 44px; font-size: 16px; }
+.coach-btns .btn { flex: 1 1 0; min-width: 0; min-height: 44px; font-size: 16px; padding-left: 8px; padding-right: 8px; }
 .coach.is-bonus { background: var(--gold-bonus); }
 .coach.is-bonus .coach-step { background: var(--ink); color: var(--gold-bonus); }
 .coach.is-wait .coach-main { color: #555; }
@@ -686,7 +686,6 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 .uncalled-label { width: 100%; font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
 .uc { flex: 0 0 auto; min-width: 22px; height: 26px; display: grid; place-items: center; font-family: var(--mono); font-size: 16px; font-weight: 700;
   border: 1px solid var(--ink); background: var(--paper); }
-.uc.is-vowel { border-bottom: 3px solid var(--red); }
 /* Always at most two rows: 13 letters a row, sized to the grid's width */
 .uncalled { display: grid; grid-template-columns: repeat(13, 1fr); gap: 3px; }
 .uncalled-label { grid-column: 1 / -1; }
@@ -694,7 +693,6 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 
 /* 007: AI letters left; letters in your fleet are outlined in your colors */
 .uc.is-mine { background: var(--mine, var(--navy)); color: var(--mine-ink, #fff); border-color: var(--mine, var(--navy)); }
-.uc.is-mine.is-vowel { border-bottom-color: var(--red); }
 /* the folded news line stays compact */
 .coach-news { font-size: 15px; line-height: 1.35; }
 
@@ -704,3 +702,11 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 button.uc { cursor: pointer; padding: 0; color: var(--ink); }
 button.uc:active { background: var(--mine, var(--navy)); color: var(--mine-ink, #fff); }
 @keyframes pulse-out { 0% { outline-color: transparent; } 50% { outline-color: var(--mine, var(--navy)); } }
+
+/* Vowels: their own group at the end of row two, round chips, captioned with the cost */
+.uc { align-self: start; }
+.uc-vowels { grid-row: 3; grid-column: 9 / -1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; position: relative; }
+.uc-vowels::before { content: ""; position: absolute; left: -3px; top: -2px; bottom: -2px; border-left: 2px solid var(--ink); }
+.uc.is-vowel { border-radius: 50%; aspect-ratio: 1 / 1; }
+.uc-vowels-cap { grid-row: 4; grid-column: 9 / -1; font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: 0.02em;
+  text-transform: uppercase; color: var(--muted); text-align: right; white-space: nowrap; overflow: hidden; }
