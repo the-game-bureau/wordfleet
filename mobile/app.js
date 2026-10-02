@@ -866,9 +866,6 @@
     var over = S.phase === 'over', fb = foeBoard();
     $('tabAttack').setAttribute('data-screen', over ? '010-MOBILE-GAME-OVER' : '005-MOBILE-ATTACK');
     $('score').textContent = (S.score || 0) + ' points';
-    // No subtitle during battle; once it is over it says how it ended.
-    $('attackSub').textContent = over ? (S.winner === 'me' ? 'Enemy Fleet Sunk' : 'Enemy Fleet Revealed') : '';
-    $('attackSub').hidden = !over;
     $('uncalled').hidden = over;
     paint($('gridAttack'), function (r, c) {
       var k = key(r, c);
