@@ -247,7 +247,12 @@
   // ------------------------------------------------------------
   // screens + chrome
   // ------------------------------------------------------------
-  var SCREENS = { home: 'scrHome', setup: 'scrSetup', deploy: 'scrDeploy', battle: 'scrBattle', over: 'scrOver' };
+  var SCREENS = { home: 'scrMobileHome',   // "001 Mobile Home"
+                  setup: 'scrSetup',         // "002 Prepare for Battle"
+                  opponent: 'scrOpponent',   // "003 Choose Your Opponent"
+                  words: 'scrWords',         // "004 Choose Your Words"
+                  deploy: 'scrDeploy',       // "005 Deploy"
+                  battle: 'scrBattle', over: 'scrOver' };
   var current = 'home';
 
   function show(name) {
@@ -267,7 +272,7 @@
 
   function render() {
     if (current === 'home') renderHome();
-    else if (current === 'setup') renderSetup();
+    else if (current === 'setup' || current === 'opponent' || current === 'words') renderSetup();
     else if (current === 'deploy') renderDeploy();
     else if (current === 'battle') renderBattle();
     else if (current === 'over') renderOver();
@@ -329,7 +334,7 @@
 
   function resume() {
     if (!S) return show('home');
-    if (S.phase === 'setup') show('setup');
+    if (S.phase === 'setup') show(S.setupStep || 'setup');
     else if (S.phase === 'deploy') show('deploy');
     else if (S.phase === 'battle') show('battle');
     else show('over');
@@ -394,9 +399,6 @@
   }
 
   function setupToDeploy() {
-    var name = $('inFleet').value.trim().toUpperCase().replace(/\s+/g, ' ');
-    if (!name) { name = randomFleetName(); $('inFleet').value = name; }
-    S.me.name = name;
     if (S.mode === 'manual') {
       for (var i = 0; i < SPECS.length; i++) {
         var p = wordProblem(S.me.words[i] || '', SPECS[i].len);
@@ -1165,6 +1167,20 @@
     if (S.mode === 'auto' && !S.me.words.every(inDictionary)) S.me.words = randomWords();
     save(); renderSetup();
   });
+  // Prepare for Battle runs in three steps: 002 name/language, 003 opponent, 004 words.
+  function setupStep(step) {
+    if (step !== 'setup') {
+      var name = (S.me.name || '').trim().toUpperCase().replace(/\s+/g, ' ');
+      S.me.name = name || randomFleetName();
+    }
+    S.setupStep = step;
+    save();
+    show(step);
+  }
+  on($('btnToOpponent'), 'click', function () { setupStep('opponent'); });
+  on($('btnToWords'), 'click', function () { setupStep('words'); });
+  on($('btnBackToSetup'), 'click', function () { setupStep('setup'); });
+  on($('btnBackToOpponent'), 'click', function () { setupStep('opponent'); });
   on($('btnToDeploy'), 'click', setupToDeploy);
 
   // deploy
@@ -1258,7 +1274,7 @@
   on($('btnScatter'), 'click', function () { S.me.ships = scatter(S.me.words); ui.pick = -1; sfx('place'); save(); renderDeploy(); });
   on($('btnClear'), 'click', function () { S.me.ships.forEach(function (s) { s.r = null; s.c = null; }); ui.pick = 0; save(); renderDeploy(); });
   on($('btnDeployDone'), 'click', confirmDeploy);
-  on($('btnDeployBack'), 'click', function () { S.phase = 'setup'; save(); show('setup'); });
+  on($('btnDeployBack'), 'click', function () { S.phase = 'setup'; S.setupStep = 'words'; save(); show('words'); });
 
   // battle
   on($('firePanel'), 'click', function (e) {
