@@ -30,7 +30,7 @@
                  hint: 'A cheerful rookie who has never sailed beyond the bathtub. Hides everyday words anyone knows and calls letters on a hunch, vowels and all.',
                  pattern: false, vowelCost: 1, noise: 1, solve: null },
     commander: { name: 'Captain Steady', tiers: ['everyday'],
-                 hint: 'A dependable old hand who has seen a few storms. Hides familiar words, calls sensible consonants, and solves your words once the clues line up.',
+                 hint: 'A dependable old hand who has seen a few storms. Hides familiar words, calls sensible consonants, and solves your word-ships once the clues line up.',
                  pattern: true, vowelCost: 0.45, noise: 0.15, solve: { known: 0.6, share: 1 } },
     admiral:   { name: 'Captain Lexicon',   tiers: ['rare'],    
                  hint: 'A walking dictionary with a periscope. Hides rare words that are hard to crack, studies every letter you reveal, almost never wastes a turn on a vowel, and solves early.',
@@ -828,7 +828,7 @@
         (info.t ? 'Revealed at ' + info.cells.map(coordK).join(', ') + '.' : info.open ? coordK(info.k) + ' is open water.' : info.L + ' isn\'t in their fleet.');
       if (info.vowel) sub.push('<span class="coach-warn">Vowel: you skip your next turn.</span>');
       if (r.solveRes) sub.push('Solve ' + r.solveRes.word + ': ' + (r.solveRes.ok ? '<b>Correct.</b>' : '<b>Negative.</b>'));
-      else if (hint && r.solve) sub.push('Know a whole word? Solve it to reveal it.');
+      else if (hint && r.solve) sub.push('Know a whole word-ship? Solve it to reveal it.');
       if (r.solve && !r.solveRes) btns += '<button class="btn btn--sm" type="button" data-coach="solve">Solve a Word</button>';
       btns += '<button class="btn btn--sm btn--primary" type="button" data-coach="end">End Turn</button>';
     } else if (r) {
@@ -991,7 +991,7 @@
     return '<div class="card-title">Solve a Word</div><div class="solve" id="solveBox">' +
       '<div class="input-row"><input class="input" id="solveIn" maxlength="5" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="WORD">' +
       '<button class="btn btn--primary" type="button" data-act="solve">Solve</button></div>' +
-      (hintsOn() ? '<p class="hint">Name one of the AI Captain\'s word-ships. Get it right and the whole word is revealed.</p>' : '') + '</div>';
+      (hintsOn() ? '<p class="hint">Name one of the AI Captain\'s word-ships. Get it right and the whole word-ship is revealed.</p>' : '') + '</div>';
   }
 
   // Fill in every square of the first unsolved word-ship spelling `word`.
