@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Bump ?v= on every release (and CACHE in sw.js) so a new page never runs old code. -->
-  <link rel="stylesheet" href="app.css?v=45">
+  <link rel="stylesheet" href="app.css?v=46">
 </head>
 <body>
 
@@ -94,7 +94,7 @@
     <div class="card">
       <div class="card-title">Build Your Word-Ships</div>
       <span class="label label--say">Offensive words</span>
-      <label class="check check--top"><input type="checkbox" id="chkOffensive"> Possibly Offensive Words OK</label>
+      <label class="switch-row switch-row--big"><span>Possibly Offensive Words OK</span><input type="checkbox" class="switch" id="chkOffensive" role="switch"></label>
       <p class="hint hint--tight">Applies to both fleets.</p>
 
       <span class="label label--say">Your five word-ships</span>
@@ -217,7 +217,7 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="audio.js?v=45"></script>
-<script src="app.js?v=45"></script>
+<script src="audio.js?v=46"></script>
+<script src="app.js?v=46"></script>
 </body>
 </html>
