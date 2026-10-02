@@ -749,3 +749,7 @@ button.uc:active { background: var(--mine, var(--navy)); color: var(--mine-ink, 
 .cell.is-contact .q, .cell.is-contact .tried { color: #fff; }
 .cell.is-ship.is-contact { background: var(--blue-wash); box-shadow: inset 0 0 0 3px var(--contact); }
 .cell.is-ship.is-contact .tried { color: var(--contact); }
+/* Score: under the Attack Grid banner's subtitle, and "+N points" lines in the coach bar */
+.gridbanner .banner-score { display: block; margin-top: 4px; font-family: var(--mono); font-size: 14px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.coach-pts { font-weight: 700; color: var(--green-dark); }
+.coach.is-bonus .coach-pts, .coach.is-lost .coach-pts { color: var(--ink); }

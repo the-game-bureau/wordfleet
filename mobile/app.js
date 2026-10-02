@@ -25,6 +25,23 @@
 
   // Difficulty = how common the AI Captain's words are, and how cleverly it calls letters.
   // Keys stay ensign/commander/admiral so saved games keep working; players see the names.
+  // Points for each good thing the Human Captain does.
+  var POINTS = {
+    letter: 10,     // each square a call reveals
+    contact: 5,     // finding a square that holds a letter (marked ?)
+    bonus: 50,      // the called letter was in the square you aimed at
+    sunk: 100,      // each word-ship sunk (every letter revealed)
+    win: 500,       // victory
+    spare: 10       // at victory, each letter of the alphabet you never had to call
+  };
+  // Adds points and returns a short note of what they were for.
+  function award(parts) {
+    var total = 0, why = [];
+    parts.forEach(function (x) { if (x[0] > 0) { total += x[0]; why.push('+' + x[0] + ' ' + x[1]); } });
+    S.score = (S.score || 0) + total;
+    return { total: total, why: why };
+  }
+
   var LEVELS = {
     ensign:    { name: 'Captain Rubber Duck',    tiers: ['common'],  
                  hint: 'A cheerful rookie who has never sailed beyond the bathtub. Hides everyday words anyone knows and calls letters on a hunch, vowels and all.',
@@ -323,7 +340,7 @@
       foeShots: {}, foeTallies: {},
       turn: null, incoming: [], lastFoe: null, skip: { me: false, foe: false }, notice: null,
       claims: null, log: [], turns: 0,
-      winner: null, reason: null
+      winner: null, reason: null, score: 0, winPts: null
     };
     // A new game starts clean: no aim, flip-ins, popups, banners or AI moves left over from the last one.
     ui.sel = null; ui.tab = 'Attack'; ui.flash = null; ui.demand = false; ui.dragged = false; ui.firstTap = null;
@@ -786,6 +803,7 @@
     }).join('');
     var over = S.phase === 'over', fb = foeBoard();
     $('tabAttack').setAttribute('data-screen', over ? '010-MOBILE-GAME-OVER' : '005-MOBILE-ATTACK');
+    $('score').textContent = (S.score || 0) + ' points';
     $('attackSub').textContent = over ? (S.winner === 'me' ? 'Enemy Fleet Sunk' : 'Enemy Fleet Revealed') : 'Hunting the Enemy';
     $('uncalled').hidden = over;
     paint($('gridAttack'), function (r, c) {
@@ -854,6 +872,10 @@
       (ev.bonus ? ' \u2605 bonus' : '');
   }
 
+  function ptsLine(p) {
+    return '<span class="coach-pts">+' + p.total + ' points</span> ' + p.why.join(' \u00b7 ');
+  }
+
   function renderCoach() {
     var el = $('coach');
     var show = current === 'battle' && S && (S.phase === 'over' || (S.phase === 'battle' && !ui.demand));
@@ -868,7 +890,8 @@
       step = S.winner === 'me' ? '\u2605' : '\u2715';
       main = '<span class="coach-eyebrow">' + o.eyebrow + '</span>' + o.title;
       sub.push(o.quote);
-      sub.push(called.length + ' letters called \u00b7 ' + called.filter(isVowel).length + ' vowels \u00b7 ' + bullCount(S.myShots) + '/' + FLEET_CELLS + ' revealed');
+      if (S.winPts) sub.push(ptsLine(S.winPts));
+      sub.push('<b>' + (S.score || 0) + ' points</b> \u00b7 ' + called.length + ' letters called \u00b7 ' + called.filter(isVowel).length + ' vowels \u00b7 ' + bullCount(S.myShots) + '/' + FLEET_CELLS + ' revealed');
     } else if (!mine) {
       cls = 'is-wait';
       main = 'AI Captain is aiming<span class="dots"><i>.</i><i>.</i><i>.</i></span>';
@@ -880,12 +903,14 @@
       cls = 'is-bonus'; step = '\u2605';
       main = 'Bonus turn! <b>' + info.L + '</b> was at <b>' + coordK(info.k) + '</b>. Tap another square.';
       (info.sunk || []).forEach(function (w) { sub.push('<b>' + w + '</b> is sunk!'); });
+      if (info.pts && info.pts.total) sub.push(ptsLine(info.pts));
     } else if (r && info) {
       step = '3';
       main = '<span class="say">"' + info.L + ' tally ' + info.t + '."</span> ' +
         (info.t ? 'Revealed at ' + info.cells.map(coordK).join(', ') + '.' : info.open ? coordK(info.k) + ' is open water.' : info.L + ' isn\'t in their fleet.');
       if (!info.open && !info.bonus) sub.push(coordK(info.k) + ' holds a letter, not ' + info.L + ': marked ?');
       (info.sunk || []).forEach(function (w) { sub.unshift('<b>' + w + '</b> is sunk!'); });
+      if (info.pts && info.pts.total) sub.push(ptsLine(info.pts));
       if (info.vowel) sub.push('<span class="coach-warn">Vowel: you skip your next turn.</span>');
       else if (hint && info.t && !(info.sunk || []).length) sub.push('Reveal every letter of a word-ship to sink it.');
       sub.push('AI Captain\'s turn next<span class="dots"><i>.</i><i>.</i><i>.</i></span>');
@@ -1045,6 +1070,13 @@
     sfx('select');
     sfx(t ? 'fill' : 'zero', 0.2);
     if (sunk.length) log('me', sunk.join(', ') + ' sunk: every letter revealed.');
+    var pts = award([
+      [cells.length * POINTS.letter, cells.length === 1 ? 'letter' : 'letters'],
+      [at && !bonus ? POINTS.contact : 0, '?'],
+      [bonus ? POINTS.bonus : 0, 'bonus'],
+      [sunk.length * POINTS.sunk, 'sunk']
+    ]);
+    if (pts.total) log('me', pts.total + ' points (' + pts.why.join(', ') + '). Score ' + S.score + '.');
     if (allRevealed(S.myShots, foeBoard())) { finish('me', 'reveal'); return; }   // the win fanfare takes over
     if (bonus) {
       sfx('bonus', 0.35);
@@ -1058,7 +1090,7 @@
       (vowel ? '<p class="notice">Vowel: you lose your next turn.</p>' : '');
     setPref(CALLS_KEY, (+getPref(CALLS_KEY) || 0) + 1);
     showResult(bonus ? '\u2605 Bonus Turn!' : 'Calling ' + NATO[L], html, t > 0, bonus);
-    S.result.info = { L: L, t: t, k: k, cells: cells, bonus: bonus, vowel: vowel, open: !at, sunk: sunk };
+    S.result.info = { L: L, t: t, k: k, cells: cells, bonus: bonus, vowel: vowel, open: !at, sunk: sunk, pts: pts };
     save(); renderBattle();
   }
 
@@ -1265,6 +1297,11 @@
     S.reason = reason;
     S.turn = null; S.incoming = [];
     if (ui.aiTimer) { clearTimeout(ui.aiTimer); ui.aiTimer = null; }
+    if (winner === 'me') {
+      var spare = LETTERS.filter(function (L) { return S.myTallies[L] == null; }).length;
+      S.winPts = award([[POINTS.win, 'victory'], [spare * POINTS.spare, 'letters to spare']]);
+      log('me', S.winPts.total + ' points (' + S.winPts.why.join(', ') + '). Final score ' + S.score + '.');
+    }
     bumpRecord(winner === 'me');
     sfx(winner === 'me' ? 'win' : 'lose', 0.2);
     ui.sel = null; ui.demand = false; ui.tab = 'Attack';
@@ -1315,6 +1352,7 @@
       '<li>Tap a hidden square on the Attack Grid, then call a letter. Every square in the enemy fleet that holds it is revealed, wherever it is.</li>' +
       '<li><strong>Bonus turn:</strong> if the letter is in the square you tapped, you go again. Otherwise the turn passes.</li>' +
       '<li><strong>Vowels</strong> (A E I O U) can be called and reveal the same way, but the caller loses their next turn.</li>' +
+      '<li><strong>Points:</strong> ' + POINTS.letter + ' for each letter you reveal, ' + POINTS.contact + ' for finding a square that holds a letter, ' + POINTS.bonus + ' for a bonus turn, ' + POINTS.sunk + ' for each word-ship you sink, and ' + POINTS.win + ' for victory plus ' + POINTS.spare + ' for each letter you never had to call.</li>' +
       '<li><strong>Sinking:</strong> a word-ship sinks when every one of its letters is revealed. Reveal the whole enemy fleet to win.</li></ul>' +
       '<h3>Winning</h3><ul>' +
       '<li>Reveal every letter of the enemy fleet and you win.</li>' +

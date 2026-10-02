@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Bump ?v= on every release (and CACHE in sw.js) so a new page never runs old code. -->
-  <link rel="stylesheet" href="app.css?v=148">
+  <link rel="stylesheet" href="app.css?v=149">
 </head>
 <body>
 
@@ -149,7 +149,7 @@
     <!-- Tapping a square opens 006-MOBILE-CALL-LETTER; "Demand Surrender" turns the panel below into 009-MOBILE-SURRENDER. -->
     <div class="tab" id="tabAttack" data-screen="005-MOBILE-ATTACK">
       <div class="gridbanner is-attack">
-        <div><b>ATTACK GRID</b><span id="attackSub">Hunting the Enemy</span></div>
+        <div><b>ATTACK GRID</b><span id="attackSub">Hunting the Enemy</span><span class="banner-score" id="score">0 points</span></div>
         <span class="bubbles" id="bubbles"></span>
       </div>
       <div class="card card--flush card--attack">
@@ -226,7 +226,7 @@
 <div class="coach coach--notice" id="notice" role="alert" aria-live="assertive" hidden></div>
 <div class="bonus-banner" id="bonusBanner" role="status" aria-live="assertive" hidden></div>
 
-<script src="audio.js?v=148"></script>
-<script src="app.js?v=148"></script>
+<script src="audio.js?v=149"></script>
+<script src="app.js?v=149"></script>
 </body>
 </html>
