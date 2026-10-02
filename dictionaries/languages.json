@@ -1,6 +1,6 @@
 [
   { "code": "en-US", "name": "English (US)", "file": "en-US.json" },
   { "code": "en-GB", "name": "English (UK)", "file": "en-GB.json" },
-  { "code": "es", "name": "Español (Spanish)", "file": "es.json" },
-  { "code": "de", "name": "Deutsch (German)", "file": "de.json" }
+  { "code": "es", "name": "Español (Spanish)", "short": "Español", "file": "es.json" },
+  { "code": "de", "name": "Deutsch (German)", "short": "Deutsch", "file": "de.json" }
 ]

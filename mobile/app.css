@@ -492,3 +492,29 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 /* Every button reads in capitals */
 .btn, .seg button { text-transform: uppercase; }
 .setup-big #segLevel button { font-size: 16px; padding: 6px 2px; }   /* capitals are wider: keep LEXICON inside its box on small phones */
+
+/* --- Prepare screens polish --- */
+/* 4: greeting above the header on 001 */
+.page-welcome { font-size: 19px; font-weight: 700; margin: 4px 2px 0; }
+/* 9: your flag and fleet name under the header on 002-004 */
+.fleet-tag { display: flex; align-items: center; gap: 10px; margin: -4px 2px 12px; }
+.fleet-tag-flag { width: 44px; flex-shrink: 0; }
+.fleet-tag-flag svg { display: block; width: 100%; height: auto; }
+.fleet-tag-name { font-family: var(--mono); font-size: 17px; font-weight: 700; letter-spacing: 0.06em; }
+/* 11: language on one row */
+.setup-big .lang-row { display: flex; align-items: center; gap: 12px; }
+.setup-big .lang-row .label--say { margin: 0; flex-shrink: 0; }
+.setup-big .lang-row .select { flex: 1; min-width: 0; }
+/* 3: header-row buttons (Refresh All, Shuffle) match the other buttons */
+.setup-big .section-head .btn--head { font-size: 18px; min-height: 48px; padding: 6px 14px; }
+/* 6: ship sizes readable */
+.setup-big .word-class { font-size: 16px; }
+.setup-big .word-class b { font-size: 17px; }
+/* 10: captain pictures */
+#segLevel .cpt-pic { display: block; font-size: 26px; line-height: 1.1; margin-bottom: 2px; }
+/* small-phone fixes */
+.setup-big .lang-row .select { font-family: var(--sans); font-size: 18px; padding: 0 28px 0 10px; text-overflow: ellipsis; }
+.setup-big .btn--ghost { padding-left: 6px; padding-right: 6px; white-space: nowrap; }
+.setup-big .section-head { flex-wrap: wrap; }
+.setup-big .section-head .label--say { flex: 1 1 190px; }
+.setup-big .lang-row + .label--say { margin-top: 22px; }

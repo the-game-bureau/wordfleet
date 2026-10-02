@@ -409,10 +409,11 @@
     if (document.activeElement !== $('inFleet')) $('inFleet').value = S.me.name;
     fitFleetName();
     $('selLang').innerHTML = languages.map(function (l) {
-      return '<option value="' + esc(l.code) + '"' + (lang && l.code === lang.code ? ' selected' : '') + '>' + esc(l.name) + '</option>';
+      return '<option value="' + esc(l.code) + '"' + (lang && l.code === lang.code ? ' selected' : '') + '>' + esc(l.short || l.name) + '</option>';   // short: the language's own name, fits small phones
     }).join('');
     $('selLang').disabled = languages.length < 2;
     renderSchemes();
+    renderFleetTags();
     $('chkOffensive').checked = offensiveOk();
     setSeg('segLevel', S.level);
     $('levelHint').innerHTML = esc(LEVELS[S.level].hint) + ' <strong>e.g. ' + esc(levelExamples(S.level)) + '</strong>';
@@ -452,6 +453,14 @@
     return COLOR_SCHEMES.filter(function (cs) { return cs.id === id; })[0] || COLOR_SCHEMES[0];
   }
 
+  // Under the header on 002-004: your flag and fleet name, so the chosen colors show from here on.
+  function renderFleetTags() {
+    var cs = schemeOf(S.colors), name = S.me.name || '';
+    Array.prototype.forEach.call(document.querySelectorAll('[data-fleet-tag]'), function (el) {
+      el.innerHTML = '<span class="fleet-tag-flag">' + flagSvg(cs, fleetInitials(name) || 'WF') + '</span><span class="fleet-tag-name">' + esc(name) + '</span>';
+    });
+  }
+
   function renderSchemes() {
     // A saved scheme that no longer exists gets a fresh random one.
     if (!COLOR_SCHEMES.some(function (cs) { return cs.id === S.colors; })) { S.colors = pick(COLOR_SCHEMES).id; save(); }
@@ -478,7 +487,7 @@
   function wordMessage(i) {
     var w = S.me.words[i] || '', p = wordProblem(w, SPECS[i].len);
     if (p) return SPECS[i].cls + ' ' + p + '.';
-    if (dictSet[w] && !allowed(w)) return w + ' may be offensive. Turn on "Possibly Offensive Words OK" to allow it.';
+    if (dictSet[w] && !allowed(w)) return w + ' may be offensive. Turn on "Allow possibly offensive words" to use it.';
     if (!inDictionary(w)) return w + " isn't in the " + lang.name + ' dictionary. Real words only, captain \u2014 no proper nouns or abbreviations.';
     return null;
   }
@@ -525,6 +534,7 @@
     // The fleet is always on the grid (a game saved with ships in port gets a fresh layout).
     if (S.me.ships.some(function (s) { return s.r == null; })) { S.me.ships = scatter(S.me.words); save(); }
     $('deployFleetName').textContent = S.me.name || 'Your fleet';
+    renderFleetTags();
     // The preview flies the fleet's colors: color 1 behind, color 2 for the text.
     var cs = schemeOf(S.colors);
     $('deployBanner').style.background = cs.colors[0];

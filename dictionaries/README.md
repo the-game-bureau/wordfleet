@@ -4,7 +4,7 @@ All of Word Fleet's word data lives here.
 
 | File | What it is |
 | --- | --- |
-| `languages.json` | Languages offered in the app's **Choose your language** menu. Add a line to add a language. |
+| `languages.json` | Languages offered in the app's **Language** menu. Add a line to add a language. `short` (optional) is the name shown in the menu; `name` is used in messages. |
 | `en-US.json`, `en-GB.json` | American and British English word lists (2–5 letter words, ranked by how common they are). Generated; don't edit by hand. |
 | `es.json`, `de.json` | Spanish and German word lists, same shape. Generated; don't edit by hand. |
 | `build-en.js` | Builds `en-US.json` / `en-GB.json` from SCOWL. |

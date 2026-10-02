@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Bump ?v= on every release (and CACHE in sw.js) so a new page never runs old code. -->
-  <link rel="stylesheet" href="app.css?v=72">
+  <link rel="stylesheet" href="app.css?v=76">
 </head>
 <body>
 
@@ -53,11 +53,15 @@
 
   <!-- ============ 001-MOBILE-PREPARE (screen name: "001-MOBILE-PREPARE") ============ -->
   <section class="screen setup-big" id="scrSetup" data-screen="001-MOBILE-PREPARE">
+    <p class="page-welcome">Welcome, Captain!</p>
     <h1 class="page-head">Prepare for Battle</h1>
     <div class="card">
-      <div class="card-title">Welcome Captain!</div>
-      <label class="label label--say" for="selLang">Choose your language</label>
-      <select class="select" id="selLang"></select>
+      <div class="card-title">Set Up Your Fleet</div>
+      <!-- 11: language on one compact row -->
+      <div class="lang-row">
+        <label class="label label--say" for="selLang">Language</label>
+        <select class="select" id="selLang"></select>
+      </div>
 
       <label class="label label--say" for="inFleet">Roll the die or type your own fleet name</label>
       <div class="input-row">
@@ -69,25 +73,26 @@
       <div class="swatches" id="colorSchemes" role="radiogroup" aria-labelledby="lblColors"></div>
       <p class="hint hint--label swatch-name" id="colorSchemeName"></p>
 
-      <button class="btn btn--wide btn--next btn--progress" style="--progress: 25%" id="btnToOpponent" type="button" aria-label="Next: Choose Your Opponent (step 1 of 4 done)">Next: Choose Your Opponent</button>
-      <a class="btn btn--ghost btn--wide" id="lnkHome" href="../">&larr; Back</a>
+      <button class="btn btn--wide btn--next btn--progress" style="--progress: 25%" id="btnToOpponent" type="button" aria-label="Next: Choose Your Opponent (step 1 of 4 done)">Next: Opponent</button>
+      <a class="btn btn--ghost btn--wide" id="lnkHome" href="../">&larr; Word Fleet Home</a>
     </div>
   </section>
 
   <!-- ============ 002-MOBILE-OPPONENT (screen name: "002-MOBILE-OPPONENT") ============ -->
   <section class="screen setup-big" id="scrOpponent" data-screen="002-MOBILE-OPPONENT">
     <h1 class="page-head">Prepare for Battle</h1>
+    <div class="fleet-tag" data-fleet-tag></div>
     <div class="card">
       <div class="card-title">Choose Your Opponent</div>
       <span class="label label--say">Pick the AI Captain you'll face</span>
       <div class="seg" id="segLevel">
-        <button type="button" data-v="ensign" class="is-on"><span class="cpt">Captain</span>Rubber Duck</button>
-        <button type="button" data-v="commander"><span class="cpt">Captain</span>Steady</button>
-        <button type="button" data-v="admiral"><span class="cpt">Captain</span>Lexicon</button>
+        <button type="button" data-v="ensign" class="is-on"><span class="cpt-pic" aria-hidden="true">&#x1F986;</span><span class="cpt">Captain</span>Rubber Duck</button>
+        <button type="button" data-v="commander"><span class="cpt-pic" aria-hidden="true">&#x2693;</span><span class="cpt">Captain</span>Steady</button>
+        <button type="button" data-v="admiral"><span class="cpt-pic" aria-hidden="true">&#x1F4D6;</span><span class="cpt">Captain</span>Lexicon</button>
       </div>
       <p class="hint" id="levelHint"></p>
 
-      <button class="btn btn--wide btn--next btn--progress" style="--progress: 50%" id="btnToWords" type="button" aria-label="Next: Build Your Word-Ships (step 2 of 4 done)">Next: Build Your Word-Ships</button>
+      <button class="btn btn--wide btn--next btn--progress" style="--progress: 50%" id="btnToWords" type="button" aria-label="Next: Build Your Word-Ships (step 2 of 4 done)">Next: Word-Ships</button>
       <button class="btn btn--ghost btn--wide" id="btnBackToSetup" type="button">&larr; Back</button>
     </div>
   </section>
@@ -95,21 +100,21 @@
   <!-- ============ 003-MOBILE-WORD-SHIPS (screen name: "003-MOBILE-WORD-SHIPS") ============ -->
   <section class="screen setup-big" id="scrWords" data-screen="003-MOBILE-WORD-SHIPS">
     <h1 class="page-head">Prepare for Battle</h1>
+    <div class="fleet-tag" data-fleet-tag></div>
     <div class="card">
       <div class="card-title">Build Your Word-Ships</div>
-      <span class="label label--say">Offensive words</span>
-      <label class="switch-row switch-row--big"><span>Possibly Offensive Words OK</span><input type="checkbox" class="switch" id="chkOffensive" role="switch"></label>
+      <label class="switch-row switch-row--big"><span>Allow possibly offensive words</span><input type="checkbox" class="switch" id="chkOffensive" role="switch"></label>
       <p class="hint hint--tight">Applies to both fleets.</p>
 
       <div class="section-head">
-        <span class="label label--say">Your five word-ships</span>
-        <button class="btn btn--sm" id="btnRefreshAll" type="button" aria-label="Refresh all five words">&#x21bb; Refresh All</button>
+        <span class="label label--say">Check your five word-ships</span>
+        <button class="btn btn--sm btn--head" id="btnRefreshAll" type="button" aria-label="Refresh all five words">&#x21bb; Refresh All</button>
       </div>
       <p class="hint hint--label">Tap any word to type your own.</p>
       <div id="wordList"></div>
       <p class="note" id="setupNote"></p>
 
-      <button class="btn btn--wide btn--next btn--progress" style="--progress: 75%" id="btnToDeploy" type="button" aria-label="Next: Deploy Your Fleet (step 3 of 4 done)">Next: Deploy Your Fleet</button>
+      <button class="btn btn--wide btn--next btn--progress" style="--progress: 75%" id="btnToDeploy" type="button" aria-label="Next: Deploy Your Fleet (step 3 of 4 done)">Next: Deploy</button>
       <button class="btn btn--ghost btn--wide" id="btnBackToOpponent" type="button">&larr; Back</button>
     </div>
   </section>
@@ -127,7 +132,7 @@
 
       <div class="section-head">
         <span class="label label--say">Keep this layout or rearrange it</span>
-        <button class="btn btn--sm" id="btnShuffle" type="button" aria-label="Shuffle your fleet into a new random layout">&#x1F500; Shuffle</button>
+        <button class="btn btn--sm btn--head" id="btnShuffle" type="button" aria-label="Shuffle your fleet into a new random layout">&#x21C4; Shuffle</button>
       </div>
       <p class="hint hint--label">Drag a ship to move it. Double-tap its first letter to turn it.</p>
 
@@ -222,7 +227,7 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="audio.js?v=72"></script>
-<script src="app.js?v=72"></script>
+<script src="audio.js?v=76"></script>
+<script src="app.js?v=76"></script>
 </body>
 </html>
