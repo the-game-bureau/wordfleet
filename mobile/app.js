@@ -796,13 +796,21 @@
     return h;
   }
 
+  // 008-MOBILE-LOG: each entry is a card flying its side's flag. Yours in your fleet colors,
+  // the AI Captain's in Signal Orange & Black, Fleet Command plain. Newest first.
   function renderLog() {
     renderFleetTags();
+    var mine = schemeOf(S.colors);
     $('log').innerHTML = S.log.length ? S.log.map(function (l) {
-      return '<div class="log-item' + (l.who === 'foe' ? ' is-foe' : '') + '"><span class="log-who">' +
-        (l.who === 'foe' ? 'AI Captain · ' + esc(S.foe.name) : l.who === 'me' ? 'Human Captain · ' + esc(S.me.name) : 'Fleet Command') + '</span>' + l.text + '</div>';
+      var side = l.who === 'foe' ? 'is-foe' : l.who === 'me' ? 'is-me' : 'is-command';
+      var flag = l.who === 'foe' ? flagSvg(FOE_SCHEME, fleetInitials(S.foe.name) || 'AI')
+        : l.who === 'me' ? flagSvg(mine, fleetInitials(S.me.name) || 'WF') : '';
+      var who = l.who === 'foe' ? esc(S.foe.name) : l.who === 'me' ? esc(S.me.name) : 'Fleet Command';   // the flag says whose side
+      return '<div class="log-item ' + side + '"><div class="log-who">' + (flag ? '<span class="log-flag">' + flag + '</span>' : '') +
+        '<span>' + who + '</span></div><div class="log-text">' + l.text + '</div></div>';
     }).join('') : '<p class="log-empty">No letters called yet.</p>';
   }
+
 
   function switchTab(tab) {
     ui.tab = tab;

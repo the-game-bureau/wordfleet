@@ -556,3 +556,18 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 .gridbanner.is-defense { background: var(--mine, var(--navy)); color: var(--mine-ink, #fff); }
 .gridbanner.is-defense span { opacity: 1; }
 .card--defense { border-top-color: var(--mine, var(--navy)); }
+
+/* 008-MOBILE-LOG: entries as cards flying their side's flag, Prepare-sized text */
+.log { display: grid; gap: 10px; padding-bottom: 12px; }
+.log-item { background: var(--paper); border: 1px solid var(--ink); border-left-width: 8px; padding: 12px 14px; font-size: 17px; line-height: 1.45; }
+.log-item:last-child { border-bottom: 1px solid var(--ink); }
+.log-item.is-me { border-left-color: var(--mine, var(--navy)); }
+.log-item.is-foe { border-left-color: var(--foe); }
+.log-item.is-command { border-left-color: #bbb; background: #fafafa; }
+.log-who { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-family: var(--mono); font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink); }
+.log-item.is-foe .log-who { color: var(--ink); }
+.log-item.is-command .log-who { color: var(--muted); }
+.log-flag { width: 30px; flex-shrink: 0; }
+.log-flag svg { display: block; width: 100%; height: auto; }
+.log-text strong, .log-text b { font-family: var(--mono); }
+.log-empty { font-size: 17px; color: var(--muted); font-style: italic; }
