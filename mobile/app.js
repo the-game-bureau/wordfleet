@@ -549,14 +549,37 @@
     return '<span class="pips">' + h + '</span>';
   }
 
-  // The letter keyboard: called letters are spent; vowels cost a turn.
-  function keyboard() {
-    return '<div class="keys">' + LETTERS.map(function (L) {
-      var off = S.myTallies[L] != null;
+  // Can the Human Captain call a letter right now?
+  function canCall() { return S.turn === 'me' && !S.result && !ui.demand; }
+
+  // The Attack Manifest doubles as the letter picker: uncalled letters are buttons
+  // while you can call; called letters show one dot per square they revealed.
+  function manifestHtml() {
+    var live = canCall();
+    return LETTERS.map(function (L) {
+      var t = S.myTallies[L];
       var v = isVowel(L);
-      return '<button type="button" class="key' + (v ? ' is-vowel' : '') + '" data-letter="' + L + '"' + (off ? ' disabled' : '') +
-        (v ? ' aria-label="' + L + ', vowel: lose your next turn"' : '') + '>' + L + (v && !off ? '<span class="key-v">−1 turn</span>' : '') + '</button>';
-    }).join('') + '</div>';
+      var cls = 'mf', under;
+      if (t === 0) { cls += ' is-zero'; under = '<span class="mf-none">none</span>'; }
+      else if (t != null) { cls += ' is-done'; under = pips(t, t, 'is-found'); }
+      else under = v ? '<span class="mf-vowel">\u22121 turn</span>' : '<span class="pips"></span>';
+      if (v && t == null) cls += ' is-vowel';
+      if (live && t == null) {
+        return '<button type="button" class="' + cls + ' is-callable" data-letter="' + L + '"' +
+          (v ? ' aria-label="Call ' + L + ' (vowel: lose your next turn)"' : ' aria-label="Call ' + L + '"') + '>' +
+          '<span class="mf-l">' + L + '</span>' + under + '</button>';
+      }
+      return '<div class="' + cls + '"><span class="mf-l">' + L + '</span>' + under + '</div>';
+    }).join('');
+  }
+
+  // Tapping the Attack Grid pops up the Attack Manifest to pick a letter.
+  function openManifest() {
+    if (!canCall()) return;
+    openSheet('<div class="sheet-eyebrow">Your turn</div><h2>Attack Manifest</h2>' +
+      '<p class="hint" style="margin:4px 0 0">Pick a letter to call. Every square holding it in the AI Captain\'s fleet is revealed. Shaded vowels cost your next turn.</p>' +
+      '<div class="manifest manifest--pick">' + manifestHtml() + '</div>' +
+      '<button class="btn btn--ghost btn--wide" type="button" data-act="close">Close</button>');
   }
 
   function renderAttack() {
@@ -575,7 +598,7 @@
       var o = s && s.letter ? { cls: 'is-bull', text: s.letter } : {};
       if (ui.flash && ui.flash.indexOf(k) !== -1) o.cls = (o.cls || '') + ' is-flash';
       return o;
-    }, false);
+    }, canCall());
 
     var fp = $('firePanel');
     var found = bullCount(S.myShots);
@@ -592,19 +615,12 @@
     } else {
       fp.innerHTML = '<div class="card-title">Your Turn &middot; ' + found + ' of ' + FLEET_CELLS + ' letters revealed</div>' +
         (S.notice ? '<p class="notice">' + S.notice + '</p>' : '') +
-        '<p class="hint" style="margin-top:0">Call a letter. Every square holding it in the AI Captain\'s fleet is revealed. Vowels reveal too, but cost you your next turn. Reveal every letter to win.</p>' +
-        keyboard() + demandBtn;
+        '<p class="hint" style="margin-top:0">Call a letter: tap one in the <strong>Attack Manifest</strong> below, or tap the Attack Grid to bring it up. Every square holding that letter in the AI Captain\'s fleet is revealed. Vowels reveal too, but cost you your next turn. Reveal every letter to win.</p>' +
+        '<button class="btn btn--primary btn--wide" type="button" data-act="pick">Call a Letter</button>' + demandBtn;
     }
 
-    $('attackManifest').innerHTML = LETTERS.map(function (L) {
-      var t = S.myTallies[L];
-      var cls = 'mf', under;
-      if (t === 0) { cls += ' is-zero'; under = '<span class="mf-none">none</span>'; }
-      else if (t != null) { cls += ' is-done'; under = pips(t, t, 'is-found'); }
-      else under = '<span class="pips"></span>';
-      if (isVowel(L) && cls === 'mf') cls += ' is-vowel';
-      return '<div class="' + cls + '"><span class="mf-l">' + L + '</span>' + under + '</div>';
-    }).join('');
+    $('attackManifest').innerHTML = manifestHtml();
+    $('attackManifest').classList.toggle('is-live', canCall());
   }
 
   function renderDefense() {
@@ -1220,17 +1236,18 @@
     var b = e.target.closest('[data-act]');
     if (!b) return;
     var act = b.getAttribute('data-act');
-    if (act === 'demand') { ui.demand = true; renderAttack(); $('firePanel').scrollIntoView({ block: 'start', behavior: 'smooth' }); }
+    if (act === 'pick') openManifest();
+    else if (act === 'demand') { ui.demand = true; renderAttack(); $('firePanel').scrollIntoView({ block: 'start', behavior: 'smooth' }); }
     else if (act === 'belay') { ui.demand = false; renderAttack(); }
     else if (act === 'endTurn') endMyTurn();
     else if (act === 'solve') humanSolve();
     else if (act === 'submitDemand') submitDemand(false);
     else if (act === 'submitDemandSure') submitDemand(true);
   });
-  // The letter keyboard lives in the fire panel.
-  on($('firePanel'), 'click', function (e) {
+  on($('gridAttack'), 'click', function (e) { if (e.target.closest('[data-k]')) openManifest(); });
+  on($('attackManifest'), 'click', function (e) {
     var k = e.target.closest('[data-letter]');
-    if (k && !k.disabled) humanCall(k.getAttribute('data-letter'));
+    if (k) humanCall(k.getAttribute('data-letter'));
   });
   on($('firePanel'), 'input', function (e) { if (e.target.hasAttribute('data-claim')) claimInput(e.target); });
   on($('firePanel'), 'change', function (e) { if (e.target.hasAttribute('data-claim')) claimInput(e.target); });
@@ -1251,6 +1268,8 @@
   // sheet
   on($('scrim'), 'click', function () { if (sheetDismissible) closeSheet(); });
   on($('sheetBody'), 'click', function (e) {
+    var k = e.target.closest('[data-letter]');
+    if (k) { closeSheet(); humanCall(k.getAttribute('data-letter')); return; }
     var b = e.target.closest('[data-act]');
     if (!b) return;
     var act = b.getAttribute('data-act');
