@@ -210,6 +210,13 @@ button.cell { cursor: pointer; }
   font-family: var(--mono);
 }
 .mf-l { font-size: 17px; font-weight: 700; }
+button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; cursor: pointer; }
+.manifest.is-live .mf.is-callable { border-width: 2px; }
+.mf.is-callable:active { background: var(--green); }
+.mf-vowel { font-size: 9px; font-weight: 700; color: var(--red); min-height: 9px; }
+.manifest--pick { margin-top: 12px; }
+.manifest--pick .mf { min-height: 52px; }
+.cell[data-k] { cursor: pointer; }
 .mf-n { font-size: 11px; color: var(--muted); min-height: 12px; }
 .mf.is-vowel { background: #e4e4e4; }
 .mf.is-known { background: var(--gold-wash); }
