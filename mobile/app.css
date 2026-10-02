@@ -534,3 +534,9 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 #segLevel .cpt { white-space: nowrap; }
 #segLevel { overflow: hidden; }
 #segLevel button { min-width: 0; padding-left: 6px; padding-right: 6px; }
+
+/* Pressing a progress-bar button keeps its fill: no flood of green, just a slight press. */
+.btn--progress:active:not(:disabled) {
+  background: linear-gradient(to right, var(--green) var(--progress, 0%), var(--paper) var(--progress, 0%));
+  color: var(--ink); filter: brightness(0.9); transform: translateY(1px);
+}
