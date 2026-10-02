@@ -406,3 +406,23 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 
 .check--top { margin-top: 0; }
 .btn--sm-gap { margin-top: 10px; min-height: 40px; font-size: 14px; }
+
+/* --- Setup screens 002-004: large, easy-to-read text (elderly / phone friendly) --- */
+.setup-big .card { padding: 22px 20px; }
+.setup-big .card-title { font-size: 17px; letter-spacing: 0.08em; padding-bottom: 12px; margin-bottom: 18px; }
+.setup-big .label--say { font-family: var(--sans); font-size: 19px; font-weight: 700; text-transform: none; letter-spacing: 0; line-height: 1.35; margin: 22px 0 10px; }
+.setup-big .label--say:first-of-type { margin-top: 0; }
+.setup-big .hint { font-size: 17px; line-height: 1.5; color: #444; }
+.setup-big .note { font-size: 17px; }
+.setup-big .input { font-size: 21px; min-height: 56px; }
+.setup-big .select { font-size: 20px; min-height: 56px; padding: 0 12px; }
+.setup-big .btn { font-size: 19px; min-height: 58px; }
+.setup-big .btn--sq { width: 56px; font-size: 24px; }
+.setup-big .check { font-size: 19px; gap: 12px; }
+.setup-big .check input { width: 28px; height: 28px; }
+.setup-big .seg button { font-size: 18px; min-height: 64px; }
+.setup-big #segLevel .cpt { font-size: 13px; }
+.setup-big .word { grid-template-columns: 74px minmax(0, 1fr) auto; }
+.setup-big .word-class { font-size: 14px; }
+.setup-big .word-class b { font-size: 16px; }
+.setup-big .input { letter-spacing: 0.06em; }
