@@ -324,7 +324,7 @@
   // ------------------------------------------------------------
   var SCREENS = { home: 'scrMobileHome',   // "MOBILE-HOME"
                   setup: 'scrSetup',         // "001-MOBILE-PREPARE"
-                  opponent: 'scrOpponent',   // "002-MOBILE-OPPONENT"
+                  opponent: 'scrOpponent',   // "002-MOBILE-AI-CAPTAIN"
                   words: 'scrWords',         // "003-MOBILE-WORD-SHIPS"
                   deploy: 'scrDeploy',       // "004-MOBILE-DEPLOY"
                   // battle: tabs "005-MOBILE-ATTACK", "007-MOBILE-DEFENSE", "008-MOBILE-LOG"; sheet "006-MOBILE-CALL-LETTER";
