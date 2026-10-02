@@ -727,3 +727,7 @@ button.uc:active { background: var(--mine, var(--navy)); color: var(--mine-ink, 
 /* Title row of a letters manifest: title and vowel note share one line, even on an iPhone SE */
 .uncalled-label { letter-spacing: 0.06em; flex-wrap: nowrap; column-gap: 6px; white-space: nowrap; }
 .uncalled-label .uc-vowels-cap { letter-spacing: 0; font-size: 10px; }
+/* Open water (no letter there): pale sea with waves, unlike the round vowel chips and the gray "?" squares */
+.cell.is-empty { background: #d4e6f1; }
+.cell.is-empty::after { content: "\2248"; width: auto; height: auto; border-radius: 0; background: none;
+  color: #3f7391; font-family: var(--mono); font-weight: 700; font-size: calc(var(--cell) * 0.62); line-height: 1; }
