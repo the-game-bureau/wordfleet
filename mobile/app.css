@@ -674,3 +674,9 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 
 /* 003: possibly offensive words show in red */
 .input.is-offensive { color: var(--red); }
+
+/* Prepare-section notices: the coach bar's look, docked at the very bottom (no tab bar there) */
+.coach.coach--notice { bottom: 0; padding-bottom: calc(12px + var(--safe-b)); z-index: 45; animation: rise 0.18s ease-out; }
+.coach.coach--notice.is-warn { border-top-color: var(--red); }
+.coach.coach--notice.is-warn .coach-step { background: var(--red); color: #fff; }
+#setupNote { display: none; }   /* its message shows in the notice bar */

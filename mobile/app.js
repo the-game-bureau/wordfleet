@@ -344,6 +344,7 @@
 
   function show(name) {
     current = name;
+    if ($('notice')) $('notice').hidden = true;
     Object.keys(SCREENS).forEach(function (n) { var el = $(SCREENS[n]); if (el) el.classList.toggle('is-on', n === name); });
     window.scrollTo(0, 0);
     render();
@@ -412,12 +413,27 @@
     try { if (navigator.vibrate) navigator.vibrate([70, 50, 140]); } catch (e) { /* no buzz */ }
   }
 
-  function toast(msg) {
-    var el = $('toast');
-    el.textContent = msg;
+  // Prepare-section notices look like the battle's coach bar: docked at the bottom, a round marker,
+  // short bold text. toast() flashes one for a moment; setupNotice() keeps one up until it is cleared.
+  function showNotice(msg, kind) {
+    var el = $('notice');
+    if (!msg) { el.hidden = true; return; }
+    el.className = 'coach coach--notice' + (kind === 'warn' ? ' is-warn' : '');
+    // First sentence bold, the rest as a smaller line underneath (like the coach bar's main and sub lines).
+    var cut = msg.indexOf('. '), main = cut === -1 ? msg : msg.slice(0, cut + 1), rest = cut === -1 ? '' : msg.slice(cut + 2);
+    el.innerHTML = '<span class="coach-step">' + (kind === 'warn' ? '!' : 'i') + '</span><div class="coach-body"><div class="coach-main">' + esc(main) + '</div>' +
+      (rest ? '<div class="coach-sub">' + esc(rest) + '</div>' : '') + '</div>';
     el.hidden = false;
+  }
+  function toast(msg) {
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () { el.hidden = true; }, 2200);
+    showNotice(msg, 'warn');
+    toastTimer = setTimeout(function () { if (!$('setupNote').textContent) showNotice(''); else setupNotice($('setupNote').textContent); }, 2400);
+  }
+  // The word-ship problem on 003 (kept in #setupNote for the logic, shown in the notice bar).
+  function setupNotice(msg) {
+    $('setupNote').textContent = msg || '';
+    showNotice(msg && current === 'words' ? msg : '', 'warn');
   }
 
   var sheetDismissible = true;
@@ -510,7 +526,7 @@
     html += '</div>';
     $('wordList').innerHTML = html;
     Array.prototype.forEach.call($('wordList').querySelectorAll('[data-word]'), markWordInput);
-    $('setupNote').textContent = '';
+    setupNotice('');
     fitButtons();
   }
 
@@ -595,8 +611,8 @@
   function checkWordInput(input) {
     markWordInput(input, true);
     var i = +input.getAttribute('data-word'), msg = wordMessage(i);
-    if (msg) { $('setupNote').textContent = msg; noteFor = i; }
-    else if (noteFor === i) { $('setupNote').textContent = ''; noteFor = -1; }   // clear only this word's note
+    if (msg) { setupNotice(msg); noteFor = i; }
+    else if (noteFor === i) { setupNotice(''); noteFor = -1; }   // clear only this word's note
   }
   var noteFor = -1;   // which word the setup note is about
 
@@ -607,7 +623,7 @@
       if (first < 0 && wordMessage(i)) first = i;
     }
     if (first >= 0) {
-      $('setupNote').textContent = wordMessage(first);
+      setupNotice(wordMessage(first));
       noteFor = first;
       return;
     }
