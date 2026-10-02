@@ -23,17 +23,17 @@
   var STORE = 'wordfleet-app-v1';
   var RECORD = 'wordfleet-app-record';
 
-  // Difficulty = how common the AI Captain's words are, and how sharply it hunts.
+  // Difficulty = how common the AI Captain's words are, and how cleverly it calls letters.
   var LEVELS = {
-    ensign:    { name: 'Ensign',    tiers: ['common'],   example: 'PIANO \u2022 JUMP \u2022 BED',
-                 hint: 'Everyday words anyone knows. The AI Captain fires wide and guesses letters by gut.',
-                 hunt: 'random',  target: 'loose', follow: 0.5, pattern: false, refire: 0.9, solve: null },
-    commander: { name: 'Commander', tiers: ['everyday'], example: 'WHARF \u2022 HOOF \u2022 KEG',
-                 hint: 'Familiar but less frequent words. The AI Captain follows up hits and reads the grid for likely words.',
-                 hunt: 'parity',  target: 'line',  follow: 1,   pattern: true,  refire: 0.6, solve: { known: 0.6, share: 1 } },
-    admiral:   { name: 'Admiral',   tiers: ['rare'],     example: 'GLYPH \u2022 YURT \u2022 ASP',
-                 hint: 'Uncommon words that hide well. The AI Captain hunts by probability and cracks words from every tally.',
-                 hunt: 'density', target: 'density', follow: 1, pattern: true, refire: 0.5, words: true, solve: { known: 0.4, share: 0.7 } }
+    ensign:    { name: 'Ensign',    tiers: ['common'],   example: 'PIANO • JUMP • BED',
+                 hint: 'Everyday words anyone knows. The AI Captain calls letters by gut, vowels and all.',
+                 pattern: false, vowelCost: 1, noise: 1, solve: null },
+    commander: { name: 'Commander', tiers: ['everyday'], example: 'WHARF • HOOF • KEG',
+                 hint: 'Familiar but less frequent words. The AI Captain calls smart consonants and solves words when it can.',
+                 pattern: true, vowelCost: 0.45, noise: 0.15, solve: { known: 0.6, share: 1 } },
+    admiral:   { name: 'Admiral',   tiers: ['rare'],     example: 'GLYPH • YURT • ASP',
+                 hint: 'Uncommon words that hide well. The AI Captain reads every revealed letter, rarely wastes a turn on a vowel, and solves early.',
+                 pattern: true, vowelCost: 0.3, noise: 0.05, solve: { known: 0.4, share: 0.7 } }
   };
 
   var FLEET_ADJ = ['Salty', 'Barnacle-Crusted', 'Rum-Soaked', 'Royal', 'Crabby', 'Peg-Legged', 'Stormy', 'Treacherous', 'Cursed', 'Ghostly', 'Iron-Bound', 'Sea-Worn', 'Soggy-Bottom', 'Windswept', 'Ironclad', 'Thunderhead', 'Bloodwake', 'Scurvy', "Admiral's", "Commodore's", 'Steel-Hulled', 'Storm-Battered', 'Salt-Crusted', 'Rust-Stained', 'Sun-Bleached', 'Cannon-Heavy', 'Torpedo-Laden', 'Merciless', 'Grog-Fueled', 'Hook-Handed', "Kraken's", "Siren's", "Neptune's", 'Abyssal', 'Phantom', 'Half-Sunk', 'Creaking', 'Patched-Up', 'Battle-Scarred'];
@@ -221,7 +221,7 @@
 
   function newGame() {
     S = {
-      v: 1,
+      v: 2,
       phase: 'setup',
       level: (S && S.level) || 'ensign',
       lang: (S && S.lang) || (lang && lang.code) || 'en-US',
@@ -231,7 +231,7 @@
       foe: null,
       myShots: {}, myTallies: {},
       foeShots: {}, foeTallies: {},
-      turn: null, alpha: null, incoming: null, lastFoe: null,
+      turn: null, incoming: [], lastFoe: null, skip: { me: false, foe: false }, notice: null,
       claims: null, log: [], turns: 0,
       winner: null, reason: null
     };
@@ -529,7 +529,7 @@
 
   function renderBattle() {
     var mine = S.turn === 'me';
-    setBar(mine ? (S.alpha ? 'Strike Bonus' : rapidMine() ? 'Rapid Fire' : 'Your Turn') : 'AI Captain\'s Turn', mine ? '' : 'is-foe');
+    setBar(mine ? 'Your Turn' : 'AI Captain\'s Turn', mine ? '' : 'is-foe');
     Array.prototype.forEach.call($('tabbar').children, function (b) { b.classList.toggle('is-on', b.getAttribute('data-tab') === ui.tab); });
     $('tabAttack').hidden = ui.tab !== 'Attack';
     $('tabDefense').hidden = ui.tab !== 'Defense';
@@ -541,11 +541,7 @@
     if (S.turn === 'foe' && !ui.aiTimer) ui.aiTimer = setTimeout(foeTurn, 1600);
   }
 
-  // Every square of the AI Captain's fleet has been hit: Rapid Fire (letters only).
-  function rapidMine() {
-    var fb = foeBoard();
-    return Object.keys(fb).every(function (k) { return S.myShots[k] && S.myShots[k].hit; });
-  }
+  function isVowel(L) { return VOWELS.indexOf(L) !== -1; }
 
   function pips(total, filled, cls) {
     var h = '';
@@ -553,36 +549,33 @@
     return '<span class="pips">' + h + '</span>';
   }
 
-  function keyboard(disabled) {
+  // The letter keyboard: called letters are spent; vowels cost a turn.
+  function keyboard() {
     return '<div class="keys">' + LETTERS.map(function (L) {
-      var off = S.myTallies[L] != null || (disabled && disabled.indexOf(L) !== -1);
-      return '<button type="button" class="key" data-letter="' + L + '"' + (off ? ' disabled' : '') + '>' + L + '</button>';
+      var off = S.myTallies[L] != null;
+      var v = isVowel(L);
+      return '<button type="button" class="key' + (v ? ' is-vowel' : '') + '" data-letter="' + L + '"' + (off ? ' disabled' : '') +
+        (v ? ' aria-label="' + L + ', vowel: lose your next turn"' : '') + '>' + L + (v && !off ? '<span class="key-v">−1 turn</span>' : '') + '</button>';
     }).join('') + '</div>';
   }
 
   function renderAttack() {
     var mine = S.turn === 'me';
-    var rapid = rapidMine();
-    // Ship status: yellow once every square of it has been hit, green once every letter is in.
+    // Ship status: yellow once some of its letters show, green once all of them do.
     $('bubbles').innerHTML = S.foe.ships.map(function (ship, i) {
       var shots = cellsOf(ship).map(function (p) { return S.myShots[key(p.r, p.c)]; });
-      var located = shots.every(function (s) { return s && s.hit; });
-      var solved = shots.every(function (s) { return s && s.letter; });
-      var state = solved ? 'solved' : located ? 'located' : 'hidden';
-      return '<span class="bubble is-' + state + '" title="' + SPECS[i].cls + ': ' + state + '">' + SPECS[i].len + '</span>';
+      var some = shots.some(function (s) { return s && s.letter; });
+      var all = shots.every(function (s) { return s && s.letter; });
+      var state = all ? 'solved' : some ? 'located' : 'hidden';
+      return '<span class="bubble is-' + state + '" title="' + SPECS[i].cls + ': ' + (all ? 'solved' : some ? 'partly revealed' : 'hidden') + '">' + SPECS[i].len + '</span>';
     }).join('');
     paint($('gridAttack'), function (r, c) {
       var k = key(r, c);
       var s = S.myShots[k];
-      var o = {};
-      if (s && !s.hit) o = { cls: 'is-miss', off: true };
-      else if (s && s.letter) o = { cls: 'is-bull', text: s.letter, off: true };
-      else if (s) o = { cls: 'is-hit', text: '<span class="q">?</span>' };
-      if (ui.sel === k || S.alpha === k) o.cls = (o.cls || '') + ' is-target';
+      var o = s && s.letter ? { cls: 'is-bull', text: s.letter } : {};
       if (ui.flash && ui.flash.indexOf(k) !== -1) o.cls = (o.cls || '') + ' is-flash';
-      if (!mine || rapid || S.result) o.off = true;
       return o;
-    }, true);
+    }, false);
 
     var fp = $('firePanel');
     var found = bullCount(S.myShots);
@@ -590,44 +583,26 @@
     if (ui.demand && mine && !S.result) {
       fp.innerHTML = demandForm();
     } else if (S.result) {
-      // What just happened on your turn, right here on the page.
       fp.innerHTML = '<div class="card-title">' + S.result.title + '</div>' + S.result.html +
         (mine && S.result.solve ? solveBox() : '') +
         (mine ? '<button class="btn btn--primary btn--wide" type="button" data-act="endTurn">End Turn</button>'
-              : '<p class="waiting">AI Captain is taking aim…</p>');
+              : '<p class="waiting">AI Captain is choosing a letter…</p>');
     } else if (!mine) {
-      fp.innerHTML = '<p class="waiting">AI Captain is taking aim…</p>';
-    } else if (S.alpha) {
-      fp.innerHTML = '<div class="card-title">Strike Bonus</div>' +
-        '<div class="fire-coord">' + coordK(S.alpha) + ' is a hit!</div>' +
-        '<div class="fire-call">Call the letter hiding at ' + callK(S.alpha) + '.</div>' +
-        '<button class="btn btn--primary btn--wide" type="button" data-act="alpha">Call Strike Bonus Letter</button>';
-    } else if (rapid) {
-      fp.innerHTML = '<div class="rapid-title">RAPID FIRE</div>' +
-        '<p class="hint" style="margin-top:4px">Every enemy ship is located. No more shots needed: call a letter each turn and it fills in everywhere it appears. ' +
-        found + ' of ' + FLEET_CELLS + ' letters found.</p>' +
-        keyboard() + demandBtn;
-    } else if (ui.sel) {
-      var again = S.myShots[ui.sel] && S.myShots[ui.sel].hit;
-      fp.innerHTML = '<div class="card-title">Fire!</div>' +
-        '<div class="fire-coord">' + coordK(ui.sel) + '</div>' +
-        '<div class="fire-call">"Fire on coordinate ' + callK(ui.sel) + '!"' + (again ? ' — a known hit. Fire again for another Strike Bonus letter.' : '') + '</div>' +
-        '<div class="fire-actions"><button class="btn btn--primary" type="button" data-act="fire">Fire</button>' +
-        '<button class="btn" type="button" data-act="unsel">Hold</button></div>' + demandBtn;
+      fp.innerHTML = '<p class="waiting">AI Captain is choosing a letter…</p>';
     } else {
-      fp.innerHTML = '<div class="card-title">Your Turn &middot; ' + found + ' of ' + FLEET_CELLS + ' letters found</div>' +
-        '<p class="hint" style="margin-top:0">Tap a square on the Attack Grid to target it, or double-tap to fire at once. A hit earns a Strike Bonus: call the letter hiding there.</p>' +
-        demandBtn;
+      fp.innerHTML = '<div class="card-title">Your Turn &middot; ' + found + ' of ' + FLEET_CELLS + ' letters revealed</div>' +
+        (S.notice ? '<p class="notice">' + S.notice + '</p>' : '') +
+        '<p class="hint" style="margin-top:0">Call a letter. Every square holding it in the AI Captain\'s fleet is revealed. Vowels reveal too, but cost you your next turn. Reveal every letter to win.</p>' +
+        keyboard() + demandBtn;
     }
 
     $('attackManifest').innerHTML = LETTERS.map(function (L) {
       var t = S.myTallies[L];
-      var f = Object.keys(S.myShots).filter(function (k) { return S.myShots[k].letter === L; }).length;
       var cls = 'mf', under;
       if (t === 0) { cls += ' is-zero'; under = '<span class="mf-none">none</span>'; }
-      else if (t != null) { cls += f >= t ? ' is-done' : ' is-known'; under = pips(t, f, 'is-found'); }
-      else under = f ? pips(f, f, 'is-found') : '<span class="pips"></span>';
-      if (VOWELS.indexOf(L) !== -1 && cls === 'mf') cls += ' is-vowel';
+      else if (t != null) { cls += ' is-done'; under = pips(t, t, 'is-found'); }
+      else under = '<span class="pips"></span>';
+      if (isVowel(L) && cls === 'mf') cls += ' is-vowel';
       return '<div class="' + cls + '"><span class="mf-l">' + L + '</span>' + under + '</div>';
     }).join('');
   }
@@ -641,49 +616,37 @@
       var k = key(r, c);
       var cell = b[k];
       var s = S.foeShots[k];
-      var cls = '';
-      if (cell) cls = 'is-ship';
-      if (s && !s.hit) cls = 'is-miss';
-      if (s && s.hit && s.letter) cls = 'is-ship is-ship-lost';
-      else if (s && s.hit) cls = 'is-ship is-ship-hit';
-      if (flashing && (k === ev.key || (ev.filled && ev.filled.indexOf(k) !== -1) || (ev.solve && ev.solve.cells.indexOf(k) !== -1))) cls += ' is-flash';
+      var cls = cell ? 'is-ship' + (s && s.letter ? ' is-ship-lost' : '') : '';
+      if (flashing && ev.cells && ev.cells.indexOf(k) !== -1) cls += ' is-flash';
       return { cls: cls, text: cell ? cell.letter : '' };
     }, false);
     if (flashing) { ev.unseen = false; save(); $('defDot').hidden = true; }
 
-    // The AI Captain's last move, reported on the page instead of a pop-up.
+    // The AI Captain's moves since your last turn, reported on the page.
     var ic = $('incomingCard');
-    ic.hidden = !S.incoming;
-    ic.innerHTML = S.incoming ? incomingHtml(S.incoming) +
-      '<button class="btn btn--primary btn--wide" type="button" data-act="returnFire">Your Turn: Return Fire → Attack Grid</button>' : '';
+    var list = S.incoming || [];
+    ic.hidden = !list.length;
+    ic.innerHTML = list.length ? '<div class="incoming-title">The AI Captain\'s move' + (list.filter(function (e) { return !e.skip; }).length > 1 ? 's' : '') + '</div>' +
+      list.map(incomingHtml).join('') +
+      (S.turn === 'me' ? '<button class="btn btn--primary btn--wide" type="button" data-act="returnFire">Your Turn: Call a Letter → Attack Grid</button>'
+                       : '<p class="waiting">The AI Captain goes again…</p>') : '';
 
     var counts = letterCounts(S.me.words);
     var lost = {};
     Object.keys(S.foeShots).forEach(function (k) { var L = S.foeShots[k].letter; if (L) lost[L] = (lost[L] || 0) + 1; });
     $('defenseManifest').innerHTML = LETTERS.map(function (L) {
       var n = counts[L];
-      var cls = 'mf' + (n === 0 ? ' is-dim' : '') + (VOWELS.indexOf(L) !== -1 && n ? ' is-vowel' : '');
+      var cls = 'mf' + (n === 0 ? ' is-dim' : '') + (isVowel(L) && n ? ' is-vowel' : '');
       return '<div class="' + cls + '"><span class="mf-l">' + L + '</span>' + pips(n, lost[L] || 0, 'is-lost') + '</div>';
     }).join('');
   }
 
   function incomingHtml(ev) {
-    var h = '<div class="incoming-title">Incoming fire from the AI Captain</div>';
-    if (ev.rapid) {
-      h += '<div class="report is-warn"><div class="report-q">"Rapid Fire: ' + NATO[ev.letter] + '!"</div>' +
-        '<div class="report-a">"' + ev.letter + ' tally ' + ev.tally + '."</div></div>';
-    } else {
-      var p = unkey(ev.key);
-      h += '<div class="report ' + (ev.hit ? 'is-bad' : 'is-good') + '"><div class="report-q">"Fire on coordinate ' + callOut(p.r, p.c) + '!"</div>' +
-        '<div class="report-a">' + coord(p.r, p.c) + ': ' + (ev.hit ? '"Hit."' : '"Miss!"') + '</div></div>';
-      if (ev.auto) {
-        h += '<p class="hint"><strong>' + ev.auto + '</strong> was already called, so it fills in on the hit.</p>';
-      } else if (ev.hit) {
-        h += '<div class="report ' + (ev.bull ? 'is-bad' : 'is-warn') + '"><div class="report-q">"Strike Bonus: ' + NATO[ev.letter] + '!"</div>' +
-          '<div class="report-a">' + (ev.bull ? '"Bullseye."' : '"' + ev.letter + ' tally ' + ev.tally + '."') + '</div></div>';
-      }
-    }
-    if (ev.filled && ev.filled.length) h += fillNote(ev.letter, ev.filled, 'your');
+    if (ev.skip) return '<p class="notice">You called a vowel, so you lose this turn.</p>';
+    var h = '<div class="report ' + (ev.tally ? 'is-bad' : 'is-good') + '"><div class="report-q">"Calling ' + NATO[ev.letter] + '!"</div>' +
+      '<div class="report-a">"' + ev.letter + ' tally ' + ev.tally + '."</div></div>';
+    if (ev.cells && ev.cells.length) h += revealNote(ev.letter, ev.cells, 'your');
+    if (ev.vowel) h += '<p class="notice">The AI Captain called a vowel, so it loses its next turn.</p>';
     if (ev.solve) {
       h += '<div class="report ' + (ev.solve.ok ? 'is-bad' : 'is-good') + '"><div class="report-q">"Solve: ' + ev.solve.word + '!"</div><div class="report-a">' + (ev.solve.ok ? '"Correct."' : '"Negative."') + '</div></div>' +
         (ev.solve.ok ? '<p class="hint">Your word-ship <strong>' + ev.solve.word + '</strong> is fully exposed.</p>' : '');
@@ -695,7 +658,7 @@
     $('log').innerHTML = S.log.length ? S.log.map(function (l) {
       return '<div class="log-item' + (l.who === 'foe' ? ' is-foe' : '') + '"><span class="log-who">' +
         (l.who === 'foe' ? 'AI Captain · ' + esc(S.foe.name) : l.who === 'me' ? 'Human Captain · ' + esc(S.me.name) : 'Fleet Command') + '</span>' + l.text + '</div>';
-    }).join('') : '<p class="log-empty">No shots fired yet.</p>';
+    }).join('') : '<p class="log-empty">No letters called yet.</p>';
   }
 
   function switchTab(tab) {
@@ -704,127 +667,65 @@
     window.scrollTo(0, 0);
   }
 
-  // --- player fires ---
-  function attackTap(k) {
-    if (S.turn !== 'me' || S.alpha || S.result || rapidMine()) return;
-    var s = S.myShots[k];
-    if (s && (!s.hit || s.letter)) return;
-    // Double tap fires straight away.
-    if (ui.sel === k && Date.now() - (ui.selAt || 0) < 400) { fire(); return; }
-    ui.sel = ui.sel === k ? null : k;
-    ui.selAt = ui.sel ? Date.now() : 0;
-    ui.demand = false;
-    if (ui.sel) sfx('select');
-    ui.flash = null;
-    renderAttack();
-    // Bring the Fire button into view, but not mid double tap (it would move the grid).
-    if (ui.sel) setTimeout(function () {
-      if (ui.sel === k && S.turn === 'me') $('firePanel').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-    }, 400);
+  // Every square holding L is revealed, wherever it is. Returns the newly revealed squares.
+  function revealLetter(shots, board, L) {
+    var cells = [];
+    Object.keys(board).forEach(function (k) {
+      if (board[k].letter !== L || (shots[k] && shots[k].letter)) return;
+      shots[k] = { hit: true, letter: L };
+      cells.push(k);
+    });
+    return cells;
   }
 
-  // Show a result in the fire panel. `auto` ends the turn by itself (misses, auto-fills).
-  function showResult(title, html, opts) {
-    S.result = { title: title, html: html, solve: !!(opts && opts.solve) };
-    if (opts && opts.auto) S.turn = 'foe';
+  function revealNote(L, cells, whose) {
+    return '<p class="hint"><strong>' + L + ' revealed at ' + cells.map(coordK).join(', ') + '</strong> in ' + whose + ' fleet.</p>';
+  }
+
+  function allRevealed(shots, board) {
+    return Object.keys(board).every(function (k) { return shots[k] && shots[k].letter; });
+  }
+
+  // Hand the turn over; a captain who called a vowel sits this one out.
+  function passTurn(to) {
+    // Both captains may owe a skip (each called a vowel), so keep passing until someone plays.
+    for (var n = 0; n < 2 && S.skip[to]; n++) {
+      S.skip[to] = false;
+      log('sys', (to === 'me' ? 'The Human Captain' : 'The AI Captain') + ' loses this turn for calling a vowel.');
+      if (to === 'me') S.incoming.push({ skip: true });
+      else S.notice = 'The AI Captain called a vowel, so it loses this turn. Your turn again.';
+      to = to === 'me' ? 'foe' : 'me';
+    }
+    S.turn = to;
+  }
+
+  function showResult(title, html, solve) {
+    S.result = { title: title, html: html, solve: !!solve };
     save();
     renderBattle();
     $('firePanel').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 
-  function fire() {
-    var k = ui.sel;
-    if (!k || S.turn !== 'me') return;
-    ui.sel = null;
-    var cell = foeBoard()[k];
-    S.turns++;
-    if (!cell) {
-      S.myShots[k] = { hit: false };
-      ui.flash = [k];
-      log('me', '"Fire on ' + callK(k) + '!" &mdash; <span class="say">"Miss!"</span>');
-      sfx('fire'); sfx('miss', 0.3);
-      showResult('Fire on ' + coordK(k), '<div class="report is-good"><div class="report-q">"Fire on coordinate ' + callK(k) + '!"</div><div class="report-a">"Miss!"</div></div>', { auto: true });
-      return;
-    }
-    if (!S.myShots[k]) S.myShots[k] = { hit: true, letter: null, wrong: [] };
-    if (S.myTallies[cell.letter] != null) {   // letter already called: it shows on the hit
-      S.myShots[k].letter = cell.letter;
-      ui.flash = [k];
-      log('me', '"Fire on ' + callK(k) + '!" &mdash; <span class="say">"Hit."</span> ' + cell.letter + ' was already called, so it fills in.');
-      sfx('fire'); sfx('hit', 0.3); sfx('fill', 0.9);
-      showResult('Fire on ' + coordK(k), '<div class="report is-good"><div class="report-q">"Fire on coordinate ' + callK(k) + '!"</div><div class="report-a">"Hit."</div></div>' +
-        '<p class="hint"><strong>' + cell.letter + '</strong> was already called, so it fills in. No Strike Bonus needed.</p>', { auto: true });
-      return;
-    }
-    S.alpha = k;
-    ui.flash = null;
-    sfx('fire'); sfx('hit', 0.3);
-    log('me', '"Fire on ' + callK(k) + '!" &mdash; <span class="say">"Hit."</span>');
-    save();
-    renderBattle();
-    openAlpha();
-  }
-
-  // The one pop-up: pick the Strike Bonus letter.
-  function openAlpha() {
-    var k = S.alpha;
-    var shot = S.myShots[k];
-    openSheet(
-      '<div class="sheet-eyebrow">Hit at ' + coordK(k) + '</div>' +
-      '<h2>Strike Bonus</h2>' +
-      '<p class="hint" style="margin:4px 0 0">Call the letter at ' + callK(k) + '. Right letter: Bullseye. Wrong letter: the AI Captain tells you how many times it appears in their fleet. Either way, it fills in on every hit square that holds it.</p>' +
-      keyboard(shot.wrong) +
-      '<p class="hint" style="margin:0">Letters already called are crossed out.</p>', false);
-  }
-
-  function alphaStrike(L) {
-    var k = S.alpha;
-    if (!k) return;
-    closeSheet();
-    var cell = foeBoard()[k];
-    var shot = S.myShots[k];
+  // --- the Human Captain calls a letter ---
+  function humanCall(L) {
+    if (S.turn !== 'me' || S.result || S.myTallies[L] != null) return;
     var t = countOf(S.foe.words.join(''), L);
-    var report;
-    S.myTallies[L] = t;
-    if (cell.letter === L) {
-      shot.letter = L;
-      log('me', '"Strike Bonus: ' + NATO[L] + '!" &mdash; <span class="say">"Bullseye."</span>');
-      report = '<div class="report is-good"><div class="report-q">"Strike Bonus: ' + NATO[L] + '!"</div><div class="report-a">"Bullseye."</div></div>';
-      sfx('bull');
-    } else {
-      if (shot.wrong.indexOf(L) === -1) shot.wrong.push(L);
-      log('me', '"Strike Bonus: ' + NATO[L] + '!" &mdash; <span class="say">"' + L + ' tally ' + t + '."</span>');
-      sfx(t ? 'tally' : 'zero');
-      report = '<div class="report is-warn"><div class="report-q">"Strike Bonus: ' + NATO[L] + '!"</div><div class="report-a">"' + L + ' tally ' + t + '."</div></div>' +
-        '<p class="hint">' + (t === 0 ? L + ' is nowhere in the AI Captain\'s fleet.' : L + ' appears ' + t + (t === 1 ? ' time' : ' times') + ' in the AI Captain\'s fleet, just not at ' + coordK(k) + '.') + '</p>';
-    }
-    S.alpha = null;
-    var filled = fillLetter(S.myShots, foeBoard(), L);
-    if (filled.length) sfx('fill', 0.45);
-    ui.flash = [k].concat(filled);
-    letterResult('Strike Bonus at ' + coordK(k), report, L, filled);
-  }
-
-  // Rapid Fire: just call a letter.
-  function rapidCall(L) {
-    if (S.turn !== 'me' || S.result || !rapidMine()) return;
-    var t = countOf(S.foe.words.join(''), L);
+    var vowel = isVowel(L);
     S.myTallies[L] = t;
     S.turns++;
-    var filled = fillLetter(S.myShots, foeBoard(), L);
-    log('me', '"Rapid Fire: ' + NATO[L] + '!" &mdash; <span class="say">"' + L + ' tally ' + t + '."</span>');
-    sfx('fire'); sfx(t ? 'tally' : 'zero', 0.3);
-    if (filled.length) sfx('fill', 0.6);
-    ui.flash = filled;
-    letterResult('Rapid Fire', '<div class="report ' + (t ? 'is-good' : 'is-warn') + '"><div class="report-q">"Rapid Fire: ' + NATO[L] + '!"</div><div class="report-a">"' + L + ' tally ' + t + '."</div></div>' +
-      (t === 0 ? '<p class="hint">' + L + ' is nowhere in the AI Captain\'s fleet.</p>' : ''), L, filled);
-  }
-
-  function letterResult(title, report, L, filled) {
-    var found = bullCount(S.myShots);
-    report += fillNote(L, filled, 'the AI Captain\'s');
-    if (found === FLEET_CELLS) report += '<p class="hint"><strong>All 17 letters found.</strong> Next turn, demand their surrender.</p>';
-    showResult(title, report, { solve: S.myTallies[L] > 0 && found < FLEET_CELLS });
+    S.notice = null;
+    if (vowel) S.skip.me = true;
+    var cells = revealLetter(S.myShots, foeBoard(), L);
+    ui.flash = cells;
+    log('me', '"Calling ' + NATO[L] + '!" &mdash; <span class="say">"' + L + ' tally ' + t + '."</span>' + (vowel ? ' A vowel: the Human Captain loses the next turn.' : ''));
+    sfx('select');
+    sfx(t ? 'fill' : 'zero', 0.2);
+    if (vowel) sfx('error', 0.6);
+    if (allRevealed(S.myShots, foeBoard())) { finish('me', 'reveal'); return; }
+    var html = '<div class="report ' + (t ? 'is-good' : 'is-warn') + '"><div class="report-q">"Calling ' + NATO[L] + '!"</div><div class="report-a">"' + L + ' tally ' + t + '."</div></div>' +
+      (t ? revealNote(L, cells, 'the AI Captain\'s') : '<p class="hint">' + L + ' is nowhere in the AI Captain\'s fleet.</p>') +
+      (vowel ? '<p class="notice">You called a vowel, so you lose your next turn.</p>' : '');
+    showResult('Calling ' + NATO[L], html, t > 0);
   }
 
   // --- solve a word (after calling a letter that is in the fleet) ---
@@ -832,7 +733,7 @@
     return '<div class="solve" id="solveBox"><span class="label">Solve a Word (optional)</span>' +
       '<div class="input-row"><input class="input" id="solveIn" maxlength="5" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="WORD">' +
       '<button class="btn" type="button" data-act="solve">Solve</button></div>' +
-      '<p class="hint">Name one of the AI Captain\'s word-ships. Get it right and the whole word fills in. One try per turn.</p></div>';
+      '<p class="hint">Name one of the AI Captain\'s word-ships. Get it right and the whole word is revealed. One try per turn.</p></div>';
   }
 
   // Fill in every square of the first unsolved word-ship spelling `word`.
@@ -862,8 +763,9 @@
     if (res) {
       ui.flash = res.cells;
       log('me', '"Solve: ' + word + '!" &mdash; <span class="say">"Correct."</span>');
+      if (allRevealed(S.myShots, foeBoard())) { finish('me', 'reveal'); return; }
       html = '<div class="report is-good"><div class="report-q">"Solve: ' + word + '!"</div><div class="report-a">"Correct."</div></div>' +
-        '<p class="hint"><strong>' + word + '</strong> filled in' + (res.cells.length ? ' at ' + res.cells.map(coordK).join(', ') : '') + '.</p>';
+        '<p class="hint"><strong>' + word + '</strong> revealed' + (res.cells.length ? ' at ' + res.cells.map(coordK).join(', ') : '') + '.</p>';
     } else {
       log('me', '"Solve: ' + word + '!" &mdash; <span class="say">"Negative."</span>');
       html = '<div class="report is-bad"><div class="report-q">"Solve: ' + word + '!"</div><div class="report-a">"Negative."</div></div>' +
@@ -875,60 +777,11 @@
     renderBattle();
   }
 
-  // AI Captain: solve when the letters it has pin a word down.
-  function foeTrySolve(lvl) {
-    var sh = S.foeShots, best = null;
-    Object.keys(FLEET_LENS).forEach(function (lenStr) {
-      var len = +lenStr;
-      for (var r = 0; r < 10; r++) for (var c = 0; c < 10; c++) {
-        ['H', 'V'].forEach(function (dir) {
-          if (dir === 'H' ? c + len > 10 : r + len > 10) return;
-          var seg = [], known = 0;
-          for (var i = 0; i < len; i++) {
-            var s = sh[dir === 'H' ? key(r, c + i) : key(r + i, c)];
-            if (s && !s.hit) return;
-            if (s && s.letter) known++;
-            seg.push(s || null);
-          }
-          if (known === len || known < 2 || known / len < lvl.solve.known) return;
-          var pat = segPattern(seg);
-          var re = new RegExp('^' + pat + '$'), ex = excludedLetters(), total = 0, top = null;
-          (guessPool[len] || []).forEach(function (e) {
-            if (!allowed(e.w) || !re.test(e.w) || (S.foeMissedSolves || []).indexOf(e.w) !== -1) return;
-            for (var j = 0; j < len; j++) if (!seg[j] || !seg[j].letter) { if (ex[e.w[j]]) return; }
-            total += e.wt;
-            if (!top || e.wt > top.wt) top = e;
-          });
-          if (!top || top.wt / total < lvl.solve.share) return;
-          var score = known / len + top.wt / total;
-          if (!best || score > best.score) best = { word: top.w, score: score };
-        });
-      }
-    });
-    return best && best.word;
-  }
-
-  // Wheel of Fortune: a called letter fills in on every square already hit that holds it.
-  // Squares not yet hit stay hidden; they show the letter the moment they are hit.
-  function fillLetter(shots, board, L) {
-    var filled = [];
-    Object.keys(board).forEach(function (k) {
-      var s = shots[k];
-      if (board[k].letter !== L || !s || !s.hit || s.letter) return;
-      s.letter = L;
-      filled.push(k);
-    });
-    return filled;
-  }
-
-  function fillNote(L, filled, whose) {
-    if (!filled.length) return '';
-    return '<p class="hint"><strong>' + L + ' filled in at ' + filled.map(coordK).join(', ') + '</strong> — every hit square in ' + whose + ' fleet holding ' + L + ' now shows it.</p>';
-  }
-
   function endMyTurn() {
     closeSheet();
-    S.turn = 'foe';
+    S.result = null;
+    S.incoming = [];
+    passTurn('foe');
     save();
     renderBattle();
   }
@@ -996,293 +849,126 @@
   // ------------------------------------------------------------
   // THE AI CAPTAIN
   // ------------------------------------------------------------
-  function foeTurn() {
-    ui.aiTimer = null;
-    if (S.phase !== 'battle' || S.turn !== 'foe') return;
-    var sh = S.foeShots;
-    var lvl = LEVELS[S.level];
-    S.turns++;
-
-    if (bullCount(sh) >= FLEET_CELLS) {
-      var said = S.me.ships.map(function (s) { return s.word + ' at ' + coord(s.r, s.c) + (s.dir === 'H' ? ' across' : ' down'); }).join(', ');
-      log('foe', '"I demand your surrender! Your fleet consists of: ' + esc(said) + '!"');
-      finish('foe', 'foe-demand');
-      return;
-    }
-
-    var hits = Object.keys(sh).filter(function (k) { return sh[k].hit; }).length;
-    var k = foeChooseCell(lvl);
-    var ev, L;
-    if (hits >= FLEET_CELLS) {
-      // Rapid Fire: every ship square is found, so just call a letter.
-      L = foeGuessLetter(k, lvl);
-      var rt = countOf(S.me.words.join(''), L);
-      S.foeTallies[L] = rt;
-      ev = { key: k, hit: true, rapid: true, letter: L, tally: rt };
-      log('foe', '"Rapid Fire: ' + NATO[L] + '!" &mdash; <span class="say">"' + L + ' tally ' + rt + '."</span>');
-    } else {
-      var cell = myBoard()[k];
-      ev = { key: k, hit: !!cell };
-      if (!cell) {
-        sh[k] = { hit: false };
-        log('foe', '"Fire on ' + callK(k) + '!" &mdash; <span class="say">"Miss!"</span>');
-      } else {
-        if (!sh[k]) sh[k] = { hit: true, letter: null, wrong: [] };
-      }
-      if (cell && S.foeTallies[cell.letter] != null) {   // letter already called: it shows on the hit
-        sh[k].letter = cell.letter;
-        ev.auto = cell.letter;
-        log('foe', '"Fire on ' + callK(k) + '!" &mdash; <span class="say">"Hit."</span> ' + cell.letter + ' was already called, so it fills in.');
-      } else if (cell) {
-        L = foeGuessLetter(k, lvl);
-        ev.letter = L;
-        var t = countOf(S.me.words.join(''), L);
-        S.foeTallies[L] = t;
-        if (cell.letter === L) {
-          sh[k].letter = L;
-          ev.bull = true;
-          log('foe', '"Fire on ' + callK(k) + '!" &mdash; <span class="say">"Hit."</span> "Strike Bonus: ' + NATO[L] + '!" &mdash; <span class="say">"Bullseye."</span>');
-        } else {
-          if (sh[k].wrong.indexOf(L) === -1) sh[k].wrong.push(L);
-          ev.tally = t;
-          log('foe', '"Fire on ' + callK(k) + '!" &mdash; <span class="say">"Hit."</span> "Strike Bonus: ' + NATO[L] + '!" &mdash; <span class="say">"' + L + ' tally ' + t + '."</span>');
-        }
-      }
-    }
-    if (ev.letter) ev.filled = fillLetter(sh, myBoard(), ev.letter);
-    if (ev.letter && S.foeTallies[ev.letter] > 0 && lvl.solve && bullCount(sh) < FLEET_CELLS) {
-      var guess = foeTrySolve(lvl);
-      if (guess) {
-        var res = solveWord(sh, S.me.ships, guess);
-        ev.solve = { word: guess, ok: !!res, cells: res ? res.cells : [] };
-        if (!res) (S.foeMissedSolves = S.foeMissedSolves || []).push(guess);
-        log('foe', '"Solve: ' + guess + '!" &mdash; <span class="say">' + (res ? '"Correct."' : '"Negative."') + '</span>');
-      }
-    }
-    sfx('incoming');
-    if (ev.rapid) sfx(ev.tally ? 'tally' : 'zero', 0.5);
-    else sfx(ev.hit ? 'hit' : 'miss', 0.5);
-    if (ev.auto) sfx('fill', 1.1);
-    else if (ev.letter && !ev.rapid) sfx(ev.bull ? 'bull' : ev.tally ? 'tally' : 'zero', 1.1);
-    if (ev.filled && ev.filled.length) sfx('fill', 1.5);
-    if (ev.solve) sfx(ev.solve.ok ? 'solveOk' : 'solveBad', 1.9);
-    ev.unseen = true;
-    S.lastFoe = ev;
-    S.incoming = ev;
-    S.result = null;
-    S.turn = 'me';
-    save();
-    // Show the damage on the Defense Grid; the report there leads back to the Attack Grid.
-    switchTab('Defense');
-  }
-
-  // Shot selection, after classic Battleship strategy.
-  //   Ensign    - random hunting; follows up a hit only half the time, on any side.
-  //   Commander - hunt/target: checkerboard hunting (every ship spans 2+ squares),
-  //               then probes around a hit and runs along a line of hits.
-  //   Admiral   - probability density: counts every way the fleet could still lie,
-  //               weighting placements through known hits, and throws out any
-  //               placement no dictionary word fits (known and ruled-out letters).
   var FLEET_LENS = { 5: 1, 4: 1, 3: 2, 2: 1 };
+  var letterPrior = null;
 
-  function foeChooseCell(lvl) {
-    var sh = S.foeShots;
-    var unknown = [], hits = [], unresolved = [];
-    for (var r = 0; r < 10; r++) for (var c = 0; c < 10; c++) {
-      var k = key(r, c), s = sh[k];
-      if (!s) unknown.push(k);
-      else if (s.hit) { hits.push(k); if (!s.letter) unresolved.push(k); }
-    }
-    var bestUnresolved = null, bestConf = 0;
-    unresolved.forEach(function (k) {
-      var g = letterScores(k, lvl);
-      if (g.conf > bestConf || !bestUnresolved) { bestConf = g.conf; bestUnresolved = k; }
-    });
-    // Every ship square already found: only letters are left to crack.
-    if (!unknown.length || hits.length >= FLEET_CELLS) return bestUnresolved;
-
-    var targets = lvl.target === 'density' ? densityTargets(unknown, lvl, 'target') : neighborTargets(lvl);
-    var inTarget = targets.length > 0;
-
-    // Re-fire a known hit for another letter when a guess is likely to land,
-    // or when there is nothing better to shoot at.
-    if (bestUnresolved) {
-      if (bestConf >= lvl.refire) return bestUnresolved;
-      if (!inTarget && bestConf >= lvl.refire / 2) return bestUnresolved;
-      if (lvl.hunt === 'random' && Math.random() < 0.25) return bestUnresolved;
-    }
-    if (inTarget && Math.random() < lvl.follow) return pick(targets);
-
-    if (lvl.hunt === 'density') { var d = densityTargets(unknown, lvl, 'hunt'); if (d.length) return pick(d); }
-    if (lvl.hunt === 'parity') {
-      var parity = unknown.filter(function (k) { var p = unkey(k); return (p.r + p.c) % 2 === 0; });
-      if (parity.length) return pick(parity);
-    }
-    return pick(unknown);
-  }
-
-  // Ensign: any open square next to any hit. Commander: extend lines of hits first.
-  function neighborTargets(lvl) {
-    var sh = S.foeShots;
-    var open = function (r, c) { return r >= 0 && r < 10 && c >= 0 && c < 10 && !sh[key(r, c)]; };
-    var isHit = function (r, c) { var s = sh[key(r, c)]; return !!(s && s.hit); };
-    var line = {}, side = {};
-    Object.keys(sh).forEach(function (k) {
-      if (!sh[k].hit) return;
-      var p = unkey(k);
-      [[0, 1], [1, 0]].forEach(function (d) {
-        var inLine = isHit(p.r + d[0], p.c + d[1]) || isHit(p.r - d[0], p.c - d[1]);
-        [1, -1].forEach(function (sgn) {
-          var r2 = p.r + d[0] * sgn, c2 = p.c + d[1] * sgn;
-          if (!open(r2, c2)) return;
-          if (inLine && lvl.target === 'line') line[key(r2, c2)] = true;
-          else side[key(r2, c2)] = true;
-        });
+  // How common each letter is across the word list (weighted by commonness).
+  function priorScores() {
+    if (letterPrior) return letterPrior;
+    var counts = {}, total = 0;
+    Object.keys(guessPool).forEach(function (len) {
+      guessPool[len].forEach(function (e) {
+        for (var i = 0; i < e.w.length; i++) { counts[e.w[i]] = (counts[e.w[i]] || 0) + e.wt; total += e.wt; }
       });
     });
-    var l = Object.keys(line);
-    return l.length ? l : Object.keys(side);
+    letterPrior = {};
+    LETTERS.forEach(function (L) { letterPrior[L] = (counts[L] || 0) / (total || 1); });
+    return letterPrior;
   }
 
-  // Can any allowed dictionary word sit on these squares, given what is known?
-  var fitCache = {};
-  function wordFits(seg) {
-    var pat = segPattern(seg);
-    var ck = pat + (offensiveOk() ? '+' : '');
-    if (fitCache[ck] == null) {
-      var re = new RegExp('^' + pat + '$');
-      fitCache[ck] = (guessPool[seg.length] || []).some(function (e) { return allowed(e.w) && re.test(e.w); });
-    }
-    return fitCache[ck];
-  }
-
-  // Heat map over open squares; returns the hottest ones.
-  // mode 'target' returns nothing unless some placement runs through a known hit.
-  function densityTargets(unknown, lvl, mode) {
-    var sh = S.foeShots, heat = {}, hot = false;
+  // Walk every placement of every ship length that touches a revealed square,
+  // and every dictionary word that fits it. Unrevealed squares can't hold a
+  // letter that has already been called (every copy of it would be showing).
+  function eachFit(minKnown, fn) {
+    var sh = S.foeShots, called = S.foeTallies;
     Object.keys(FLEET_LENS).forEach(function (lenStr) {
       var len = +lenStr, mult = FLEET_LENS[len];
       for (var r = 0; r < 10; r++) for (var c = 0; c < 10; c++) {
         ['H', 'V'].forEach(function (dir) {
           if (dir === 'H' ? c + len > 10 : r + len > 10) return;
-          var cells = [], seg = [], hitsIn = 0, known = false;
+          var seg = [], known = 0;
           for (var i = 0; i < len; i++) {
-            var k = dir === 'H' ? key(r, c + i) : key(r + i, c);
-            var s = sh[k];
-            if (s && !s.hit) return;
-            if (s && s.hit) { hitsIn++; if (s.letter || (s.wrong && s.wrong.length)) known = true; }
-            cells.push(k); seg.push(s || null);
+            var s = sh[dir === 'H' ? key(r, c + i) : key(r + i, c)];
+            seg.push(s && s.letter ? s.letter : null);
+            if (s && s.letter) known++;
           }
-          if (lvl.words && known && !wordFits(seg)) return;
-          var w = mult * Math.pow(30, hitsIn);
-          if (hitsIn) hot = true;
-          cells.forEach(function (k) { if (!sh[k]) heat[k] = (heat[k] || 0) + w; });
+          if (known < minKnown || known === len) return;
+          var words = guessPool[len] || [];
+          for (var w = 0; w < words.length; w++) {
+            var e = words[w], ok = allowed(e.w);
+            for (var j = 0; ok && j < len; j++) {
+              var ch = e.w[j];
+              if (seg[j] ? seg[j] !== ch : called[ch] != null) ok = false;
+            }
+            if (ok) fn(e, seg, known, len, mult);
+          }
         });
       }
     });
-    if (mode === 'target' && !hot) return [];
-    var best = 0, out = [];
-    unknown.forEach(function (k) {
-      var h = heat[k] || 0;
-      if (h > best) { best = h; out = [k]; } else if (h === best && h > 0) out.push(k);
-    });
-    return out;
   }
 
-  // Letters already called: an unsolved hit can't hold one (it would have filled in).
-  function calledLetters() {
-    var out = {};
-    Object.keys(S.foeTallies).forEach(function (L) { out[L] = true; });
-    return out;
-  }
-
-  // Regex pattern for a run of squares from what the AI Captain knows.
-  function segPattern(seg) {
-    var called = Object.keys(calledLetters());
-    return seg.map(function (s) {
-      if (!s) return '.';
-      if (s.letter) return s.letter;
-      var no = (s.wrong || []).concat(s.hit ? called : []);
-      return no.length ? '[^' + no.join('') + ']' : '.';
-    }).join('');
-  }
-
-  function excludedLetters() {
-    var sh = S.foeShots, found = {}, ex = {};
-    Object.keys(sh).forEach(function (k) { var L = sh[k].letter; if (L) found[L] = (found[L] || 0) + 1; });
-    Object.keys(S.foeTallies).forEach(function (L) {
-      var t = S.foeTallies[L];
-      if (t === 0 || (found[L] || 0) >= t) ex[L] = true;
-    });
-    return ex;
-  }
-
-  // Score each letter for a hit cell by fitting dictionary words through it.
-  function letterScores(k, lvl) {
-    var sh = S.foeShots;
-    var here = sh[k];
-    var ex = excludedLetters();
-    var called = calledLetters();
-    var scores = {};
-    var total = 0;
+  function foeCallLetter(lvl) {
+    var called = S.foeTallies, prior = priorScores();
+    var options = LETTERS.filter(function (L) { return called[L] == null; });
+    var score = {};
+    options.forEach(function (L) { score[L] = prior[L]; });
     if (lvl.pattern) {
-      var p = unkey(k);
-      ['H', 'V'].forEach(function (dir) {
-        [2, 3, 4, 5].forEach(function (len) {
-          for (var off = 0; off < len; off++) {
-            var r0 = dir === 'H' ? p.r : p.r - off;
-            var c0 = dir === 'H' ? p.c - off : p.c;
-            if (r0 < 0 || c0 < 0 || (dir === 'H' ? c0 + len > 10 : r0 + len > 10)) continue;
-            var seg = [], blocked = false, hitsIn = 0;
-            for (var i = 0; i < len; i++) {
-              var kk = dir === 'H' ? key(r0, c0 + i) : key(r0 + i, c0);
-              var s = sh[kk];
-              if (s && !s.hit) { blocked = true; break; }
-              if (s && s.hit) hitsIn++;
-              seg.push(s || null);
-            }
-            if (blocked) continue;
-            var weight = 1 + hitsIn * 2;
-            (guessPool[len] || []).forEach(function (entry) {
-              var w = entry.w;
-              if (!allowed(w)) return;
-              for (var j = 0; j < len; j++) {
-                var sj = seg[j], ch = w[j];
-                if (sj && sj.letter && sj.letter !== ch) return;
-                if (sj && sj.wrong && sj.wrong.indexOf(ch) !== -1) return;
-                if (sj && sj.hit && !sj.letter && called[ch]) return;
-                if (S.foeTallies[ch] === 0) return;
-                if (!(sj && sj.letter) && ex[ch]) return;
-              }
-              var L = w[off];
-              scores[L] = (scores[L] || 0) + weight * entry.wt;
-              total += weight * entry.wt;
-            });
-          }
-        });
+      var pat = {}, total = 0;
+      eachFit(1, function (e, seg, known, len, mult) {
+        var wt = e.wt * mult * known;
+        for (var j = 0; j < len; j++) if (!seg[j]) { pat[e.w[j]] = (pat[e.w[j]] || 0) + wt; total += wt; }
       });
+      if (total) options.forEach(function (L) { score[L] += 3 * (pat[L] || 0) / total; });
     }
-    var best = null, bestS = 0;
-    Object.keys(scores).forEach(function (L) {
-      if (ex[L] || called[L] || here.wrong.indexOf(L) !== -1) return;
-      var s = scores[L] * (0.9 + Math.random() * 0.2);
-      if (s > bestS) { bestS = s; best = L; }
+    options.forEach(function (L) {
+      if (isVowel(L)) score[L] *= lvl.vowelCost;
+      score[L] *= 1 - lvl.noise + 2 * lvl.noise * Math.random();
     });
-    return { letter: best, conf: total ? (scores[best] || 0) / total : 0 };
+    return options.sort(function (a, b) { return score[b] - score[a]; })[0];
   }
 
-  function foeGuessLetter(k, lvl) {
-    var here = S.foeShots[k];
-    var g = letterScores(k, lvl);
-    if (g.letter) return g.letter;
-    var ex = excludedLetters();
-    var called = calledLetters();
-    var order = FREQ.split('').filter(function (L) { return !ex[L] && !called[L] && here.wrong.indexOf(L) === -1; });
-    if (!order.length) order = LETTERS.filter(function (L) { return !called[L] && here.wrong.indexOf(L) === -1; });
-    if (!order.length) order = LETTERS.filter(function (L) { return here.wrong.indexOf(L) === -1; });
-    // an ensign doesn't always pick the most common letter
-    if (!lvl.pattern && order.length > 3 && Math.random() < 0.4) return order[rnd(Math.min(6, order.length))];
-    return order[0];
+  // Solve when the revealed letters pin a word down.
+  function foeTrySolve(lvl) {
+    var best = null, groups = {};
+    eachFit(2, function (e, seg, known, len) {
+      if (known / len < lvl.solve.known || (S.foeMissedSolves || []).indexOf(e.w) !== -1) return;
+      var g = groups[seg.join('.') + len] = groups[seg.join('.') + len] || { known: known, len: len, total: 0, top: null };
+      g.total += e.wt;
+      if (!g.top || e.wt > g.top.wt) g.top = e;
+    });
+    Object.keys(groups).forEach(function (id) {
+      var g = groups[id];
+      if (g.top.wt / g.total < lvl.solve.share) return;
+      var sc = g.known / g.len + g.top.wt / g.total;
+      if (!best || sc > best.score) best = { word: g.top.w, score: sc };
+    });
+    return best && best.word;
+  }
+
+  function foeTurn() {
+    ui.aiTimer = null;
+    if (S.phase !== 'battle' || S.turn !== 'foe') return;
+    var lvl = LEVELS[S.level];
+    S.notice = null;
+    var L = foeCallLetter(lvl);
+    var t = countOf(S.me.words.join(''), L);
+    var vowel = isVowel(L);
+    S.turns++;
+    S.foeTallies[L] = t;
+    if (vowel) S.skip.foe = true;
+    var ev = { letter: L, tally: t, vowel: vowel, cells: revealLetter(S.foeShots, myBoard(), L) };
+    log('foe', '"Calling ' + NATO[L] + '!" &mdash; <span class="say">"' + L + ' tally ' + t + '."</span>' + (vowel ? ' A vowel: the AI Captain loses its next turn.' : ''));
+    if (t && lvl.solve && !allRevealed(S.foeShots, myBoard())) {
+      var guess = foeTrySolve(lvl);
+      if (guess) {
+        var res = solveWord(S.foeShots, S.me.ships, guess);
+        ev.solve = { word: guess, ok: !!res };
+        if (res) ev.cells = ev.cells.concat(res.cells);
+        else (S.foeMissedSolves = S.foeMissedSolves || []).push(guess);
+        log('foe', '"Solve: ' + guess + '!" &mdash; <span class="say">' + (res ? '"Correct."' : '"Negative."') + '</span>');
+      }
+    }
+    sfx('incoming');
+    sfx(t ? 'fill' : 'zero', 0.5);
+    if (ev.solve) sfx(ev.solve.ok ? 'solveOk' : 'solveBad', 1.1);
+    if (allRevealed(S.foeShots, myBoard())) { finish('foe', 'foe-reveal'); return; }
+    ev.unseen = true;
+    S.lastFoe = ev;
+    S.incoming.push(ev);
+    passTurn('me');
+    save();
+    // Show the damage on the Defense Grid; the report there leads back to the Attack Grid.
+    switchTab('Defense');
   }
 
   // ------------------------------------------------------------
@@ -1292,7 +978,7 @@
     S.phase = 'over';
     S.winner = winner;
     S.reason = reason;
-    S.turn = null; S.alpha = null; S.incoming = null;
+    S.turn = null; S.incoming = [];
     if (ui.aiTimer) { clearTimeout(ui.aiTimer); ui.aiTimer = null; }
     bumpRecord(winner === 'me');
     sfx(winner === 'me' ? 'win' : 'lose', 0.2);
@@ -1304,29 +990,30 @@
     var won = S.winner === 'me';
     setBar(won ? 'Victory' : 'Defeat', won ? '' : 'is-foe');
     var eyebrow, title, quote;
-    if (S.reason === 'demand-right') { eyebrow = 'Total Victory'; title = 'The ' + S.foe.name + ' surrenders.'; quote = '"You have won."'; }
+    if (S.reason === 'reveal') { eyebrow = 'Total Victory'; title = 'Every letter of the ' + S.foe.name + ' is showing.'; quote = 'Their whole fleet is revealed. "You have won."'; }
+    else if (S.reason === 'foe-reveal') { eyebrow = 'Fleet Exposed'; title = 'The AI Captain revealed your whole fleet.'; quote = 'Every letter of the ' + S.me.name + ' is showing.'; }
+    else if (S.reason === 'demand-right') { eyebrow = 'Total Victory'; title = 'The ' + S.foe.name + ' surrenders.'; quote = '"You have won."'; }
     else if (S.reason === 'demand-wrong') { eyebrow = 'Surrender Refused'; title = 'Your demand missed the mark.'; quote = '"Victory is mine! You lose! Good day sir!"'; }
     else { eyebrow = 'Fleet Surrendered'; title = 'The ' + S.foe.name + ' named every ship.'; quote = 'You were obliged to answer: "You have won."'; }
     $('overEyebrow').textContent = eyebrow;
     $('overTitle').textContent = title;
     $('overQuote').textContent = quote;
-    var shots = Object.keys(S.myShots).length;
-    var hits = Object.keys(S.myShots).filter(function (k) { return S.myShots[k].hit; }).length;
+    var called = Object.keys(S.myTallies);
     $('overStats').innerHTML =
-      '<div class="stat"><b>' + shots + '</b><span>Squares</span></div>' +
-      '<div class="stat"><b>' + hits + '</b><span>Hits</span></div>' +
-      '<div class="stat"><b>' + bullCount(S.myShots) + '</b><span>Bullseyes</span></div>';
+      '<div class="stat"><b>' + called.length + '</b><span>Letters called</span></div>' +
+      '<div class="stat"><b>' + called.filter(isVowel).length + '</b><span>Vowels</span></div>' +
+      '<div class="stat"><b>' + bullCount(S.myShots) + '/' + FLEET_CELLS + '</b><span>Revealed</span></div>';
     $('overFoeWords').textContent = S.foe.words.join(' • ');
     $('overMyWords').textContent = S.me.words.join(' • ');
     var fb = foeBoard(), mb = myBoard();
     paint($('gridOverFoe'), function (r, c) {
       var k = key(r, c), cell = fb[k], s = S.myShots[k];
-      var cls = cell ? (s && s.letter ? 'is-bull' : s && s.hit ? 'is-hit' : 'is-ship') : (s ? 'is-miss' : '');
+      var cls = cell ? (s && s.letter ? 'is-bull' : 'is-ship') : '';
       return { cls: cls, text: cell ? cell.letter : '' };
     }, false);
     paint($('gridOverMe'), function (r, c) {
       var k = key(r, c), cell = mb[k], s = S.foeShots[k];
-      var cls = cell ? 'is-ship' + (s && s.letter ? ' is-ship-lost' : s && s.hit ? ' is-ship-hit' : '') : (s ? 'is-miss' : '');
+      var cls = cell ? 'is-ship' + (s && s.letter ? ' is-ship-lost' : '') : '';
       return { cls: cls, text: cell ? cell.letter : '' };
     }, false);
   }
@@ -1357,18 +1044,17 @@
       '<li>Five word-ships: KETCH (5), SHIP (4), SUB (3), ARK (3), PT (2).</li>' +
       '<li>Place them left-to-right or top-to-bottom. No diagonals or backwards.</li>' +
       '<li>Ships may touch but not overlap. No proper nouns, abbreviations, or suffixes.</li></ul>' +
-      '<h3>Who Goes First?</h3><p>Against the AI Captain, the Human Captain always fires first.</p>' +
-      '<h3>Standard Attack</h3><ul>' +
-      '<li><strong>Fire:</strong> pick a coordinate on the Attack Grid. <span class="say">"Miss!"</span> ends your turn. <span class="say">"Hit."</span> earns a Strike Bonus.</li>' +
-      '<li><strong>Strike Bonus:</strong> call the letter at the hit. <span class="say">"Bullseye."</span> writes it in. A wrong letter gets a tally: how many times that letter appears across the opponent\'s whole fleet. Either way your turn ends.</li>' +
-      '<li><strong>Rapid Fire:</strong> once every square of the opponent\'s fleet has been hit, there is nothing left to shoot. Each turn, just call a letter.</li>' +
-      '<li><strong>Solve a Word:</strong> after calling a letter that is in the opponent\'s fleet, you may name one whole word-ship. Right, and every square of it fills in.</li>' +
-      '<li><strong>Wheel of Fortune:</strong> whatever letter is called, right or wrong, fills in on every square already hit that holds it. Squares not yet hit stay hidden; hit one later and a called letter shows at once (no Strike Bonus needed). This works for both captains.</li>' +
-      '<li>Fire on the same hit again later to try another letter.</li></ul>' +
-      '<h3>Demand Surrender</h3><p>Instead of taking a turn, name every one of your opponent\'s word-ships and exactly where it sits. All correct: <span class="say">"You have won."</span> Anything wrong: <span class="say">"Victory is mine! You lose! Good day sir!"</span></p>' +
+      '<h3>Who Goes First?</h3><p>Against the AI Captain, the Human Captain always goes first.</p>' +
+      '<h3>Your Turn: Call a Letter</h3><ul>' +
+      '<li>Call any letter. Every square in the opponent\'s fleet that holds it is revealed, wherever it is, and you hear the tally: <span class="say">"S tally 3."</span> Then the turn passes.</li>' +
+      '<li><strong>Vowels</strong> (A E I O U) can be called and reveal the same way, but the caller loses their next turn.</li>' +
+      '<li><strong>Solve a Word:</strong> after calling a letter that is in the opponent\'s fleet, you may name one whole word-ship. Right, and every square of it is revealed.</li></ul>' +
+      '<h3>Winning</h3><ul>' +
+      '<li>Reveal every letter of the opponent\'s fleet and you win.</li>' +
+      '<li><strong>Demand Surrender:</strong> instead of calling a letter, name every one of your opponent\'s word-ships and exactly where it sits. All correct: <span class="say">"You have won."</span> Anything wrong: <span class="say">"Victory is mine! You lose! Good day sir!"</span></li></ul>' +
       '<h3>Reading the Tracker</h3><ul>' +
-      '<li>Grey dot: miss. Gold square with ?: hit, letter unknown. Green: letter found.</li>' +
-      '<li>Manifests: each dot under a letter is one copy of it in the fleet. Filled dots are found, hollow dots are still hidden. The 5 4 3 3 2 circles turn yellow when every square of that word-ship has been hit and green when every letter is in.</li></ul>' +
+      '<li>Attack Grid: green squares are revealed letters of the AI Captain\'s fleet. Defense Grid: red squares are your letters the AI Captain has revealed.</li>' +
+      '<li>Manifests: each dot under a letter is one copy of it in the fleet. The 5 4 3 3 2 circles turn yellow when some of that word-ship is showing and green when all of it is.</li></ul>' +
       '</div><button class="btn btn--primary btn--wide" type="button" data-act="close">Aye, Aye</button>');
   }
 
@@ -1530,40 +1216,33 @@
   on($('btnDeployBack'), 'click', function () { S.phase = 'setup'; save(); show('setup'); });
 
   // battle
-  on($('gridAttack'), 'click', function (e) {
-    var c = e.target.closest('[data-k]');
-    if (c) attackTap(c.getAttribute('data-k'));
-  });
   on($('firePanel'), 'click', function (e) {
     var b = e.target.closest('[data-act]');
     if (!b) return;
     var act = b.getAttribute('data-act');
-    if (act === 'fire') fire();
-    else if (act === 'unsel') { ui.sel = null; renderAttack(); }
-    else if (act === 'alpha') openAlpha();
-    else if (act === 'demand') { ui.demand = true; ui.sel = null; renderAttack(); $('firePanel').scrollIntoView({ block: 'start', behavior: 'smooth' }); }
+    if (act === 'demand') { ui.demand = true; renderAttack(); $('firePanel').scrollIntoView({ block: 'start', behavior: 'smooth' }); }
     else if (act === 'belay') { ui.demand = false; renderAttack(); }
     else if (act === 'endTurn') endMyTurn();
     else if (act === 'solve') humanSolve();
     else if (act === 'submitDemand') submitDemand(false);
     else if (act === 'submitDemandSure') submitDemand(true);
   });
-  // Rapid Fire keyboard lives in the fire panel.
+  // The letter keyboard lives in the fire panel.
   on($('firePanel'), 'click', function (e) {
     var k = e.target.closest('[data-letter]');
-    if (k && !k.disabled) rapidCall(k.getAttribute('data-letter'));
+    if (k && !k.disabled) humanCall(k.getAttribute('data-letter'));
   });
   on($('firePanel'), 'input', function (e) { if (e.target.hasAttribute('data-claim')) claimInput(e.target); });
   on($('firePanel'), 'change', function (e) { if (e.target.hasAttribute('data-claim')) claimInput(e.target); });
   on($('tabDefense'), 'click', function (e) {
-    if (e.target.closest('[data-act="returnFire"]')) { S.incoming = null; save(); switchTab('Attack'); }
+    if (e.target.closest('[data-act="returnFire"]')) { S.incoming = []; save(); switchTab('Attack'); }
   });
   on($('tabbar'), 'click', function (e) {
     var b = e.target.closest('[data-tab]');
     if (!b) return;
     var tab = b.getAttribute('data-tab');
     // Heading back to the Attack Grid counts as reading the incoming report.
-    if (tab === 'Attack' && S.incoming) { S.incoming = null; save(); }
+    if (tab === 'Attack' && S.turn === 'me' && S.incoming.length) { S.incoming = []; save(); }
     switchTab(tab);
   });
 
@@ -1572,8 +1251,6 @@
   // sheet
   on($('scrim'), 'click', function () { if (sheetDismissible) closeSheet(); });
   on($('sheetBody'), 'click', function (e) {
-    var k = e.target.closest('[data-letter]');
-    if (k && !k.disabled) { alphaStrike(k.getAttribute('data-letter')); return; }
     var b = e.target.closest('[data-act]');
     if (!b) return;
     var act = b.getAttribute('data-act');
@@ -1607,7 +1284,7 @@
   // boot
   // ------------------------------------------------------------
   S = load();
-  if (S && (S.v !== 1 || !LEVELS[S.level])) S = null;
+  if (S && (S.v !== 2 || !LEVELS[S.level])) S = null;   // v1 saves used the old firing rules
   // Games saved while the launch-codes screen still existed go straight to battle.
   if (S && S.phase === 'codes') { S.phase = 'battle'; S.turn = 'me'; }
   loadDictionary(S && S.lang).then(function () {
@@ -1616,9 +1293,8 @@
       S.me.words = randomWords(); save();
     }
     if (S && S.phase === 'battle') {
-      if (S.incoming) ui.tab = 'Defense';
+      if (S.incoming.length) ui.tab = 'Defense';
       show('battle');
-      if (S.alpha && !S.incoming) openAlpha();
     }
     else show('home');
   });

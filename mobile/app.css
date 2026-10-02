@@ -310,6 +310,10 @@ button.cell { cursor: pointer; }
 .key:active:not(:disabled) { background: var(--green); }
 .key:disabled { background: #f2f2f2; color: #bbb; border-color: #ccc; cursor: not-allowed; text-decoration: line-through; }
 .key.is-zero { color: #aaa; }
+.key.is-vowel { background: #e4e4e4; }
+.key-v { position: absolute; left: 0; right: 0; bottom: 1px; font-size: 8px; font-weight: 700; color: var(--red); letter-spacing: 0; text-align: center; }
+.keys .key { min-height: 50px; }
+.notice { font-size: 14px; font-weight: 600; color: var(--red); background: var(--red-wash); border: 1px solid var(--red); padding: 8px 10px; margin: 8px 0; }
 .key-n { position: absolute; top: 1px; right: 3px; font-size: 10px; font-weight: 700; color: var(--red); }
 
 .report { border: 1px solid var(--ink); padding: 12px 14px; margin: 12px 0 4px; }
