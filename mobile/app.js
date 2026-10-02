@@ -224,7 +224,7 @@
   // ------------------------------------------------------------
   var S = null;         // saved game
   var draft = null;     // fleet setup in progress (lives inside S while deploying)
-  var ui = { tab: 'Attack', sel: null, dir: 'H', pick: 0, aiTimer: null, installEvt: null };
+  var ui = { tab: 'Attack', sel: null, aiTimer: null, installEvt: null };
 
   function save() {
     try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (e) { /* private mode: play on without saving */ }
@@ -257,7 +257,7 @@
       claims: null, log: [], turns: 0,
       winner: null, reason: null
     };
-    ui.sel = null; ui.tab = 'Attack'; ui.pick = 0;
+    ui.sel = null; ui.tab = 'Attack';
     save();
   }
 
@@ -443,7 +443,6 @@
     }
     S.me.ships = scatter(S.me.words);   // 004 opens with the fleet already deployed at random
     S.phase = 'deploy';
-    ui.pick = -1;
     save();
     show('deploy');
   }
@@ -453,82 +452,36 @@
   // ------------------------------------------------------------
   function renderDeploy() {
     setBar(null);
-    var ships = S.me.ships;
-    var placed = ships.filter(function (s) { return s.r != null; }).length;
-    setSeg('segDir', ui.dir);
-    var b = boardOf(ships);
+    // The fleet is always on the grid (a game saved with ships in port gets a fresh layout).
+    if (S.me.ships.some(function (s) { return s.r == null; })) { S.me.ships = scatter(S.me.words); save(); }
+    var b = boardOf(S.me.ships);
     paint($('gridDeploy'), function (r, c) {
       var cell = b[key(r, c)];
       return cell ? { cls: 'is-ship', text: cell.letter } : {};
     }, true);
-    $('roster').innerHTML = ships.map(function (s, i) {
-      var on = s.r == null && i === ui.pick;
-      return '<button type="button" class="ship' + (on ? ' is-on' : '') + (s.r != null ? ' is-placed' : '') + '" data-ship="' + i + '">' +
-        '<span class="ship-class">' + SPECS[i].cls + '</span>' +
-        '<span class="ship-word">' + esc(s.word) + '</span>' +
-        '<span class="ship-at">' + (s.r != null ? coord(s.r, s.c) + (s.dir === 'H' ? ' →' : ' ↓') : 'in port') + '</span></button>';
-    }).join('');
-    $('btnDeployDone').disabled = placed < 5;
-    // Step 4 of 4: the progress bar fills from 75% to 100% as ships are deployed.
-    $('btnDeployDone').style.setProperty('--progress', (75 + placed * 5) + '%');
   }
 
-  // Pull a deployed ship back into port and select it.
-  function liftShip(idx) {
-    var ship = S.me.ships[idx];
-    if (ship.r == null) return;
-    ship.r = null; ship.c = null;
-    ui.pick = idx;
-    sfx('select');
-    save(); renderDeploy();
-  }
-
-  function nextUnplaced(from) {
-    var ships = S.me.ships;
-    for (var n = 0; n < 5; n++) {
-      var i = (from + n) % 5;
-      if (ships[i].r == null) return i;
-    }
-    return -1;
-  }
-
+  // Taps on 004: a double tap on a ship's first letter turns it between across and down.
+  // (Moving is by drag; ships never leave the grid.)
   function deployTap(k) {
     var p = unkey(k);
     var ships = S.me.ships;
     var b = boardOf(ships);
-    if (b[k]) {
-      var idx = b[k].ship, ship = ships[idx];
-      if (ship.r === p.r && ship.c === p.c) {
-        // First letter: a double tap swings it between across and down;
-        // a single tap (no second tap in time) lifts it like any other letter.
-        if (ui.firstTap && ui.firstTap.k === k) {
-          clearTimeout(ui.firstTap.timer);
-          ui.firstTap = null;
-          var dir = ship.dir === 'H' ? 'V' : 'H';
-          if (fits(ships, idx, ship.r, ship.c, dir)) { ship.dir = dir; sfx('rotate'); save(); renderDeploy(); }
-          else { sfx('error'); toast(ship.word + " won't fit " + (dir === 'H' ? 'across' : 'down') + ' from ' + coord(ship.r, ship.c)); }
-          return;
-        }
-        if (ui.firstTap) clearTimeout(ui.firstTap.timer);
-        ui.firstTap = { k: k, timer: setTimeout(function () { ui.firstTap = null; liftShip(idx); }, 320) };
-        return;
-      }
-      liftShip(idx);
+    if (!b[k]) return;
+    var idx = b[k].ship, ship = ships[idx];
+    if (ship.r !== p.r || ship.c !== p.c) return;
+    if (ui.firstTap && ui.firstTap.k === k) {
+      clearTimeout(ui.firstTap.timer);
+      ui.firstTap = null;
+      var dir = ship.dir === 'H' ? 'V' : 'H';
+      if (fits(ships, idx, ship.r, ship.c, dir)) { ship.dir = dir; sfx('rotate'); save(); renderDeploy(); }
+      else { sfx('error'); toast(ship.word + " won't fit " + (dir === 'H' ? 'across' : 'down') + ' from ' + coord(ship.r, ship.c)); }
       return;
     }
-    if (ui.pick < 0 || ships[ui.pick].r != null) ui.pick = nextUnplaced(0);
-    if (ui.pick < 0) { toast('All five word-ships are deployed.'); return; }
-    if (!fits(ships, ui.pick, p.r, p.c, ui.dir)) {
-      sfx('error');
-      toast(ships[ui.pick].word + " won't fit " + (ui.dir === 'H' ? 'across' : 'down') + ' from ' + coord(p.r, p.c));
-      return;
-    }
-    var s = ships[ui.pick];
-    s.r = p.r; s.c = p.c; s.dir = ui.dir;
-    sfx('place');
-    ui.pick = nextUnplaced(ui.pick);
-    save(); renderDeploy();
+    if (ui.firstTap) clearTimeout(ui.firstTap.timer);
+    ui.firstTap = { k: k, timer: setTimeout(function () { ui.firstTap = null; }, 320) };
   }
+
 
   function confirmDeploy() {
     var foeWords = randomWords();
@@ -1294,21 +1247,7 @@
   }
   on(document, 'pointerup', endDrag);
   on(document, 'pointercancel', endDrag);
-  on($('segDir'), 'click', function (e) {
-    var v = e.target.getAttribute('data-v');
-    if (v) { ui.dir = v; renderDeploy(); }
-  });
-  on($('roster'), 'click', function (e) {
-    var b = e.target.closest('[data-ship]');
-    if (!b) return;
-    var i = +b.getAttribute('data-ship');
-    var s = S.me.ships[i];
-    if (s.r != null) { s.r = null; s.c = null; save(); }
-    ui.pick = i;
-    renderDeploy();
-  });
-  on($('btnScatter'), 'click', function () { S.me.ships = scatter(S.me.words); ui.pick = -1; sfx('place'); save(); renderDeploy(); });
-  on($('btnClear'), 'click', function () { S.me.ships.forEach(function (s) { s.r = null; s.c = null; }); ui.pick = 0; save(); renderDeploy(); });
+  on($('btnShuffle'), 'click', function () { S.me.ships = scatter(S.me.words); sfx('place'); save(); renderDeploy(); });
   on($('btnDeployDone'), 'click', confirmDeploy);
   on($('btnDeployBack'), 'click', function () { S.phase = 'setup'; S.setupStep = 'words'; save(); show('words'); });
 
@@ -1371,9 +1310,6 @@
   });
   on(document, 'keydown', function (e) {
     if (e.key === 'Escape' && !$('sheet').hidden && sheetDismissible) closeSheet();
-    if ((e.key === 'r' || e.key === 'R') && current === 'deploy' && document.activeElement.tagName !== 'INPUT') {
-      ui.dir = ui.dir === 'H' ? 'V' : 'H'; renderDeploy();
-    }
   });
 
   window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); ui.installEvt = e; });
