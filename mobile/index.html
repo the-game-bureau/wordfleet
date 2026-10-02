@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Bump ?v= on every release (and CACHE in sw.js) so a new page never runs old code. -->
-  <link rel="stylesheet" href="app.css?v=48">
+  <link rel="stylesheet" href="app.css?v=49">
 </head>
 <body>
 
@@ -97,9 +97,11 @@
       <label class="switch-row switch-row--big"><span>Possibly Offensive Words OK</span><input type="checkbox" class="switch" id="chkOffensive" role="switch"></label>
       <p class="hint hint--tight">Applies to both fleets.</p>
 
-      <span class="label label--say">Your five word-ships</span>
+      <div class="section-head">
+        <span class="label label--say">Your five word-ships</span>
+        <button class="btn btn--sm" id="btnRefreshAll" type="button" aria-label="Refresh all five words">&#x21bb; Refresh All</button>
+      </div>
       <div id="wordList"></div>
-      <button class="btn btn--wide btn--sm-gap" id="btnRefreshAll" type="button">&#x21bb; Refresh All</button>
       <p class="note" id="setupNote"></p>
 
       <button class="btn btn--wide btn--next btn--progress" style="--progress: 100%" id="btnToDeploy" type="button">Deploy Fleet</button>
@@ -217,7 +219,7 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="audio.js?v=48"></script>
-<script src="app.js?v=48"></script>
+<script src="audio.js?v=49"></script>
+<script src="app.js?v=49"></script>
 </body>
 </html>

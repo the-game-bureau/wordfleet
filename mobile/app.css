@@ -440,3 +440,14 @@ button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; c
 /* Next buttons on 001-003 double as a progress bar: green fills left to right (33%, 67%, 100%). */
 .btn--progress { background: linear-gradient(to right, var(--green) var(--progress, 0%), var(--paper) var(--progress, 0%)); border-width: 2px; }
 .btn--progress:active:not(:disabled) { background: var(--green-dark); color: var(--ink); }
+
+/* 003: section header with its action on the right (Refresh All) */
+.section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 22px 0 10px; }
+.section-head .label--say { margin: 0; }
+.setup-big .section-head .btn--sm { font-size: 16px; min-height: 44px; padding: 6px 12px; white-space: nowrap; }
+/* ship class on one line, letter count underneath */
+.nowrap { white-space: nowrap; }
+.setup-big .word { grid-template-columns: max-content minmax(0, 1fr) auto; }
+.setup-big .word-class { letter-spacing: 0.02em; }
+/* the dictionary message takes no room until there is one */
+.setup-big .note:empty { min-height: 0; margin: 0; }

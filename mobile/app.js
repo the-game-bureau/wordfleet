@@ -380,7 +380,7 @@
     var html = '<div class="words">';
     SPECS.forEach(function (spec, i) {
       var w = S.me.words[i] || '';
-      html += '<div class="word"><div class="word-class"><b>' + spec.cls + '</b>' + spec.len + ' letters</div>';
+      html += '<div class="word"><div class="word-class"><b>' + spec.cls + '</b><span class="nowrap">' + spec.len + ' letters</span></div>';
       // Every word is editable; the ↻ redraws just that one.
       html += '<input class="input" data-word="' + i + '" maxlength="' + spec.len + '" value="' + esc(w) + '" ' +
         'autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="' + '_'.repeat(spec.len) + '">' +
@@ -420,7 +420,7 @@
       }
       var flagged = S.me.words.filter(function (w) { return dictSet[w] && !allowed(w); });
       if (flagged.length) {
-        $('setupNote').textContent = flagged.join(', ') + ' may be offensive. Check "Possibly Offensive Words OK" to allow ' + (flagged.length > 1 ? 'them' : 'it') + '.';
+        $('setupNote').textContent = flagged.join(', ') + ' may be offensive. Turn on "Possibly Offensive Words OK" to allow ' + (flagged.length > 1 ? 'them' : 'it') + '.';
         return;
       }
       var unknown = S.me.words.filter(function (w) { return !inDictionary(w); });
