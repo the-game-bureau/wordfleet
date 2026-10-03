@@ -1010,15 +1010,21 @@
       step = '1'; main = 'Your turn. Tap a square to aim.';
       if (hint) sub.push('Then call a letter: every square holding it is revealed. Your letter in your square = bonus turn. Vowels cost ' + POINTS.vowel + ' points.');
     }
-    el.className = 'coach ' + cls;
-    el.innerHTML = (step ? '<span class="coach-step">' + step + '</span>' : '') +
+    // The coach bar is a submarine: it surfaces (bobs up) when there is something new, and DIVE sinks it
+    // below the tab bar, leaving its conning tower showing; SURFACE brings it back.
+    var key = step + '|' + main, fresh = key !== ui.coachKey;
+    ui.coachKey = key;
+    el.className = 'coach ' + cls + (ui.dived ? ' is-dived' : fresh ? ' is-surfacing' : '');
+    el.innerHTML = '<div class="coach-tower' + (ui.dived && fresh ? ' is-ping' : '') + '"><button type="button" class="coach-dive" data-coach="dive" aria-label="' +
+        (ui.dived ? 'Surface: show the notice' : 'Dive: hide the notice') + '">' + (ui.dived ? '\u25b2 Surface' : '\u25bc Dive') + '</button></div>' +
+      (step ? '<span class="coach-step">' + step + '</span>' : '') +
       '<div class="coach-body">' + (pre.length ? '<div class="coach-news">' + pre.join(' \u00b7 ') + '</div>' : '') +
       '<div class="coach-main">' + main + '</div>' +
       sub.map(function (x) { return '<div class="coach-sub">' + x + '</div>'; }).join('') +
       (btns ? '<div class="coach-btns">' + btns + '</div>' : '') + '</div>';
     fitButtons(el);
     // Leave room to scroll the bottom of the tab (the letters manifest) clear of the coach bar.
-    document.documentElement.style.setProperty('--coach-h', el.offsetHeight + 'px');
+    document.documentElement.style.setProperty('--coach-h', (ui.dived ? 40 : el.offsetHeight + 8) + 'px');
   }
 
   function renderDefense() {
@@ -1699,6 +1705,7 @@
     var act = b.getAttribute('data-coach');
     if (act === 'end') endMyTurn();
     else if (act === 'new') newBattle();
+    else if (act === 'dive') { ui.dived = !ui.dived; ui.coachKey = null; renderCoach(); }
   });
   on($('sheetBody'), 'click', function (e) {
     var k = e.target.closest('[data-letter]');
