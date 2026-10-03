@@ -948,13 +948,6 @@
   // Longer hints for a captain's first two calls ever, or whenever Hints is switched on in the menu.
   function hintsOn() { return getPref(HINT_KEY) === 'on' || (+getPref(CALLS_KEY) || 0) < 2; }
 
-  // One short item per thing that happened since your last turn; renderCoach joins them into one line.
-  function aiMoveLine(ev) {
-    if (ev.skip) return 'you lost a turn (vowel)';
-    return 'AI: <b>' + ev.letter + '</b> at <b>' + coordK(ev.square) + '</b> (' + ev.tally + ')' +
-      (ev.bonus ? ' \u2605 bonus' : '') + (ev.vowel && ev.price ? ', bought for ' + ev.price : '') + (ev.pts && ev.pts.total ? ', +' + ev.pts.total : '');
-  }
-
   function ptsLine(p) {
     return '<span class="coach-pts">+' + p.total + ' points</span> ' + p.why.join(' \u00b7 ');
   }
@@ -979,8 +972,7 @@
       sub.push('<b>' + (S.score || 0) + ' points</b> \u00b7 ' + called.length + ' letters called \u00b7 ' + called.filter(isVowel).length + ' vowels \u00b7 ' + bullCount(S.myShots) + '/' + FLEET_CELLS + ' revealed');
     } else if (!mine) {
       cls = 'is-wait';
-      main = 'AI Captain is aiming<span class="dots"><i>.</i><i>.</i><i>.</i></span>';
-      if (hint) sub.push('It calls a letter on your fleet. Watch the Defense Grid.');
+      main = 'The Enemy Fleet is playing.';
     } else if (ui.sel) {
       step = '2'; main = 'Call a letter for <b>' + coordK(ui.sel) + '</b>: tap it in the Letters Manifest.';
       if (hint) sub.push('Tap another square to re-aim, or ' + coordK(ui.sel) + ' again to cancel. Vowels (round) ' + (vowelPrice() ? 'cost ' + POINTS.vowel + ' points.' : 'are free now: only vowels are left.'));
@@ -1005,8 +997,7 @@
       step = '3'; main = r.title;
       sub.push('AI Captain\'s turn next<span class="dots"><i>.</i><i>.</i><i>.</i></span>');
     } else {
-      (S.incoming || []).forEach(function (ev) { pre.push(aiMoveLine(ev)); });
-      if (S.notice) pre.push(/vowel/.test(S.notice) ? 'AI lost a turn (vowel)' : S.notice);
+      // No news strip: the AI Captain's moves show on the Defense Grid and in the Log.
       step = '1'; main = 'Your turn. Tap a square to aim.';
       if (hint) sub.push('Then call a letter: every square holding it is revealed. Your letter in your square = bonus turn. Vowels cost ' + POINTS.vowel + ' points.');
     }
