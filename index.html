@@ -1,472 +1,542 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Word Fleet</title>
-    <!-- Favicon and App Icons -->
-  <link rel="icon" type="image/x-icon" href="src/media/wf.ico">
-  <link rel="shortcut icon" href="src/media/wf.ico">
-  
-  <!-- Apple Touch Icons -->
-  <link rel="apple-touch-icon" sizes="57x57" href="src/media/apple-touch-icon-57x57-precomposed.png">
-  <link rel="apple-touch-icon" sizes="57x57" href="src/media/apple-touch-icon-57x57.png">
-  <link rel="apple-touch-icon" sizes="76x76" href="src/media/apple-touch-icon-76x76-precomposed.png">
-  <link rel="apple-touch-icon" sizes="76x76" href="src/media/apple-touch-icon-76x76.png">
-  <link rel="apple-touch-icon" sizes="120x120" href="src/media/apple-touch-icon-120x120-precomposed.png">
-  <link rel="apple-touch-icon" sizes="120x120" href="src/media/apple-touch-icon-120x120.png">
-  <link rel="apple-touch-icon" sizes="152x152" href="src/media/apple-touch-icon-152x152-precomposed.png">
-  <link rel="apple-touch-icon" sizes="152x152" href="src/media/apple-touch-icon-152x152.png">
-  <link rel="apple-touch-icon" sizes="167x167" href="src/media/apple-touch-icon-167x167-precomposed.png">
-  <link rel="apple-touch-icon" sizes="167x167" href="src/media/apple-touch-icon-167x167.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="src/media/apple-touch-icon-180x180-precomposed.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="src/media/apple-touch-icon-180x180.png">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Word Fleet Game Notebook</title>
+  <meta name="description" content="A pen-and-paper game of hidden words and naval strategy for two captains. Print your Battle Trackers and play Word Fleet.">
+  <meta name="theme-color" content="#f7f5ed">
+  <meta property="og:title" content="The Word Fleet Game Notebook">
+  <meta property="og:description" content="A pen-and-paper game of hidden words and naval strategy for two captains.">
+  <meta property="og:image" content="https://the-game-bureau.github.io/wordfleet/src/media/wordfleet-social.png">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://the-game-bureau.github.io/wordfleet/">
+  <link rel="icon" href="src/media/wf.ico">
   <link rel="apple-touch-icon" href="src/media/apple-touch-icon.png">
-
-  <!-- Open Graph Meta Tags for Facebook Sharing -->
-<meta property="og:title" content="Word Fleet – Where words wage war" />
-<meta property="og:description" content="Command your fleet of word-ships in a tactical blend of naval warfare and wordplay." />
-<meta property="og:image" content="https://the-game-bureau.github.io/wordfleet/src/media/wfbg.png" />
-<meta property="og:image:width" content="1200" />
-<meta property="og:image:height" content="630" />
-<meta property="og:type" content="website" />
-<meta property="og:url" content="https://the-game-bureau.github.io/wordfleet/" />
-
-  
-  <!-- Safari Pinned Tab -->
-  <link rel="mask-icon" href="src/media/safari-pinned-tab.svg" color="#6aaa64">
-  
-  <!-- Web App Manifest -->
   <link rel="manifest" href="src/media/site.webmanifest">
-  
-  <!-- Apple Web App Meta Tags -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Word Fleet">
-
-  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Special+Elite&family=Cutive+Mono&display=swap" rel="stylesheet">
-  <link rel="preload" href="src/media/wfbg.png" as="image">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100vh;
-  overflow: hidden;
-  font-family: 'Courier Prime', monospace;
-  color: #ffffff;
-  background: url('src/media/wfbg.png') no-repeat center center fixed;
-  background-size: cover;
-  background-attachment: fixed;
-}
+    :root {
+      color-scheme: light;
+      --paper: #f7f5ed;
+      --ink: #192f27;
+      --green: #446351;
+      --muted: #4b594e;
+      --line: #d6d8ca;
+      --accent: #a1402e;
+      --display: 'Barlow Condensed', 'Arial Narrow', Impact, sans-serif;
+      --mono: 'Courier New', monospace;
+      font: 100%/1.5 'DM Sans', Arial, sans-serif;
+    }
 
-* {
-  box-sizing: border-box;
-}
+    *, *::before, *::after { box-sizing: border-box; }
 
-body {
-  background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.6)), url('src/media/wfbg.png') no-repeat center center fixed;
-  background-size: cover;
-  background-attachment: fixed;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  text-align: center;
-  padding: 20px;
-}
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+    }
 
-.container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  max-height: 100vh;
-  overflow: hidden;
-}
+    a { color: inherit; }
+    img { display: block; max-width: 100%; height: auto; }
 
-.main-title {
-  font-family: 'Special Elite', 'Courier Prime', monospace;
-  font-size: clamp(2rem, 8vw, 6rem);
-  font-weight: 700;
-  color: #ffffff;
-  margin: 0 0 10px 0;
-  text-transform: uppercase;
-  letter-spacing: -2px;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
-  background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: titleGlow 2s ease-in-out infinite alternate;
-  padding: 0 20px;
-}
+    :focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 5px;
+    }
 
-.subtitle {
-  font-family: 'Cutive Mono', 'Courier Prime', monospace;
-  font-size: clamp(1rem, 3vw, 1.25rem);
-  color: #e0e0e0;
-  margin: 0 0 5px 0;
-  font-weight: 400;
-  opacity: 0.9;
-  animation: fadeIn 1s ease-out 0.5s both;
-  padding: 0 20px;
-}
+    .wrap {
+      width: min(100% - 3rem, 77rem);
+      margin-inline: auto;
+    }
 
-.byline {
-  font-family: 'Cutive Mono', 'Courier Prime', monospace;
-  font-size: clamp(0.9rem, 2vw, 1rem);
-  color: #b0b0b0;
-  margin: 0 0 15px 0;
-  font-weight: 400;
-  opacity: 0.8;
-  animation: fadeIn 1s ease-out 0.6s both;
-  padding: 0 20px;
-}
+    .skip-link {
+      position: fixed;
+      z-index: 2;
+      top: .75rem;
+      left: .75rem;
+      transform: translateY(-180%);
+      padding: .65rem 1rem;
+      color: white;
+      background: var(--ink);
+    }
 
-.description {
-  font-family: 'Courier Prime', monospace;
-  font-size: clamp(1rem, 2.5vw, 1.1rem);
-  color: #ffffff;
-  margin: 0 0 30px 0;
-  font-weight: 400;
-  line-height: 1.5;
-  opacity: 0.9;
-  max-width: 600px;
-  animation: fadeIn 1s ease-out 0.7s both;
-  padding: 0 20px;
-}
+    .skip-link:focus { transform: translateY(0); }
 
-.nav-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  max-width: 800px;
-  animation: fadeIn 1s ease-out 1s both;
-  padding: 0 20px;
-}
+    .masthead {
+      border-top: .3rem solid var(--ink);
+      border-bottom: 1px solid var(--line);
+    }
 
-.button-row {
-  display: flex;
-  justify-content: center;
-  gap: 24px;
-  flex-wrap: wrap;
-}
+    .masthead-inner,
+    .site-nav,
+    .site-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem 2rem;
+    }
 
-.nav-btn {
-  font-family: 'Special Elite', 'Courier Prime', monospace;
-  font-size: 16px;
-  font-weight: 700;
-  color: #ffffff;
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
-  border: 2px solid #6aaa64;
-  padding: 28px 24px;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  text-decoration: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  flex: 1;
-  min-width: 220px;
-  max-width: 300px;
-  text-align: center;
-  min-height: 140px;
-  box-shadow: 
-    0 0 20px rgba(106, 170, 100, 0.3),
-    0 8px 32px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  position: relative;
-  overflow: hidden;
-}
+    .masthead-inner { min-height: 4.4rem; }
 
-.nav-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(106, 170, 100, 0.4), transparent);
-  transition: left 0.8s ease;
-}
+    .wordmark {
+      display: inline-flex;
+      align-items: center;
+      gap: .65rem;
+      font: 800 1.55rem/.9 var(--display);
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      text-decoration: none;
+    }
 
-.nav-btn::after {
-  content: '';
-  position: absolute;
-  inset: 2px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, rgba(106, 170, 100, 0.1) 0%, transparent 50%, rgba(106, 170, 100, 0.1) 100%);
-  z-index: 0;
-}
+    .wordmark-icon,
+    .cover-ship,
+    .cover-stamp {
+      position: relative;
+      overflow: hidden;
+    }
 
-.nav-btn:hover::before {
-  left: 100%;
-}
+    .wordmark-icon {
+      display: block;
+      width: 2.45rem;
+      height: 1.95rem;
+      border: 1px solid #a4ad96;
+      border-radius: .18rem;
+      background: #e1e5d4;
+    }
 
-.nav-btn:hover {
-  background: linear-gradient(135deg, #6aaa64 0%, #5a9454 50%, #4a8444 100%);
-  color: #000000;
-  border-color: #ffffff;
-  transform: translateY(-5px) scale(1.02);
-  box-shadow: 
-    0 0 30px rgba(106, 170, 100, 0.6),
-    0 12px 40px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
+    .wordmark-icon img,
+    .cover-ship img,
+    .cover-stamp img {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 112%;
+      max-width: none;
+      transform: translate(-50%, -50%);
+    }
 
-.nav-btn:hover .emoji {
-  transform: scale(1.15) rotate(5deg);
-  filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.8));
-}
+    .wordmark-icon img,
+    .cover-ship img {
+      filter: contrast(1.3);
+      mix-blend-mode: multiply;
+    }
 
-.nav-btn:active {
-  transform: translateY(-2px) scale(1.01);
-  background: linear-gradient(135deg, #5a9454 0%, #4a8444 50%, #3a7434 100%);
-  color: #000000;
-  box-shadow: 
-    0 0 25px rgba(106, 170, 100, 0.5),
-    0 8px 32px rgba(0, 0, 0, 0.6);
-}
+    .site-nav {
+      justify-content: flex-end;
+      gap: .5rem clamp(.9rem, 3vw, 2.4rem);
+      font-size: .9rem;
+      font-weight: 700;
+    }
 
-.nav-btn .emoji {
-  font-size: 38px;
-  line-height: 1;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
-  z-index: 2;
-  position: relative;
-}
+    .site-nav a,
+    .site-footer a {
+      padding-block: .4rem;
+      text-decoration: none;
+    }
 
-.nav-btn .text {
-  font-size: 13px;
-  line-height: 1.1;
-  font-weight: 700;
-  z-index: 2;
-  position: relative;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
+    .site-nav a:hover,
+    .site-footer a:hover { text-decoration: underline; }
 
-/* Tablet styles */
-@media (max-width: 768px) {
-  body {
-    padding: 15px;
-  }
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      align-items: center;
+      gap: clamp(2rem, 5.5vw, 5.3rem);
+      padding-block: clamp(2rem, 4.5vw, 4.25rem);
+    }
 
-  .main-title {
-    font-size: clamp(2.2rem, 8vw, 3rem);
-    margin: 0 0 8px 0;
-  }
+    .notebook-art {
+      position: relative;
+      isolation: isolate;
+      container-type: inline-size;
+      aspect-ratio: 1.14;
+      margin: 0;
+      overflow: hidden;
+      border: 1px solid #dcdcc9;
+      border-radius: .35rem;
+      background:
+        radial-gradient(circle, #59654133 1px, transparent 1.35px) 0 0 / 15px 15px,
+        radial-gradient(ellipse at 29% 16%, #f0edde, #dfdfca 82%);
+    }
 
-  .subtitle {
-    font-size: clamp(1rem, 3vw, 1.2rem);
-    margin: 0 0 5px 0;
-  }
+    .tracker-preview {
+      position: absolute;
+      width: 46%;
+      top: 14%;
+      left: 44%;
+      transform: rotate(12deg);
+      border: 1px solid #dfded2;
+      border-radius: 2px;
+      box-shadow: 3px 6px 9px #28352624, 12px 18px 25px #28352625;
+      opacity: .95;
+    }
 
-  .byline {
-    font-size: clamp(0.9rem, 2vw, 1rem);
-    margin: 0 0 10px 0;
-  }
+    .notebook {
+      position: absolute;
+      top: 12%;
+      left: 23%;
+      width: 45%;
+      aspect-ratio: .72;
+      border: 1px solid #263c33;
+      border-radius: .28rem .55rem .55rem .28rem;
+      color: #f3edda;
+      background: linear-gradient(109deg, #253e33 3%, #365646 13%, #304d40 65%, #284539);
+      box-shadow:
+        inset -2px -1px 4px #192f27,
+        2px 3px 0 #f2eee0,
+        4px 6px 0 #bbb9a5,
+        5px 8px 0 #254235,
+        12px 16px 23px #2435284d,
+        3px 3px 6px #24352840;
+      transform: rotate(-10deg);
+    }
 
-  .description {
-    font-size: clamp(1rem, 2.5vw, 1.1rem);
-    margin: 0 0 25px 0;
-    line-height: 1.4;
-  }
+    .notebook::before {
+      content: '';
+      position: absolute;
+      inset: 3.5% 5% 3.5% 7%;
+      border: 1px solid #d8d1ad78;
+      border-radius: .14rem .3rem .3rem .14rem;
+      pointer-events: none;
+    }
 
-  .nav-buttons {
-    gap: 16px;
-  }
+    .binding {
+      position: absolute;
+      z-index: 1;
+      top: 6%;
+      bottom: 6%;
+      left: -7.5%;
+      width: 14%;
+      background:
+        radial-gradient(ellipse 49% 21% at 50% 50%, transparent 0 48%, #0d1c17 56% 81%, transparent 94%) 0 0 / 100% 8.333% repeat-y,
+        radial-gradient(ellipse 47% 13% at 48% 44%, transparent 0 54%, #829084 62% 80%, transparent 95%) 0 0 / 100% 8.333% repeat-y,
+        radial-gradient(ellipse 15% 18% at 85% 53%, #15241d 87%, transparent 100%) 0 0 / 100% 8.333% repeat-y;
+      filter: drop-shadow(1px 2px 1px #0b160e75);
+    }
 
-  .button-row {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 16px;
-    align-items: stretch;
-  }
+    .cover-label {
+      position: absolute;
+      inset: 10% 12% auto 15%;
+      font: 700 2.1cqw/1.1 var(--mono);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
 
-  .nav-btn {
-    padding: 32px 20px;
-    font-size: 15px;
-    max-width: none;
-    width: 100%;
-    min-height: 130px;
-    border: 2px solid #6aaa64;
-    min-width: 300px;
-  }
+    .cover-title {
+      position: absolute;
+      inset: 19% 11% auto 14%;
+      font: 800 9.15cqw/.8 var(--display);
+      letter-spacing: .015em;
+      text-transform: uppercase;
+    }
 
-  .nav-btn .emoji {
-    font-size: 42px;
-  }
+    .cover-title span {
+      display: block;
+      margin-top: 8%;
+      font-size: .34em;
+      line-height: 1.05;
+      letter-spacing: .11em;
+    }
 
-  .nav-btn .text {
-    font-size: 12px;
-    line-height: 1.1;
-  }
-}
+    .cover-ship {
+      position: absolute;
+      inset: 54% 11% 21% 14%;
+      border: 1px solid #e4dabb;
+      background:
+        linear-gradient(#8e9d7950 1px, transparent 1px) 0 0 / 3.4cqw 3.4cqw,
+        linear-gradient(90deg, #8e9d7950 1px, transparent 1px) 0 0 / 3.4cqw 3.4cqw,
+        #e5dfc7;
+    }
 
-/* Mobile styles */
-@media (max-width: 480px) {
-  .main-title {
-    font-size: clamp(2rem, 8vw, 2.8rem);
-    margin: 0 0 8px 0;
-  }
+    .cover-ship img { width: 102%; }
 
-  .subtitle {
-    font-size: clamp(1rem, 3vw, 1.1rem);
-    margin: 0 0 6px 0;
-  }
+    .cover-line {
+      position: absolute;
+      inset: auto 11% 9% 14%;
+      font: 700 1.9cqw/1.15 var(--mono);
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
 
-  .byline {
-    font-size: clamp(0.85rem, 2vw, 0.95rem);
-    margin: 0 0 10px 0;
-  }
+    .cover-stamp {
+      position: absolute;
+      z-index: 1;
+      right: 5%;
+      bottom: 8%;
+      width: 25%;
+      aspect-ratio: 1.9;
+      transform: rotate(12deg);
+      mix-blend-mode: multiply;
+      opacity: .8;
+    }
 
-  .description {
-    font-size: clamp(0.95rem, 2.5vw, 1rem);
-    margin: 0 0 20px 0;
-    line-height: 1.4;
-  }
+    .cover-stamp img { width: 105%; }
 
-  .nav-buttons {
-    gap: 14px;
-  }
+    .pencil {
+      position: absolute;
+      top: 8%;
+      right: 11%;
+      width: 3.1%;
+      height: 52%;
+      transform: rotate(22deg);
+      filter: drop-shadow(4px 4px 3px #28392645);
+    }
 
-  .nav-btn {
-    padding: 30px 18px;
-    min-height: 120px;
-    font-size: 14px;
-    min-width: 280px;
-  }
+    .pencil::before,
+    .pencil::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+    }
 
-  .nav-btn .emoji {
-    font-size: 38px;
-  }
+    .pencil::before {
+      top: 0;
+      height: 89%;
+      border-radius: 3px 3px 0 0;
+      background:
+        linear-gradient(#cf8777 0 8%, #aeac9a 8% 16%, transparent 16%),
+        linear-gradient(90deg, #a74e32, #d27848 28% 65%, #a54a2d 73%);
+    }
 
-  .nav-btn .text {
-    font-size: 11px;
-  }
-}
+    .pencil::after {
+      bottom: 0;
+      height: 12%;
+      clip-path: polygon(0 0, 100% 0, 52% 100%, 45% 100%);
+      background: linear-gradient(#e3bf94 0 65%, #343731 65%);
+    }
 
-/* Short mobile screens */
-@media (max-height: 600px) and (max-width: 768px) {
-  .main-title {
-    font-size: clamp(1.8rem, 7vw, 2.5rem);
-    margin: 0 0 6px 0;
-  }
+    .presenter {
+      margin: 0 0 .9rem;
+      color: var(--green);
+      font: 700 .92rem/1.4 var(--mono);
+    }
 
-  .subtitle {
-    font-size: clamp(0.9rem, 2.5vw, 1rem);
-    margin: 0 0 4px 0;
-  }
+    .presenter a { text-underline-offset: .18em; }
 
-  .byline {
-    font-size: clamp(0.8rem, 2vw, 0.9rem);
-    margin: 0 0 8px 0;
-  }
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      font-family: var(--display);
+    }
 
-  .description {
-    font-size: clamp(0.85rem, 2vw, 0.95rem);
-    margin: 0 0 15px 0;
-    line-height: 1.3;
-  }
+    h1 {
+      font-size: clamp(3.15rem, 6vw, 5.5rem);
+      font-weight: 800;
+      line-height: .88;
+      letter-spacing: -.025em;
+    }
 
-  .nav-buttons {
-    gap: 12px;
-  }
+    h1 span {
+      display: block;
+      color: var(--green);
+    }
 
-  .nav-btn {
-    padding: 24px 16px;
-    min-height: 100px;
-  }
+    .tagline {
+      margin: 1.5rem 0 .35rem;
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
 
-  .nav-btn .emoji {
-    font-size: 32px;
-  }
+    .summary {
+      max-width: 38ch;
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.65;
+    }
 
-  .nav-btn .text {
-    font-size: 10px;
-  }
-}
+    .game-details {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .8rem 1.35rem;
+      margin: 1.5rem 0 0;
+      padding: .75rem 0;
+      border-block: 1px solid var(--line);
+      list-style: none;
+      color: var(--green);
+      font: 700 .9rem/1.4 var(--mono);
+    }
 
-/* Touch devices without hover */
-@media (hover: none) {
-  .nav-btn:hover {
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
-    color: #ffffff;
-    border-color: #6aaa64;
-    transform: none;
-    box-shadow: 
-      0 0 20px rgba(106, 170, 100, 0.3),
-      0 8px 32px rgba(0, 0, 0, 0.4),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .65rem;
+      margin-top: 1.45rem;
+    }
 
-  .nav-btn:hover .emoji {
-    transform: none;
-    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
-  }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 3.1rem;
+      padding: .65rem 1.05rem;
+      border: 1px solid var(--ink);
+      border-radius: .25rem;
+      font-size: .95rem;
+      font-weight: 700;
+      text-decoration: none;
+    }
 
-  .nav-btn:hover::before {
-    left: -100%;
-  }
-}
+    .button-primary {
+      color: var(--paper);
+      background: var(--ink);
+    }
 
-/* Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+    .button-primary:hover { background: var(--green); }
+    .button-secondary:hover { background: #e4e8d9; }
 
-@keyframes titleGlow {
-  from {
-    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
-  }
-  to {
-    text-shadow: 0 4px 30px rgba(106, 170, 100, 0.3), 0 0 40px rgba(255, 255, 255, 0.1);
-  }
-}  </style>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-RVDTY31P7E"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+    .how-to {
+      padding-block: clamp(1.8rem, 4vw, 3.5rem);
+      border-block: 1px solid var(--line);
+      background: #e9ecdf;
+    }
 
-  gtag('config', 'G-RVDTY31P7E');
-</script>
+    h2 {
+      font-size: clamp(2.15rem, 3.8vw, 3.25rem);
+      line-height: 1;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.25rem 2.25rem;
+      margin: 1.25rem 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .steps li { border-top: 1px solid #aeb9a8; }
+
+    .steps h3 {
+      margin-top: .65rem;
+      font-size: 1.55rem;
+      line-height: 1;
+    }
+
+    .steps p {
+      margin: .4rem 0 0;
+      color: var(--muted);
+    }
+
+    .site-footer {
+      flex-wrap: wrap;
+      padding-block: 1rem;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .site-footer p { margin: 0; }
+
+    @media (max-width: 54rem) {
+      .hero {
+        grid-template-columns: 1fr;
+        justify-items: start;
+      }
+
+      .hero-copy { grid-row: 1; }
+      .notebook-art { width: min(100%, 38rem); }
+      .game-details { max-width: 38rem; }
+    }
+
+    @media (max-width: 35rem) {
+      .wrap { width: calc(100% - 2rem); }
+      .masthead-inner { gap: .4rem 1rem; }
+      .wordmark { font-size: 1.25rem; }
+      .wordmark-icon { width: 2rem; height: 1.65rem; }
+      .desktop-nav-link { display: none; }
+      h1 { font-size: clamp(2.8rem, 10.2vw, 3.8rem); }
+      .steps { grid-template-columns: 1fr; }
+      .site-footer { gap: .4rem 1rem; }
+    }
+  </style>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-RVDTY31P7E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-RVDTY31P7E');
+  </script>
 </head>
 <body>
-  <div class="container">
-    <h1 class="main-title">Word Fleet</h1>
-    <p class="subtitle">Where words wage war</p>
-    <p class="byline">by Kevin Kolb</p>
-    <p class="description">What if Battleship required you to spell? "Fire on coordinate Echo-Seven!" "Hit." Now guess the letter. That's Word Fleet—where finding enemy ships is just the beginning. Hide your word-ships, hunt your opponents down letter by letter, and use every clue to sink their fleet before they sink yours. Simple to learn. Satisfying to master.</p>
-    
-    <nav class="nav-buttons">
-      <div class="button-row four-buttons">
-        <a href="pandp.html" class="nav-btn">
-          <span class="emoji">📝</span>
-          <span class="text">Pen & Paper<br>Mode</span>
-        </a>
-        <a href="future.html" class="nav-btn">
-          <span class="emoji">🚀</span>
-          <span class="text">Future Deployments</span>
-        </a>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="masthead">
+    <div class="wrap masthead-inner">
+      <a class="wordmark" href="index.html">
+        <span class="wordmark-icon" aria-hidden="true">
+          <img src="src/media/silohette_4.png" alt="">
+        </span>
+        Word Fleet
+      </a>
+      <nav class="site-nav" aria-label="Main navigation">
+        <a class="desktop-nav-link" href="#how-to-play">How to play</a>
+        <a href="rules.html">Rules</a>
+        <a href="pandp.html">Pen &amp; paper</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section class="wrap hero" aria-labelledby="notebook-title">
+      <figure class="notebook-art" aria-hidden="true">
+        <img class="tracker-preview" src="src/media/preview.png" alt="" width="1632" height="2112">
+        <div class="notebook">
+          <span class="binding"></span>
+          <span class="cover-label">The Game Bureau</span>
+          <span class="cover-title">Word<br>Fleet<span>Game Notebook</span></span>
+          <span class="cover-ship"><img src="src/media/silohette_4.png" alt=""></span>
+          <span class="cover-line">Sink or Spell</span>
+        </div>
+        <span class="cover-stamp"><img src="src/media/stamp.png" alt=""></span>
+        <span class="pencil"></span>
+      </figure>
+
+      <div class="hero-copy">
+        <p class="presenter"><a href="https://thegamebureau.com">thegamebureau.com</a> presents</p>
+        <h1 id="notebook-title">The Word Fleet <span>Game Notebook</span></h1>
+        <p class="tagline">Sink or Spell.</p>
+        <p class="summary">Hide your word-ships on a grid, then hunt your opponent’s fleet one coordinate and one letter at a time. All you need are two Battle Trackers and something to write with.</p>
+
+        <ul class="game-details" aria-label="Game details">
+          <li>2 captains</li>
+          <li>15–30 minutes</li>
+          <li>Ages 10+</li>
+        </ul>
+
+        <div class="actions">
+          <a class="button button-primary" href="pandp.html">Print game sheets</a>
+          <a class="button button-secondary" href="rules.html">Read the rules</a>
+        </div>
       </div>
-    </nav>
-  </div>
+    </section>
+
+    <section class="how-to" id="how-to-play" aria-labelledby="how-to-play-title">
+      <div class="wrap">
+        <h2 id="how-to-play-title">How to play</h2>
+        <ol class="steps">
+          <li>
+            <h3>Hide your fleet</h3>
+            <p>Place five word-ships across your defense grid. Keep their locations and letters secret.</p>
+          </li>
+          <li>
+            <h3>Call your shot</h3>
+            <p>Pick a coordinate on your opponent’s grid. If you hit a ship, guess the letter in that square.</p>
+          </li>
+          <li>
+            <h3>Sink their ships</h3>
+            <p>Use the letters you uncover to work out the hidden words and sink the opposing fleet.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap site-footer">
+    <p>A game by Kevin Kolb</p>
+    <a href="future.html">Future Deployments</a>
+  </footer>
 </body>
 </html>
