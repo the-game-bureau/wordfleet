@@ -1,0 +1,836 @@
+/* ============ WORD FLEET - MOBILE APP ============ */
+:root {
+  --ink: #000;
+  --paper: #fff;
+  --page: #f8f9fa;
+  --muted: #666;
+  --faint: #e5e5e5;
+  --green: #6aaa64;
+  --green-dark: #4a8444;
+  --green-wash: #e3f0e1;
+  --gold: #c9a227;
+  --gold-wash: #f6e6a8;
+  --red: #a93226;
+  --red-wash: #f6d5d1;
+  --blue-wash: #e9eef5;
+  --navy: #1f3a5f;
+  --navy-wash: #e6ecf4;
+  --mono: 'Courier Prime', ui-monospace, Menlo, monospace;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --bar-h: 52px;
+  --tab-h: 58px;
+  /* 11 columns (labels + A-J), 1px gaps, fits inside a card on any phone */
+  --board: min(calc(100vw - 52px), 468px);   /* screen gutters + card padding and borders */
+  --cell: calc((var(--board) - 12px) / 11);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { -webkit-text-size-adjust: 100%; }
+html, body {
+  font-family: var(--sans); color: var(--ink); font-size: 16px; line-height: 1.5;
+  background-color: var(--page);
+  background-image:
+    linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-position: -1px -1px;
+  min-height: 100%;
+}
+body { overscroll-behavior-y: none; }
+button { font: inherit; color: inherit; touch-action: manipulation; }
+[hidden] { display: none !important; }
+
+/* --- top bar --- */
+.bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+  height: calc(var(--bar-h) + var(--safe-t)); padding: var(--safe-t) 12px 0 16px;
+  display: flex; align-items: center; gap: 10px;
+  background: var(--paper); border-bottom: 1px solid var(--ink);
+}
+.bar-brand { display: flex; flex-direction: column; line-height: 1.1; flex: 1; min-width: 0; }
+.bar-title { font-weight: 700; font-size: 17px; letter-spacing: 0.04em; white-space: nowrap; }
+.bar-sub { font-family: var(--mono); font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; letter-spacing: 0.08em; }
+.chip {
+  font-family: var(--mono); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+  border: 1px solid var(--ink); padding: 3px 8px; background: var(--green); white-space: nowrap;
+}
+.chip.is-foe { background: var(--red); color: #fff; border-color: var(--red); }
+.chip.is-quiet { background: var(--paper); }
+.icon-btn { width: 40px; height: 40px; border: none; background: none; display: grid; place-items: center; cursor: pointer; }
+
+/* --- screens --- */
+.screens { padding: calc(var(--bar-h) + var(--safe-t) + 12px) 12px calc(24px + var(--safe-b)); max-width: 520px; margin: 0 auto; }
+.screen { display: none; }
+.screen.is-on { display: block; }
+.screen--tabs { padding-bottom: calc(var(--tab-h) + var(--safe-b)); }
+
+.card { background: var(--paper); border: 1px solid var(--ink); padding: 16px; }
+.card + .card { margin-top: 12px; }
+.card--flush { padding: 12px 12px 12px; }
+.card-title {
+  font-family: var(--mono); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em;
+  padding-bottom: 8px; margin-bottom: 12px; border-bottom: 1px solid var(--faint);
+}
+.lead { font-size: 15px; margin-bottom: 16px; }
+.hint { font-size: 13px; color: var(--muted); line-height: 1.5; margin: 8px 0 14px; }
+.hint strong { color: var(--ink); }
+.hint--tight { margin-top: -4px; }
+.note { font-size: 13px; color: var(--red); min-height: 18px; margin: 4px 0 8px; }
+.fineprint { font-family: var(--mono); font-size: 12px; color: var(--muted); text-align: center; margin-top: 16px; }
+.label { display: block; font-family: var(--mono); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin: 14px 0 6px; }
+.label:first-of-type { margin-top: 0; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* --- hero --- */
+.hero { text-align: center; padding: 28px 0 22px; }
+.hero-eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); }
+.hero-title { font-size: clamp(40px, 13vw, 60px); font-weight: 700; letter-spacing: -0.02em; line-height: 1; margin: 8px 0; }
+.hero-tag { display: inline-block; font-family: var(--mono); font-weight: 700; font-size: 14px; letter-spacing: 0.2em; text-transform: uppercase; background: var(--green); border: 1px solid var(--ink); padding: 4px 12px; }
+
+/* --- buttons --- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 46px; padding: 10px 18px; border: 1px solid var(--ink); background: var(--paper);
+  font-size: 15px; font-weight: 600; letter-spacing: 0.02em; cursor: pointer; text-decoration: none; color: var(--ink);
+}
+.btn:active:not(:disabled) { background: var(--ink); color: var(--paper); }
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn--primary { background: var(--green); }
+.btn--primary:active:not(:disabled) { background: var(--green-dark); color: var(--ink); }
+.btn--danger { color: var(--red); border-color: var(--red); }
+.btn--danger:active:not(:disabled) { background: var(--red); color: #fff; }
+.btn--danger-solid { background: var(--red); color: #fff; border-color: var(--red); }
+.btn--ghost { border-color: transparent; background: none; color: var(--muted); font-weight: 500; }
+.btn--wide { width: 100%; }
+.btn--wide + .btn--wide { margin-top: 8px; }
+.btn--sm { min-height: 36px; padding: 6px 12px; font-size: 13px; }
+.btn--sq { width: 46px; padding: 0; font-size: 20px; flex-shrink: 0; }
+
+/* --- inputs --- */
+.input {
+  width: 100%; min-height: 46px; padding: 10px 12px; border: 1px solid var(--ink); border-radius: 0; background: var(--paper);
+  font-family: var(--mono); font-size: 17px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink);
+  -webkit-appearance: none; appearance: none;
+}
+.input:focus { outline: 2px solid var(--green); outline-offset: -2px; }
+.input::placeholder { color: #bbb; }
+.input.is-bad { border-color: var(--red); background: #fff7f6; }
+.input.is-good { border-color: var(--green-dark); }
+.input-row { display: flex; gap: 8px; }
+
+.seg { display: flex; border: 1px solid var(--ink); }
+.seg button { flex: 1; min-height: 44px; white-space: nowrap; border: none; border-right: 1px solid var(--ink); background: var(--paper); font-size: 13px; font-weight: 600; cursor: pointer; padding: 6px 4px; }
+.seg button:last-child { border-right: none; }
+.seg button.is-on { background: var(--ink); color: var(--paper); }
+.seg--sm button { min-height: 36px; padding: 4px 10px; }
+
+.check { display: flex; align-items: center; gap: 10px; min-height: 44px; margin-top: 10px; font-size: 15px; font-weight: 600; cursor: pointer; }
+.check input { width: 22px; height: 22px; accent-color: var(--ink); flex-shrink: 0; }
+
+/* --- word list (setup) --- */
+.words { margin-top: 12px; }
+.word { display: grid; grid-template-columns: 58px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.word + .word { margin-top: 8px; }
+.word-class { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.08em; line-height: 1.2; }
+.word-class b { display: block; color: var(--ink); font-size: 12px; }
+.word-fixed {
+  font-family: var(--mono); font-size: 20px; font-weight: 700; letter-spacing: 0.3em;
+  border: 1px solid var(--ink); min-height: 46px; display: flex; align-items: center; padding: 0 12px; background: var(--green-wash);
+}
+
+/* --- grids --- */
+.grid-label {
+  font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: 0.12em;
+  display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; min-height: 24px;
+}
+.grid-label > span { font-weight: 400; color: var(--muted); letter-spacing: 0.04em; text-align: right; }
+.grid {
+  display: grid; grid-template-columns: repeat(11, var(--cell)); grid-auto-rows: var(--cell);
+  gap: 1px; background: var(--ink); border: 1px solid var(--ink); width: max-content; margin: 0 auto;
+}
+.cell {
+  background: var(--paper); display: flex; align-items: center; justify-content: center; position: relative;
+  font-family: var(--mono); font-weight: 700; font-size: calc(var(--cell) * 0.5); line-height: 1; user-select: none; -webkit-user-select: none;
+  border: none; padding: 0;
+}
+button.cell { cursor: pointer; }
+.cell.is-label { background: #f2f2f2; color: var(--muted); font-size: calc(var(--cell) * 0.36); }
+.cell.is-miss::after { content: ''; width: 24%; height: 24%; border-radius: 50%; background: #8a8a8a; }
+.cell.is-miss { background: #f7f7f7; }
+.cell.is-hit { background: var(--gold-wash); box-shadow: inset 0 0 0 3px var(--gold); }
+.cell.is-bull { background: var(--green); }
+.cell.is-target { background: var(--ink); color: var(--paper); box-shadow: none; }
+.cell.is-target::after { background: var(--paper); }
+.cell.is-ship { background: var(--blue-wash); }
+.cell.is-ship-hit { box-shadow: inset 0 0 0 3px var(--red); }
+.cell.is-ship-lost { background: var(--red); color: #fff; }
+.cell.is-preview { background: #d6ead4; }
+.cell.is-bad { background: var(--red-wash); }
+.cell.is-dragging { opacity: 0.35; }
+#gridDeploy { touch-action: none; }
+.cell.is-flash { animation: flash 0.9s ease-out 2; }
+.cell .q { color: #8a8a8a; }
+@keyframes flash { 0% { outline: 3px solid var(--red); outline-offset: -3px; } 100% { outline: 3px solid transparent; outline-offset: -3px; } }
+
+/* --- deploy --- */
+.deploy-head { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.roster { display: grid; gap: 6px; }
+.ship {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 46px;
+  border: 1px solid var(--ink); background: var(--paper); padding: 8px 12px; cursor: pointer; text-align: left;
+}
+.ship.is-on { background: var(--green); }
+.ship.is-placed { border-style: dashed; background: #fafafa; }
+.ship-class { font-family: var(--mono); font-size: 11px; color: var(--muted); min-width: 44px; letter-spacing: 0.08em; }
+.ship-word { font-family: var(--mono); font-size: 17px; font-weight: 700; letter-spacing: 0.2em; flex: 1; }
+.ship-at { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+
+/* --- battle: bubbles + fire panel --- */
+.bubbles { display: inline-flex; gap: 4px; }
+.bubble {
+  width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--ink); background: var(--paper);
+  font-family: var(--mono); font-size: 12px; font-weight: 700; display: grid; place-items: center; color: var(--ink);
+}
+.bubble.is-located { background: var(--gold-wash); border-color: var(--gold); }
+.bubble.is-solved { background: var(--green-dark); border-color: var(--green-dark); color: #fff; }
+.fire-coord { font-family: var(--mono); font-size: 22px; font-weight: 700; letter-spacing: 0.04em; }
+.fire-call { font-family: var(--mono); font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+.fire-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.waiting { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-weight: 700; }
+.waiting::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--red); animation: blink 0.8s infinite alternate; }
+@keyframes blink { from { opacity: 1; } to { opacity: 0.2; } }
+
+/* --- manifests --- */
+.manifest { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+.mf {
+  border: 1px solid var(--ink); background: var(--paper); min-height: 44px; padding: 3px 0 2px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1;
+  font-family: var(--mono);
+}
+.mf-l { font-size: 17px; font-weight: 700; }
+button.mf { font: inherit; color: var(--ink); width: 100%; padding: 3px 0 2px; cursor: pointer; }
+.manifest.is-live .mf.is-callable { border-width: 2px; }
+.mf.is-callable:active { background: var(--green); }
+.mf-vowel { font-size: 9px; font-weight: 700; color: var(--red); min-height: 9px; }
+.manifest--pick { margin-top: 12px; }
+.manifest--pick .mf { min-height: 52px; }
+.cell[data-k] { cursor: pointer; }
+.mf-n { font-size: 11px; color: var(--muted); min-height: 12px; }
+.mf.is-vowel { background: #e4e4e4; }
+.mf.is-known { background: var(--gold-wash); }
+.mf.is-done { background: var(--green); }
+.mf.is-done .mf-n { color: var(--ink); }
+.mf.is-zero { background: #f2f2f2; color: #aaa; }
+.mf.is-zero .mf-l { text-decoration: line-through; }
+.mf.is-dim { opacity: 0.35; }
+.mf-key { font-family: var(--mono); color: var(--ink); }
+
+/* --- log --- */
+.log-item { border-bottom: 1px solid #f0f0f0; padding: 8px 0; font-size: 14px; }
+.log-item:last-child { border-bottom: none; }
+.log-who { display: block; font-family: var(--mono); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.log-item.is-foe .log-who { color: var(--red); }
+.log-empty { font-size: 14px; color: var(--muted); font-style: italic; }
+.say { font-family: var(--mono); font-weight: 700; }
+
+/* --- tab bar --- */
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  height: calc(var(--tab-h) + var(--safe-b)); padding-bottom: var(--safe-b);
+  display: flex; background: var(--paper); border-top: 1px solid var(--ink);
+}
+.tabbar button {
+  flex: 1; border: none; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: var(--muted); cursor: pointer; position: relative;
+}
+.tabbar svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.tabbar button.is-on { color: var(--ink); }
+.tabbar button.is-on::before { content: ''; position: absolute; top: -1px; left: 14%; right: 14%; height: 4px; background: var(--ink); }
+.tabbar button.is-attack.is-on { color: var(--green-dark); }
+.tabbar button.is-attack.is-on::before { background: var(--green); }
+.tabbar button.is-defense.is-on { color: var(--navy); }
+.tabbar button.is-defense.is-on::before { background: var(--navy); }
+
+/* --- grid banners: make it obvious which grid you're looking at --- */
+.gridbanner {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 12px; border: 1px solid var(--ink); border-bottom: none; color: #fff;
+}
+.gridbanner b { display: block; font-family: var(--mono); font-size: 17px; letter-spacing: 0.14em; line-height: 1.2; }
+.gridbanner span { font-size: 12px; opacity: 0.9; }
+.gridbanner.is-attack { background: var(--green-dark); }
+.gridbanner.is-defense { background: var(--navy); }
+.gridbanner .bubbles span { opacity: 1; }
+.gridbanner + .card { margin-top: 0; }
+.card--attack { border-top: 4px solid var(--green-dark); }
+.card--defense { border-top: 4px solid var(--navy); }
+.card.is-incoming { border: 2px solid var(--navy); background: var(--navy-wash); }
+.card.is-incoming + .card { margin-top: 12px; }
+.incoming-title { font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--navy); margin-bottom: 6px; }
+.rapid-title { font-family: var(--mono); font-size: 20px; font-weight: 700; letter-spacing: 0.1em; color: var(--red); }
+
+/* --- manifest dots --- */
+.pips { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; min-height: 9px; margin-top: 2px; max-width: 34px; }
+.pip { display: inline-block; width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--ink); background: var(--paper); }
+.pip.is-found { background: var(--green-dark); border-color: var(--green-dark); }
+.pip.is-lost { background: var(--red); border-color: var(--red); }
+.pip-key { display: inline-flex; align-items: center; gap: 4px; margin-right: 10px; color: var(--ink); font-weight: 600; }
+.mf-none { font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.04em; }
+.tab-dot { position: absolute; top: 8px; right: calc(50% - 18px); width: 8px; height: 8px; border-radius: 50%; background: var(--red); }
+
+/* --- sheet --- */
+.scrim { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); z-index: 40; }
+.sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 41; max-height: 88vh; overflow-y: auto;
+  background: var(--paper); border-top: 1px solid var(--ink); padding: 8px 16px calc(18px + var(--safe-b));
+  max-width: 560px; margin: 0 auto; animation: rise 0.18s ease-out;
+}
+@media (min-width: 560px) { .sheet { border: 1px solid var(--ink); border-bottom: none; } }
+@keyframes rise { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+.sheet-grip { width: 40px; height: 4px; background: #ccc; border-radius: 2px; margin: 2px auto 12px; }
+.sheet h2 { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 4px; }
+.sheet-eyebrow { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+.sheet-eyebrow.is-foe { color: var(--red); }
+.sheet .btn--wide { margin-top: 8px; }
+.menu-list .btn { justify-content: flex-start; }
+.switches { border-top: 1px solid var(--faint); margin-top: 12px; padding-top: 4px; }
+.switch-row { display: flex; align-items: center; justify-content: space-between; min-height: 48px; font-size: 15px; font-weight: 600; cursor: pointer; }
+.switch {
+  -webkit-appearance: none; appearance: none; position: relative; flex-shrink: 0; cursor: pointer;
+  width: 52px; height: 30px; border: 1px solid var(--ink); border-radius: 15px; background: #d9d9d9; transition: background 0.15s ease;
+}
+.switch::before {
+  content: ''; position: absolute; top: 2px; left: 2px; width: 24px; height: 24px; border-radius: 50%;
+  background: var(--paper); border: 1px solid var(--ink); transition: transform 0.15s ease;
+}
+.switch:checked { background: var(--green); }
+.switch:checked::before { transform: translateX(22px); }
+.switch:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+.keys { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin: 12px 0 6px; }
+.key {
+  min-height: 46px; border: 1px solid var(--ink); background: var(--paper); cursor: pointer; position: relative;
+  font-family: var(--mono); font-size: 18px; font-weight: 700; padding: 0;
+}
+.key:active:not(:disabled) { background: var(--green); }
+.key:disabled { background: #f2f2f2; color: #bbb; border-color: #ccc; cursor: not-allowed; text-decoration: line-through; }
+.key.is-zero { color: #aaa; }
+.key.is-vowel { background: #e4e4e4; }
+.key-v { position: absolute; left: 0; right: 0; bottom: 1px; font-size: 8px; font-weight: 700; color: var(--red); letter-spacing: 0; text-align: center; }
+.keys .key { min-height: 50px; }
+.notice { font-size: 14px; font-weight: 600; color: var(--red); background: var(--red-wash); border: 1px solid var(--red); padding: 8px 10px; margin: 8px 0; }
+.key-n { position: absolute; top: 1px; right: 3px; font-size: 10px; font-weight: 700; color: var(--red); }
+
+.report { border: 1px solid var(--ink); padding: 12px 14px; margin: 12px 0 4px; }
+.report + .report { margin-top: 8px; }
+.report-q { font-family: var(--mono); font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.report-a { font-family: var(--mono); font-size: 20px; font-weight: 700; }
+.report.is-good { background: var(--green-wash); }
+.report.is-warn { background: var(--gold-wash); }
+.report.is-bad { background: var(--red-wash); }
+.solve { border-top: 1px solid var(--faint); margin-top: 12px; padding-top: 4px; }
+.mini-wrap { margin: 12px 0 4px; --cell: calc((min(calc(100vw - 32px), 360px) - 12px) / 11); }
+
+.claim { border-top: 1px solid var(--faint); padding: 10px 0; }
+.claim-top { display: grid; grid-template-columns: 52px 1fr; gap: 8px; align-items: center; }
+.claim-sub { display: grid; grid-template-columns: 1fr 1fr 1.3fr; gap: 6px; margin-top: 6px; }
+.select {
+  width: 100%; min-height: 42px; border: 1px solid var(--ink); border-radius: 0; background: var(--paper);
+  font-family: var(--mono); font-size: 16px; font-weight: 700; padding: 0 8px; color: var(--ink);
+  -webkit-appearance: none; appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #000 50%), linear-gradient(135deg, #000 50%, transparent 50%);
+  background-position: calc(100% - 14px) 18px, calc(100% - 9px) 18px; background-size: 5px 5px; background-repeat: no-repeat;
+}
+
+/* --- rules sheet --- */
+.rules h3 { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; margin: 16px 0 6px; }
+.rules p, .rules li { font-size: 14px; line-height: 1.55; }
+.rules ul { padding-left: 18px; }
+.rules li + li { margin-top: 4px; }
+
+/* --- game over --- */
+.curtain { text-align: center; padding: 28px 16px 20px; }
+.curtain-eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--muted); }
+.curtain-title { font-size: clamp(28px, 9vw, 40px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; margin: 8px 0; }
+.curtain-quote { font-family: var(--mono); font-weight: 700; margin-bottom: 16px; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 16px; }
+.stat { border: 1px solid var(--ink); padding: 8px 4px; }
+.stat b { display: block; font-family: var(--mono); font-size: 22px; }
+.stat span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* --- toast --- */
+.toast {
+  position: fixed; left: 50%; top: calc(var(--bar-h) + var(--safe-t) + 10px); transform: translateX(-50%); z-index: 50;
+  background: var(--ink); color: var(--paper); font-family: var(--mono); font-weight: 700; font-size: 14px;
+  padding: 10px 16px; max-width: calc(100vw - 32px); text-align: center; animation: rise 0.18s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* --- compact battle panel --- */
+.status { font-size: 15px; margin: 0; }
+.call { font-size: 15px; margin: 2px 0 6px; }
+.call b { font-family: var(--mono); letter-spacing: 0.04em; }
+.bonus { font-weight: 700; color: var(--green-dark); background: var(--green-wash); border: 1px solid var(--green-dark); padding: 8px 10px; margin: 6px 0; }
+.tag { display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; background: var(--green-wash); color: var(--green-dark); border: 1px solid var(--green-dark); padding: 0 5px; margin-left: 2px; }
+.tag.is-red { background: var(--red-wash); color: var(--red); border-color: var(--red); }
+.panel-links { display: flex; justify-content: flex-end; margin-top: 8px; }
+.linkbtn { border: none; background: none; padding: 6px 0; font-size: 13px; font-weight: 600; text-decoration: underline; cursor: pointer; }
+.linkbtn.is-danger { color: var(--red); }
+.solve { margin: 8px 0; }
+.cell.is-aimed { outline: 3px solid var(--navy); outline-offset: -3px; }
+
+/* Open water: a square that was picked and holds no letter. */
+.cell.is-empty { background: #8f979f; }
+.cell.is-empty::after { content: ''; width: 28%; height: 28%; border-radius: 50%; background: #fff; }
+
+.card--manifest { padding: 10px 12px; }
+.card--manifest .card-title { margin-bottom: 8px; padding-bottom: 6px; }
+.card--manifest .mf { min-height: 38px; }
+
+.bonus { font-size: 16px; }
+.bonus.is-foe { color: var(--navy); background: var(--navy-wash); border-color: var(--navy); }
+
+/* --- Prepare for Battle steps --- */
+.step { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--green-dark); margin-bottom: 4px; }
+.btn--next { margin-top: 18px; }
+
+.hint--label { margin: -2px 0 8px; }
+
+#segLevel button { white-space: normal; line-height: 1.2; padding: 6px 4px; }
+#segLevel .cpt { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.75; }
+
+.check--top { margin-top: 0; }
+.btn--sm-gap { margin-top: 10px; min-height: 40px; font-size: 14px; }
+
+/* --- Setup screens 001-004: large, easy-to-read text (elderly / phone friendly) --- */
+.setup-big .card { padding: 22px 20px; }
+.setup-big .card-title { font-size: 17px; letter-spacing: 0.08em; padding-bottom: 12px; margin-bottom: 18px; }
+.setup-big .label--say { font-family: var(--sans); font-size: 19px; font-weight: 700; text-transform: none; letter-spacing: 0; line-height: 1.35; margin: 22px 0 10px; }
+.setup-big .label--say:first-of-type { margin-top: 0; }
+.setup-big .hint { font-size: 17px; line-height: 1.5; color: #444; }
+.setup-big .note { font-size: 17px; }
+.setup-big .input { font-size: 21px; min-height: 56px; }
+.setup-big .select { font-size: 20px; min-height: 56px; padding: 0 12px; }
+.setup-big .btn { font-size: 19px; min-height: 58px; }
+.setup-big .btn--sq { width: 56px; font-size: 24px; }
+.setup-big .check { font-size: 19px; gap: 12px; }
+.setup-big .check input { width: 28px; height: 28px; }
+.setup-big .seg button { font-size: 18px; min-height: 64px; }
+.setup-big #segLevel .cpt { font-size: 13px; }
+.setup-big .word { grid-template-columns: 74px minmax(0, 1fr) auto; }
+.setup-big .word-class { font-size: 14px; }
+.setup-big .word-class b { font-size: 16px; }
+.setup-big .input { letter-spacing: 0.06em; }
+.setup-big #inFleet { font-size: 18px; letter-spacing: 0.02em; padding: 10px; }
+
+/* "Prepare for Battle" header above the card on every setup screen (001-004) */
+.page-head { font-family: var(--mono); font-size: 22px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; line-height: 1.2; margin: 6px 2px 12px; color: var(--ink); }
+.setup-big .card-title { font-size: 20px; }
+.setup-big .label--say:first-of-type, .setup-big .card-title + .label--say { margin-top: 0; }
+
+/* Big on/off switch on 003 (Possibly Offensive Words OK) */
+.switch-row--big { font-size: 19px; font-weight: 700; gap: 16px; min-height: 56px; }
+.switch-row--big .switch { transform: scale(1.3); transform-origin: right center; margin-right: 4px; }
+
+/* Next buttons on 001-003 double as a progress bar: green fills left to right (25%, 50%, 75%, 100%). */
+.btn--progress { background: linear-gradient(to right, var(--green) var(--progress, 0%), var(--paper) var(--progress, 0%)); border-width: 2px; }
+.btn--progress:active:not(:disabled) { background: var(--green-dark); color: var(--ink); }
+
+/* 003: section header with its action on the right (Refresh All) */
+.section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 22px 0 10px; }
+.section-head .label--say { margin: 0; }
+.setup-big .section-head .btn--sm { font-size: 16px; min-height: 44px; padding: 6px 12px; white-space: nowrap; }
+/* ship class on one line, letter count underneath */
+.nowrap { white-space: nowrap; }
+.setup-big .word { grid-template-columns: max-content minmax(0, 1fr) auto; }
+.setup-big .word-class { letter-spacing: 0.02em; }
+/* the dictionary message takes no room until there is one */
+.setup-big .note:empty { min-height: 0; margin: 0; }
+
+/* 004 Deploy as step 4 of Prepare for Battle */
+.setup-big .card--deploy { padding: 18px 12px; }   /* the grid keeps the narrower padding */
+/* 18px card padding + 2px here = the 20px the other setup cards use, so the buttons line up across 001-004 */
+.setup-big .card--deploy .card-title, .setup-big .card--deploy .section-head, .setup-big .card--deploy .hint,
+.setup-big .card--deploy .deploy-head, .setup-big .card--deploy .roster, .setup-big .card--deploy > .btn { margin-left: 8px; margin-right: 8px; }
+.setup-big .card--deploy > .btn--wide { width: calc(100% - 16px); }
+.setup-big .card--deploy .grid-label { font-size: 14px; margin-bottom: 8px; }
+.setup-big .deploy-head .seg button { min-height: 48px; font-size: 16px; padding: 6px 12px; }
+.setup-big .deploy-head .btn--sm { min-height: 48px; font-size: 16px; padding: 6px 12px; }
+.setup-big .ship { min-height: 54px; }
+.setup-big .ship-class { font-size: 14px; min-width: 56px; }
+.setup-big .ship-word { font-size: 21px; }
+.setup-big .ship-at { font-size: 15px; }
+.btn--progress:disabled { opacity: 0.7; }
+.setup-big .deploy-head { flex-direction: column; gap: 8px; }
+.setup-big .deploy-head .seg, .setup-big .deploy-head .row { display: flex; width: 100%; gap: 8px; }
+.setup-big .deploy-head .seg { gap: 0; }
+.setup-big .deploy-head .seg button, .setup-big .deploy-head .row .btn { flex: 1; }
+
+/* deployed word-ships show green on 004 */
+#gridDeploy .cell.is-ship { background: var(--green); }
+
+/* 004: Defense Grid dressed like the in-game one (navy banner, framed card with a navy top edge) */
+.deploy-board { margin: 0 0 4px; }
+.deploy-frame { border: 1px solid var(--ink); border-top: 4px solid var(--navy); padding: 10px 0; background: var(--paper); }
+.deploy-board { --board: min(calc(100vw - 54px), 468px); }
+
+/* 001: color schemes shown as flags flying the fleet's initials */
+.swatches { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.swatch { display: block; padding: 4px 2px; border: 1px solid transparent; background: none; cursor: pointer; border-radius: 4px; }
+.swatch svg { display: block; width: 100%; height: auto; }
+.swatch.is-on { border-color: var(--ink); outline: 2px solid var(--ink); background: #fff; }
+.swatch:focus-visible { outline: 3px solid var(--green-dark); outline-offset: 2px; }
+.setup-big .swatch-name { margin: 10px 0 0; font-weight: 600; color: var(--ink); }
+.setup-big #lblColors { margin-top: 22px; }
+#deployBanner span { opacity: 1; }   /* keep the full contrast of the fleet's two colors */
+
+/* Every button reads in capitals */
+.btn, .seg button { text-transform: uppercase; }
+.setup-big #segLevel button { font-size: 16px; padding: 6px 2px; }   /* capitals are wider: keep LEXICON inside its box on small phones */
+
+/* --- Prepare screens polish --- */
+/* 4: greeting above the header on 001 */
+.page-welcome { font-size: 19px; font-weight: 700; margin: 4px 2px 0; }
+/* 9: your flag and fleet name under the header on 002-004 */
+.fleet-tag { display: flex; align-items: center; gap: 10px; margin: -4px 2px 12px; }
+.fleet-tag-flag { width: 44px; flex-shrink: 0; }
+.fleet-tag-flag svg { display: block; width: 100%; height: auto; }
+.fleet-tag-name { font-family: var(--mono); font-size: 17px; font-weight: 700; letter-spacing: 0.06em; }
+/* 11: language on one row */
+.setup-big .lang-row { display: flex; align-items: center; gap: 12px; }
+.setup-big .lang-row .label--say { margin: 0; flex-shrink: 0; }
+.setup-big .lang-row .select { flex: 1; min-width: 0; }
+/* 3: header-row buttons (Refresh All, Shuffle) match the other buttons */
+.setup-big .section-head .btn--head { font-size: 18px; min-height: 48px; padding: 6px 14px; }
+/* 6: ship sizes readable */
+.setup-big .word-class { font-size: 16px; }
+.setup-big .word-class b { font-size: 17px; }
+/* 10: captain pictures */
+#segLevel .cpt-pic { display: block; font-size: 26px; line-height: 1.1; margin-bottom: 2px; }
+/* small-phone fixes */
+.setup-big .lang-row .select { font-family: var(--sans); font-size: 18px; padding: 0 28px 0 10px; text-overflow: ellipsis; }
+.setup-big .btn--ghost { padding-left: 6px; padding-right: 6px; white-space: nowrap; }
+.setup-big .section-head { flex-wrap: wrap; }
+.setup-big .section-head .label--say { flex: 1 1 190px; }
+.setup-big .lang-row + .label--say { margin-top: 22px; }
+
+/* Header above the card on every Prepare screen: small "PREPARE FOR BATTLE" first,
+   then one big line, "Welcome, Captain!" on 001 or your flag and fleet name on 002-004. */
+.page-head { font-size: 14px; letter-spacing: 0.16em; color: var(--muted); margin: 4px 2px 2px; }
+.page-line { display: flex; align-items: center; gap: 10px; min-height: 40px; margin: 0 2px 12px;
+  font-family: var(--mono); font-size: 22px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.2; }
+.page-line .fleet-tag-name { font-size: inherit; letter-spacing: inherit; }
+.page-line .fleet-tag-flag { width: 48px; }
+
+/* Buttons are always one line; fitButtons() in app.js shrinks any that don't fit. */
+.btn, .seg button { white-space: nowrap; }
+/* Captain buttons: each takes the width its name needs, so RUBBER DUCK stays on one line. */
+#segLevel button { flex: 1 1 auto; white-space: nowrap; }
+#segLevel .cpt { white-space: nowrap; }
+#segLevel { overflow: hidden; }
+#segLevel button { min-width: 0; padding-left: 6px; padding-right: 6px; }
+
+/* Pressing a progress-bar button keeps its fill: no flood of green, just a slight press. */
+.btn--progress:active:not(:disabled) {
+  background: linear-gradient(to right, var(--green) var(--progress, 0%), var(--paper) var(--progress, 0%));
+  color: var(--ink); filter: brightness(0.9); transform: translateY(1px);
+}
+
+/* 010 Game Over: each fleet's flag beside its grid label */
+.grid-label > .over-fleet { display: flex; align-items: center; gap: 8px; color: var(--ink); font-weight: 700; letter-spacing: 0.12em; text-align: left; }
+.over-flag { display: block; width: 36px; flex-shrink: 0; }
+.over-flag svg { display: block; width: 100%; height: auto; }
+
+/* The AI Captain's colors (FOE_SCHEME in app.js): Signal Orange & Black */
+:root { --foe: #ff7f27; --foe-ink: #111111; }
+
+/* Your side flies your fleet colors (set from S.colors as --mine / --mine-ink): both your grids */
+.gridbanner.is-attack { background: var(--mine, var(--navy)); color: var(--mine-ink, #fff); }
+.gridbanner.is-attack span { opacity: 1; }
+.card--attack { border-top-color: var(--mine, var(--navy)); }
+.gridbanner.is-defense { background: var(--mine, var(--navy)); color: var(--mine-ink, #fff); }
+.gridbanner.is-defense span { opacity: 1; }
+.card--defense { border-top-color: var(--mine, var(--navy)); }
+
+/* 008-MOBILE-LOG: entries as cards flying their side's flag, Prepare-sized text */
+.log { display: grid; gap: 10px; padding-bottom: 12px; }
+.log-item { background: var(--paper); border: 1px solid var(--ink); border-left-width: 8px; padding: 12px 14px; font-size: 17px; line-height: 1.45; }
+.log-item:last-child { border-bottom: 1px solid var(--ink); }
+.log-item.is-me { border-left-color: var(--mine, var(--navy)); }
+.log-item.is-foe { border-left-color: var(--foe); }
+.log-item.is-command { border-left-color: #bbb; background: #fafafa; }
+.log-who { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-family: var(--mono); font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink); }
+.log-item.is-foe .log-who { color: var(--ink); }
+.log-item.is-command .log-who { color: var(--muted); }
+.log-flag { width: 30px; flex-shrink: 0; }
+.log-flag svg { display: block; width: 100%; height: auto; }
+.log-text strong, .log-text b { font-family: var(--mono); }
+.log-empty { font-size: 17px; color: var(--muted); font-style: italic; }
+
+/* 008-MOBILE-LOG, simplified: a plain list, an anchor bullet on every entry, newest on top */
+.log { display: block; background: var(--paper); border: 1px solid var(--ink); padding: 4px 16px; }
+.log-item { display: flex; gap: 12px; align-items: flex-start; background: none; border: none; border-bottom: 1px solid var(--faint); padding: 14px 0; }
+.log-item:last-child { border-bottom: none; }
+.log-anchor { flex-shrink: 0; font-size: 20px; line-height: 1.3; color: var(--ink); }
+.log-body { flex: 1; min-width: 0; }
+.log-who { margin-bottom: 4px; }
+.log-anchor { font-family: "Segoe UI Symbol", "Noto Sans Symbols", "DejaVu Sans", sans-serif; font-variant-emoji: text; }
+
+/* 005: Attack Manifest above the grid */
+.card--manifest-top + .gridbanner { margin-top: 12px; }
+/* The Attack tab's turn panel is a popup (under the letter-picker sheet, over the tab bar) */
+.scrim--panel { z-index: 30; }
+.sheet--panel { z-index: 31; padding-top: 18px; }
+.sheet--panel #firePanel { background: none; border: none; padding: 0; }
+.sheet-x { position: absolute; top: 6px; right: 8px; width: 44px; height: 44px; border: none; background: none; font-size: 30px; line-height: 1; cursor: pointer; color: var(--ink); }
+.sheet--panel .card-title { padding-right: 40px; }
+/* The popup sits between the top bar and the tab bar, so the menu and the tabs stay usable */
+.scrim--panel { top: calc(var(--bar-h) + var(--safe-t)); bottom: calc(var(--tab-h) + var(--safe-b)); }
+.sheet--panel { bottom: calc(var(--tab-h) + var(--safe-b)); max-height: calc(100vh - var(--bar-h) - var(--tab-h) - var(--safe-t) - var(--safe-b) - 16px); padding-bottom: 16px; border-bottom: 1px solid var(--ink); }
+
+/* Bonus turn: gold popup, gold button, a banner across the top */
+:root { --gold-bonus: #ffd24a; }
+.sheet--panel.is-bonus { border-top: 6px solid var(--gold-bonus); animation: rise 0.18s ease-out, bonus-glow 1.2s ease-out; }
+.sheet--panel.is-bonus .card-title { font-size: 22px; color: var(--ink); background: var(--gold-bonus); margin: -6px -16px 12px; padding: 12px 16px; border-bottom: 1px solid var(--ink); }
+.btn--bonus { background: var(--gold-bonus); font-weight: 700; }
+.btn--bonus:active:not(:disabled) { background: #f0bf20; color: var(--ink); }
+@keyframes bonus-glow { 0% { box-shadow: 0 0 0 0 rgba(255, 210, 74, 0.9); } 100% { box-shadow: 0 0 0 24px rgba(255, 210, 74, 0); } }
+.bonus-banner { position: fixed; left: 50%; top: calc(var(--bar-h) + var(--safe-t) + 8px); transform: translateX(-50%); z-index: 60;
+  max-width: calc(100vw - 24px); background: var(--gold-bonus); color: var(--ink); border: 2px solid var(--ink);
+  font-family: var(--mono); font-size: 17px; font-weight: 700; letter-spacing: 0.04em; padding: 10px 16px; text-align: center; box-shadow: 0 6px 18px rgba(0,0,0,0.25); }
+.bonus-banner.is-pop { animation: bonus-pop 0.45s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes bonus-pop { 0% { transform: translateX(-50%) scale(0.6); opacity: 0; } 100% { transform: translateX(-50%) scale(1); opacity: 1; } }
+
+.sheet--panel.is-bonus { padding-top: 0; border-top: none; }
+.sheet--panel.is-bonus .card-title { margin: 0 -16px 12px; padding: 14px 56px 14px 16px; }
+.sheet--panel.is-bonus .bonus { color: var(--ink); background: #fff4cc; border-color: #c99a00; }
+.bonus-banner { top: calc(var(--safe-t) + 6px); white-space: nowrap; font-size: 18px; padding: 8px 18px; }
+
+/* After closing a call result to look at the grid: bring it back to end the turn */
+.panel-reopen { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--tab-h) + var(--safe-b) + 10px); z-index: 25;
+  width: calc(100% - 24px); max-width: 520px; background: var(--green); font-weight: 700; box-shadow: 0 4px 14px rgba(0,0,0,0.25); }
+.panel-reopen:active:not(:disabled) { background: var(--green-dark); color: var(--ink); }
+#tabAttack { padding-bottom: 72px; }
+
+/* ---------- COACH BAR (battle): what to do next, docked above the tabs ---------- */
+.coach { position: fixed; left: 0; right: 0; bottom: calc(var(--tab-h) + var(--safe-b)); z-index: 22; max-width: 560px; margin: 0 auto;
+  display: flex; gap: 12px; align-items: flex-start; background: var(--paper); border-top: 2px solid var(--ink); border-bottom: 1px solid var(--faint);
+  padding: 10px 14px; box-shadow: 0 -4px 14px rgba(0,0,0,0.08); }
+.coach-step { flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; background: var(--ink); color: var(--paper);
+  display: grid; place-items: center; font-family: var(--mono); font-weight: 700; font-size: 16px; margin-top: 1px; }
+.coach-body { flex: 1; min-width: 0; }
+.coach-main { font-size: 18px; font-weight: 700; line-height: 1.3; }
+.coach-main .say { font-family: var(--mono); }
+.coach-news { font-size: 15px; color: var(--ink); background: #fff1e6; border-left: 4px solid var(--foe); padding: 4px 8px; margin-bottom: 6px; }
+.coach-sub { font-size: 15px; color: #444; line-height: 1.4; margin-top: 3px; }
+.coach-warn { color: var(--red); font-weight: 700; }
+.coach-btns { display: flex; gap: 8px; margin-top: 8px; }
+.coach-btns .btn { flex: 1 1 0; min-width: 0; min-height: 44px; font-size: 16px; padding-left: 8px; padding-right: 8px; }
+.coach.is-bonus { background: var(--gold-bonus); }
+.coach.is-bonus .coach-step { background: var(--ink); color: var(--gold-bonus); }
+.coach.is-wait .coach-main { color: #555; }
+.coach .dots i { font-style: normal; animation: blink 1s infinite alternate; }
+.coach .dots i:nth-child(2) { animation-delay: 0.2s; } .coach .dots i:nth-child(3) { animation-delay: 0.4s; }
+#scrBattle .tab { padding-bottom: 150px; }
+/* New letters flip in one by one; the aimed square keeps a marker; the called letter's tile pulses */
+.cell.is-flip { animation: flipin 0.5s ease-out both; }
+.cell.is-d1 { animation-delay: 0.15s; } .cell.is-d2 { animation-delay: 0.3s; } .cell.is-d3 { animation-delay: 0.45s; }
+.cell.is-d4 { animation-delay: 0.6s; } .cell.is-d5 { animation-delay: 0.75s; } .cell.is-d6 { animation-delay: 0.9s; }
+@keyframes flipin { 0% { transform: rotateY(90deg); background: var(--gold-bonus); } 60% { transform: rotateY(0); background: var(--gold-bonus); } 100% { transform: none; } }
+.cell.is-aim { box-shadow: inset 0 0 0 3px var(--ink); position: relative; }
+.cell.is-aim-hit { box-shadow: inset 0 0 0 3px #c99a00; background: var(--gold-bonus) !important; }
+.cell.is-aim-hit::after { content: "\2713"; position: absolute; top: 0; right: 2px; font-size: 10px; line-height: 1.2; }
+.mf.is-pulse { animation: pulse 0.6s ease-out 3; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0,0,0,0.5); } 100% { box-shadow: 0 0 0 10px rgba(0,0,0,0); } }
+
+/* ABC: the Attack Manifest on demand, in the top bar during battle */
+.bar-manifest { margin-left: auto; min-height: 36px; padding: 4px 12px; font-family: var(--mono); font-size: 15px; font-weight: 700; letter-spacing: 0.08em; }
+.bar-manifest + .icon-btn { margin-left: 0; }
+
+/* ABC tucked into the Attack Grid's empty top-left corner: opens the Attack Manifest */
+.cell.cell--abc { background: var(--foe); color: var(--foe-ink); border: none; padding: 0; cursor: pointer;
+  font-family: var(--mono); font-weight: 700; font-size: calc(var(--cell) * 0.3); letter-spacing: 0; }
+.cell.cell--abc:active { filter: brightness(0.9); }
+.cell.cell--abc { font-size: max(11px, calc(var(--cell) * 0.36)); }
+
+/* 007 Defense Grid, built like the Attack Grid: DEF corner button and ship circles in your colors */
+.cell.cell--def { background: var(--mine, var(--navy)); color: var(--mine-ink, #fff); }
+.bubble.is-lost { background: var(--red); border-color: var(--red); color: #fff; }
+
+/* 002-MOBILE-AI-CAPTAIN flies the enemy's Signal Orange & Black: the card's top edge and the chosen captain */
+#scrOpponent .card { border-top: 6px solid var(--foe); }
+#scrOpponent #segLevel { border-color: var(--foe-ink); }
+#scrOpponent #segLevel button.is-on { background: var(--foe); color: var(--foe-ink); }
+#scrOpponent #segLevel button.is-on .cpt { color: var(--foe-ink); opacity: 0.8; }
+#scrOpponent #levelHint strong { background: #fff1e6; border-bottom: 2px solid var(--foe); padding: 0 3px; }
+/* All three captains get the same width; fitButtons() shrinks the names together so RUBBER DUCK stays on one line */
+#segLevel button { flex: 1 1 0; min-width: 0; padding-left: 3px; padding-right: 3px; letter-spacing: 0; }
+.setup-big #segLevel .cpt { font-size: 0.75em; }   /* scales with the name, which fitButtons() may shrink */
+
+/* 003: possibly offensive words show in red */
+.input.is-offensive { color: var(--red); }
+
+/* Prepare-section notices: the coach bar's look, docked at the very bottom (no tab bar there) */
+.coach.coach--notice { bottom: 0; padding-bottom: calc(12px + var(--safe-b)); z-index: 45; animation: rise 0.18s ease-out; }
+.coach.coach--notice.is-warn { border-top-color: var(--red); }
+.coach.coach--notice.is-warn .coach-step { background: var(--red); color: #fff; }
+#setupNote { display: none; }   /* its message shows in the notice bar */
+
+/* 005: letters still to call, in a strip above the Attack Grid (vowels underlined in red: they cost a turn) */
+.uncalled { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 2px 2px 10px; }
+.uncalled-label { width: 100%; font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+.uc { flex: 0 0 auto; min-width: 22px; height: 26px; display: grid; place-items: center; font-family: var(--mono); font-size: 16px; font-weight: 700;
+  border: 1px solid var(--ink); background: var(--paper); }
+/* Always at most two rows: 13 letters a row, sized to the grid's width */
+.uncalled { display: grid; grid-template-columns: repeat(13, 1fr); gap: 3px; }
+.uncalled-label { grid-column: 1 / -1; }
+.uc { min-width: 0; height: auto; aspect-ratio: 1 / 1.1; font-size: max(13px, calc(var(--cell) * 0.5)); }
+
+/* 007: AI letters left; letters in your fleet are outlined in your colors */
+.uc.is-mine { background: var(--mine, var(--navy)); color: var(--mine-ink, #fff); border-color: var(--mine, var(--navy)); }
+/* the folded news line stays compact */
+.coach-news { font-size: 15px; line-height: 1.35; }
+
+/* Aiming: the Letters Manifest lights up and its letters become buttons */
+.uncalled.is-picking { background: #fff; outline: 3px solid var(--mine, var(--navy)); outline-offset: 2px; animation: pulse-out 1.2s ease-out 1; }
+.uncalled.is-picking .uncalled-label { color: var(--ink); }
+button.uc { cursor: pointer; padding: 0; color: var(--ink); }
+button.uc:active { background: var(--mine, var(--navy)); color: var(--mine-ink, #fff); }
+@keyframes pulse-out { 0% { outline-color: transparent; } 50% { outline-color: var(--mine, var(--navy)); } }
+
+/* Vowels: round chips in their place in the alphabet, with a note on their cost under the manifest */
+.uc { align-self: center; aspect-ratio: 1 / 1; border-width: 1.5px; border-radius: 14%; line-height: 1; font-size: max(11px, calc(var(--cell) * 0.44)); }
+.uc.is-vowel { border-radius: 50%; }
+.uncalled-label { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; column-gap: 10px; }
+.uc-vowels-cap { display: inline-flex; align-items: center; gap: 5px; margin-left: auto; white-space: nowrap;
+  font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+
+/* A square known to hold a hidden letter: "?" plus the letters already ruled out there */
+.cell.is-contact { background: #e9ecef; }
+.cell.is-contact .q { color: #5f6770; margin-top: -18%; }
+.cell .tried { position: absolute; left: 0; right: 0; bottom: 1px; font-size: max(8px, calc(var(--cell) * 0.3)); line-height: 1; font-weight: 700;
+  letter-spacing: 0; text-align: center; color: #5f6770; }
+.cell.is-target .q, .cell.is-target .tried { color: var(--paper); }
+.cell.is-ship.is-contact { background: var(--blue-wash); box-shadow: inset 0 0 0 2px #5f6770; }
+.cell.is-ship .tried { color: var(--ink); }
+
+/* Letters manifests sit under their grid, inside the grid's card */
+.uncalled { padding: 10px 2px 2px; }
+#scrBattle .tab { padding-bottom: calc(var(--coach-h, 150px) + 16px); }
+/* The empty top-left corner of every grid: no shading, no top or left border */
+.cell.is-corner { background: var(--paper); margin: -1px 0 0 -1px; }
+/* Title row of a letters manifest: title and vowel note share one line, even on an iPhone SE */
+.uncalled-label { letter-spacing: 0.06em; flex-wrap: nowrap; column-gap: 6px; white-space: nowrap; }
+.uncalled-label .uc-vowels-cap { letter-spacing: 0; font-size: 10px; }
+/* Open water (no letter there): pale sea with waves, unlike the round vowel chips and the gray "?" squares */
+.cell.is-empty { background: #d4e6f1; }
+.cell.is-empty::after { content: "\2248"; width: auto; height: auto; border-radius: 0; background: none;
+  color: #3f7391; font-family: var(--mono); font-weight: 700; font-size: calc(var(--cell) * 0.62); line-height: 1; }
+/* Revealed letters are Wordle green; a sunk word-ship (every letter revealed) goes dark green with white letters */
+.cell.is-found { background: var(--green); color: var(--ink); }
+.cell.is-bull { background: var(--green-dark); color: #fff; }
+.cell.is-bull.is-aim-hit { background: var(--green-dark) !important; box-shadow: none; }
+/* 010-MOBILE-GAME-OVER: letters of the enemy fleet you never revealed, and a lost battle's coach bar */
+.cell.is-unfound { background: #e9ecef; color: #6b7280; }
+.coach.is-lost { background: var(--red-wash); }
+.coach.is-lost .coach-step { background: var(--red); color: #fff; }
+.coach-eyebrow { display: block; font-family: var(--mono); font-size: 13px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 2px; }
+.coach.is-lost .coach-eyebrow { color: var(--red); }
+/* Your turn, nothing aimed yet: the Attack Grid lights up like the letters manifest does when aiming */
+.grid.is-picking { outline: 3px solid var(--mine, var(--navy)); outline-offset: 3px; animation: pulse-out 1.2s ease-out 1; }
+/* "?" squares: violet, the complement of Wordle green and yellow, solid like a Wordle tile */
+:root { --contact: #7b5fb3; }
+.cell.is-contact { background: var(--contact); }
+.cell.is-contact .q, .cell.is-contact .tried { color: #fff; }
+.cell.is-ship.is-contact { background: var(--blue-wash); box-shadow: inset 0 0 0 3px var(--contact); }
+.cell.is-ship.is-contact .tried { color: var(--contact); }
+/* Score: under the Attack Grid banner's subtitle, and "+N points" lines in the coach bar */
+.gridbanner .banner-score { display: block; margin-top: 4px; font-family: var(--mono); font-size: 14px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.coach-pts { font-weight: 700; color: var(--green-dark); }
+.coach.is-bonus .coach-pts, .coach.is-lost .coach-pts { color: var(--ink); }
+/* MOBILE-FLEETS: saved fleets with their scores */
+.fleet-list { display: grid; gap: 10px; margin-bottom: 14px; }
+.fleet-row { display: flex; align-items: center; gap: 10px; border: 1px solid var(--ink); padding: 8px 10px; }
+.fleet-flag { flex-shrink: 0; width: 34px; display: block; }
+.fleet-flag svg { width: 100%; height: auto; display: block; }
+.fleet-info { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.fleet-info b { font-family: var(--mono); letter-spacing: 0.06em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fleet-info span { font-family: var(--mono); font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fleet-info .fleet-stats { color: var(--ink); font-weight: 700; }
+.fleet-acts { display: grid; gap: 6px; flex-shrink: 0; }
+.fleet-acts .btn { min-height: 34px; padding: 4px 10px; font-size: 13px; }
+/* "Fleet Muster": the ship circles in a grid banner, with their label */
+.roll { display: grid; justify-items: end; gap: 4px; flex-shrink: 0; }
+.roll-label { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; }
+.fleet-info b, .fleet-info span { white-space: normal; overflow: visible; }
+/* A sunk word-ship: one thick outline around the whole word (its hull), drawn side by side per square */
+.cell.hull { --hull: 4px; --hc: var(--ink); }
+.cell.hull.hull-H { box-shadow: inset 0 var(--hull) 0 var(--hc), inset 0 calc(-1 * var(--hull)) 0 var(--hc); }
+.cell.hull.hull-H.hull-start { box-shadow: inset 0 var(--hull) 0 var(--hc), inset 0 calc(-1 * var(--hull)) 0 var(--hc), inset var(--hull) 0 0 var(--hc); }
+.cell.hull.hull-H.hull-end { box-shadow: inset 0 var(--hull) 0 var(--hc), inset 0 calc(-1 * var(--hull)) 0 var(--hc), inset calc(-1 * var(--hull)) 0 0 var(--hc); }
+.cell.hull.hull-V { box-shadow: inset var(--hull) 0 0 var(--hc), inset calc(-1 * var(--hull)) 0 0 var(--hc); }
+.cell.hull.hull-V.hull-start { box-shadow: inset var(--hull) 0 0 var(--hc), inset calc(-1 * var(--hull)) 0 0 var(--hc), inset 0 var(--hull) 0 var(--hc); }
+.cell.hull.hull-V.hull-end { box-shadow: inset var(--hull) 0 0 var(--hc), inset calc(-1 * var(--hull)) 0 0 var(--hc), inset 0 calc(-1 * var(--hull)) 0 var(--hc); }
+/* Just sunk: the word lists, dips under and settles */
+.cell.is-sinking { animation: sink 1.1s ease-in-out 0.35s both; }
+@keyframes sink {
+  0% { transform: none; }
+  25% { transform: translateY(8%) rotate(-6deg); }
+  50% { transform: translateY(22%) rotate(4deg); filter: brightness(0.7); }
+  75% { transform: translateY(6%) rotate(-2deg); }
+  100% { transform: none; }
+}
+/* A vowel you can't afford yet (under 100 points) while aiming */
+.uc.is-locked { opacity: 0.35; border-style: dashed; }
+/* Column headers by NATO name, read bottom to top in a taller header row */
+.grid { grid-template-rows: calc(var(--cell) * 1.75); }
+.cell.is-col { align-items: flex-end; padding-bottom: 3px; }
+.cell.is-col span { writing-mode: vertical-rl; transform: rotate(180deg); font-size: max(7px, calc(var(--cell) * 0.3)); letter-spacing: 0.02em; text-transform: uppercase; line-height: 1; white-space: nowrap; }
+/* Vowel note: the price, and under it the free-vowels rule in smaller type */
+.uncalled-label .uc-vowels-cap { flex-direction: column; align-items: flex-end; gap: 1px; line-height: 1.1; }
+.uc-vowels-cap .uc-free { font-size: 7.5px; font-weight: 700; opacity: 0.85; }
+
+/* ---------- The bottom notices as a submarine ----------
+   A steel hull with a porthole (the step marker) and, on the battle coach bar, a conning tower with
+   a periscope holding DIVE / SURFACE. Diving sinks the hull behind the tab bar; it bobs up when it surfaces. */
+:root { --hull: #2f4250; --hull-ink: #f3f6f8; --hull-sub: #c9d4dc; --hull-edge: #111; }
+.coach { left: 8px; right: 8px; bottom: calc(var(--tab-h) + var(--safe-b) + 8px); background: var(--hull); color: var(--hull-ink);
+  border: 3px solid var(--hull-edge); border-radius: 30px; padding: 12px 16px; gap: 12px;
+  background-image: linear-gradient(to bottom, rgba(255,255,255,0.12), rgba(255,255,255,0) 45%, rgba(0,0,0,0.12));
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35); transition: transform 0.6s cubic-bezier(.55,0,.55,1); }
+.coach.coach--notice { bottom: calc(8px + var(--safe-b)); padding-bottom: 12px; }
+.coach-step { width: 34px; height: 34px; background: #d7ecf6; color: var(--ink); border: 3px solid #9aa9b4;
+  box-shadow: inset 0 0 0 2px rgba(0,0,0,0.25); font-size: 15px; margin-top: 0; }
+.coach-main { color: var(--hull-ink); }
+.coach-sub { color: var(--hull-sub); }
+.coach-news { color: var(--hull-ink); background: rgba(255,255,255,0.1); border-left-color: var(--foe); border-radius: 0 6px 6px 0; }
+.coach-warn { color: #ff9b8f; }
+.coach-pts { color: #9be09a; }
+.coach-eyebrow { color: var(--gold-bonus); }
+.coach.is-wait .coach-main { color: var(--hull-sub); }
+.coach.is-bonus { background-color: var(--gold-bonus); color: var(--ink); --hull-ink: var(--ink); --hull-sub: #3d3a2a; }
+.coach.is-bonus .coach-news { color: var(--ink); background: rgba(0,0,0,0.08); }
+.coach.is-bonus .coach-pts, .coach.is-lost .coach-pts { color: inherit; }
+.coach.is-bonus .coach-eyebrow { color: var(--ink); }
+.coach.is-lost { background-color: #7a2620; --hull-sub: #f3d3cf; }
+.coach.is-lost .coach-eyebrow { color: #ffd0cc; }
+.coach.coach--notice.is-warn .coach-step { background: #ffd0cc; color: var(--red); border-color: #e7a59d; }
+/* Conning tower and periscope */
+.coach-tower { position: absolute; top: -29px; right: 36px; height: 29px; padding: 0 4px; background-color: inherit; background-image: none;
+  border: 3px solid var(--hull-edge); border-bottom: none; border-radius: 12px 12px 0 0; }
+.coach-tower::before { content: ''; position: absolute; left: 12px; top: -16px; width: 4px; height: 16px; background: var(--hull-edge); }
+.coach-tower::after { content: ''; position: absolute; left: 12px; top: -16px; width: 12px; height: 4px; background: var(--hull-edge); }
+.coach-dive { background: none; border: none; color: inherit; font-family: var(--mono); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase; padding: 5px 8px 3px; min-height: 26px; cursor: pointer; }
+/* Dive: the hull goes below the tab bar, the tower stays up */
+.tabbar { z-index: 24; }
+.coach.is-dived { transform: translateY(calc(100% + 12px)); }
+.coach.is-surfacing { animation: surface 0.7s cubic-bezier(.3,1.4,.5,1) both; }
+@keyframes surface { 0% { transform: translateY(calc(100% + 12px)); } 70% { transform: translateY(-5px); } 100% { transform: none; } }
+.coach-tower.is-ping { animation: ping 0.9s ease-in-out 3; }
+@keyframes ping { 0%, 100% { transform: none; } 50% { transform: translateY(-6px); } }

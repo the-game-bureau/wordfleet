@@ -114,7 +114,7 @@
 
         function loadDictionary() {
             var possiblePaths = [
-                'src/dictionary/words.xml',
+                'dictionaries/words.xml',
                 'dictionary/words.xml', 
                 'words.xml'
             ];

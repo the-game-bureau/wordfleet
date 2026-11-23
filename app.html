@@ -500,7 +500,7 @@
   /* ---------- dictionary ---------- */
 
   function loadDictionary() {
-    fetch('src/dictionary/words.xml')
+    fetch('dictionaries/words.xml')
       .then(function (res) { return res.ok ? res.text() : Promise.reject(); })
       .then(function (text) {
         var xml = new DOMParser().parseFromString(text, 'text/xml');

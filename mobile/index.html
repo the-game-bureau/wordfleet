@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Word Fleet</title>
+  <meta name="description" content="Word Fleet: sink or spell. Human Captain versus AI Captain, one letter at a time.">
+  <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="light">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Word Fleet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Bump ?v= on every release (and CACHE in sw.js) so a new page never runs old code. -->
+  <link rel="stylesheet" href="app.css?v=161">
+</head>
+<body>
+
+<header class="bar">
+  <div class="bar-brand">
+    <span class="bar-title">WORD FLEET</span>
+    <span class="bar-sub" id="barSub">Mobile Mode</span>
+  </div>
+  <span class="chip" id="barChip" hidden></span>
+  <button class="icon-btn" id="btnMenu" type="button" aria-label="Menu">
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+  </button>
+</header>
+
+<main class="screens">
+
+  <!-- ============ MOBILE-HOME (screen name: "MOBILE-HOME") ============ -->
+  <!-- PARKED: not shown to players. The app opens on 001-MOBILE-PREPARE. Kept for later use. -->
+  <section class="screen" id="scrMobileHome" data-screen="MOBILE-HOME">
+    <div class="hero">
+      <h1 class="hero-title">WORD FLEET</h1>
+      <p class="hero-tag">Mobile Mode</p>
+    </div>
+    <div class="card">
+      <p class="lead">Place your word-ships and battle the AI Captain.</p>
+      <button class="btn btn--primary btn--wide" id="btnContinue" type="button" hidden>Continue Battle</button>
+      <button class="btn btn--primary btn--wide" id="btnNew" type="button">New Battle</button>
+      <button class="btn btn--wide" id="btnHowTo" type="button">Rules of Engagement</button>
+    </div>
+    <p class="fineprint" id="homeRecord"></p>
+  </section>
+
+  <!-- ============ 001-MOBILE-PREPARE (screen name: "001-MOBILE-PREPARE") ============ -->
+  <section class="screen setup-big" id="scrSetup" data-screen="001-MOBILE-PREPARE">
+    <p class="page-head">Prepare for Battle</p>
+    <h1 class="page-line">Welcome, Captain!</h1>
+    <div class="card">
+      <div class="card-title">Set Up Your Fleet</div>
+      <!-- 11: language on one compact row -->
+      <div class="lang-row">
+        <label class="label label--say" for="selLang">Language</label>
+        <select class="select" id="selLang"></select>
+      </div>
+
+      <label class="label label--say" for="inFleet">Roll the die or type your own fleet name</label>
+      <div class="input-row">
+        <input class="input" id="inFleet" maxlength="24" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="SALTY ARMADA">
+        <button class="btn btn--sq" id="btnRollName" type="button" aria-label="Random fleet name">&#x1F3B2;</button>
+      </div>
+
+      <span class="label label--say" id="lblColors">Choose your color scheme</span>
+      <div class="swatches" id="colorSchemes" role="radiogroup" aria-labelledby="lblColors"></div>
+      <p class="hint hint--label swatch-name" id="colorSchemeName"></p>
+
+      <button class="btn btn--wide btn--next btn--progress" style="--progress: 25%" id="btnToOpponent" type="button" aria-label="Next: Choose Your AI Captain (step 1 of 4 done)">Next: AI Captain</button>
+      <button class="btn btn--wide" id="btnSavedFleets" type="button" hidden>Use a Saved Fleet</button>
+      <a class="btn btn--ghost btn--wide" id="lnkHome" href="../">&larr; Word Fleet Home</a>
+    </div>
+  </section>
+
+  <!-- ============ 002-MOBILE-AI-CAPTAIN (screen name: "002-MOBILE-AI-CAPTAIN") ============ -->
+  <section class="screen setup-big" id="scrOpponent" data-screen="002-MOBILE-AI-CAPTAIN">
+    <p class="page-head">Prepare for Battle</p>
+    <h1 class="page-line fleet-tag" data-fleet-tag></h1>
+    <div class="card">
+      <div class="card-title">Choose Your AI Captain</div>
+      <span class="label label--say">Pick the AI Captain you'll face</span>
+      <div class="seg" id="segLevel">
+        <button type="button" data-v="ensign" class="is-on"><span class="cpt-pic" aria-hidden="true">&#x1F986;</span><span class="cpt">Captain</span>Rubber Duck</button>
+        <button type="button" data-v="commander"><span class="cpt-pic" aria-hidden="true">&#x2693;</span><span class="cpt">Captain</span>Steady</button>
+        <button type="button" data-v="admiral"><span class="cpt-pic" aria-hidden="true">&#x1F4D6;</span><span class="cpt">Captain</span>Lexicon</button>
+      </div>
+      <p class="hint" id="levelHint"></p>
+
+      <button class="btn btn--wide btn--next btn--progress" style="--progress: 50%" id="btnToWords" type="button" aria-label="Next: Build Your Word-Ships (step 2 of 4 done)">Next: Word-Ships</button>
+      <button class="btn btn--ghost btn--wide" id="btnBackToSetup" type="button">&larr; Back</button>
+    </div>
+  </section>
+
+  <!-- ============ 003-MOBILE-WORD-SHIPS (screen name: "003-MOBILE-WORD-SHIPS") ============ -->
+  <section class="screen setup-big" id="scrWords" data-screen="003-MOBILE-WORD-SHIPS">
+    <p class="page-head">Prepare for Battle</p>
+    <h1 class="page-line fleet-tag" data-fleet-tag></h1>
+    <div class="card">
+      <div class="card-title">Build Your Word-Ships</div>
+      <label class="switch-row switch-row--big"><span>Allow possibly offensive words</span><input type="checkbox" class="switch" id="chkOffensive" role="switch"></label>
+      <p class="hint hint--tight">Applies to both fleets. Switching it draws five new word-ships.</p>
+
+      <div class="section-head">
+        <span class="label label--say">Check your five word-ships</span>
+        <button class="btn btn--sm btn--head" id="btnRefreshAll" type="button" aria-label="Rebuild all five word-ships">&#x21bb; Rebuild All</button>
+      </div>
+      <p class="hint hint--label">Tap any word-ship to type your own.</p>
+      <div id="wordList"></div>
+      <p class="note" id="setupNote"></p>
+
+      <button class="btn btn--wide btn--next btn--progress" style="--progress: 75%" id="btnToDeploy" type="button" aria-label="Next: Deploy Your Fleet (step 3 of 4 done)">Next: Deploy</button>
+      <button class="btn btn--ghost btn--wide" id="btnBackToOpponent" type="button">&larr; Back</button>
+    </div>
+  </section>
+
+  <!-- ============ 004-MOBILE-DEPLOY (screen name: "004-MOBILE-DEPLOY") ============ -->
+  <section class="screen setup-big" id="scrDeploy" data-screen="004-MOBILE-DEPLOY">
+    <p class="page-head">Prepare for Battle</p>
+    <h1 class="page-line fleet-tag" data-fleet-tag></h1>
+    <div class="card card--deploy">
+      <div class="card-title">Deploy Your Fleet</div>
+      <!-- Same banner and frame as the in-game Defense Grid -->
+      <div class="deploy-board">
+        <div class="gridbanner is-defense" id="deployBanner"><div><b>DEFENSE GRID PREVIEW</b><span id="deployFleetName">Your fleet</span></div></div>
+        <div class="deploy-frame" id="deployFrame"><div class="grid" id="gridDeploy"></div></div>
+      </div>
+
+      <div class="section-head">
+        <span class="label label--say">Keep this layout or rearrange it</span>
+        <button class="btn btn--sm btn--head" id="btnShuffle" type="button" aria-label="Shuffle your fleet into a new random layout">&#x21C4; Shuffle</button>
+      </div>
+      <p class="hint hint--label">Drag a word-ship to move it. Double-tap its first letter to turn it.</p>
+
+      <button class="btn btn--wide btn--next btn--progress" style="--progress: 100%" id="btnDeployDone" type="button" aria-label="Let the battle begin! (step 4 of 4 done)">LET THE BATTLE BEGIN!</button>
+      <button class="btn btn--ghost btn--wide" id="btnDeployBack" type="button">&larr; Back</button>
+    </div>
+  </section>
+
+  <!-- ============ BATTLE: three tabs, each a named screen ============ -->
+  <section class="screen screen--tabs" id="scrBattle" data-screen="BATTLE">
+
+    <!-- ============ 005-MOBILE-ATTACK (screen name: "005-MOBILE-ATTACK") ============ -->
+    <!-- Tapping a square lights up the Letters Manifest (006); "Demand Surrender" (☰ menu) opens 009-MOBILE-SURRENDER.
+         "Fleet Muster": one circle per word-ship, by length; it fills in when that word-ship is sunk. -->
+    <div class="tab" id="tabAttack" data-screen="005-MOBILE-ATTACK">
+      <div class="gridbanner is-attack">
+        <div><b>ATTACK GRID</b><span class="banner-score" id="score">0 points</span></div>
+        <div class="roll"><div class="roll-label">Fleet Muster</div><span class="bubbles" id="bubbles"></span></div>
+      </div>
+      <div class="card card--flush card--attack">
+        <!-- Letters still to call; they disappear as you call them (called ones show on the grid) -->
+        <div class="grid" id="gridAttack"></div>
+        <div class="uncalled" id="uncalled" aria-label="Letters not yet called"></div>
+      </div>
+    </div>
+
+    <!-- ============ 007-MOBILE-DEFENSE (screen name: "007-MOBILE-DEFENSE") ============ -->
+    <div class="tab" id="tabDefense" data-screen="007-MOBILE-DEFENSE" hidden>
+      <!-- Built like the Attack Grid, in your fleet colors. The AI Captain's moves are reported in the coach bar;
+           "AI letters left" above the grid matches the Attack Grid's "Letters left". -->
+      <div class="gridbanner is-defense">
+        <div><b>DEFENSE GRID</b><span id="defFleetName">Your fleet</span><span class="banner-score" id="foeScore">AI: 0 points</span></div>
+        <div class="roll"><div class="roll-label">Fleet Muster</div><span class="bubbles" id="defBubbles"></span></div>
+      </div>
+      <div class="card card--flush card--defense">
+        <!-- Letters the AI Captain hasn't called yet; yours (still at risk) outlined in your colors -->
+        <div class="grid" id="gridDefense"></div>
+        <div class="uncalled" id="defUncalled" aria-label="Letters the AI Captain has not called yet"></div>
+      </div>
+    </div>
+
+    <!-- ============ 008-MOBILE-LOG (screen name: "008-MOBILE-LOG") ============ -->
+    <div class="tab" id="tabLog" data-screen="008-MOBILE-LOG" hidden>
+      <!-- Header in the Prepare style: small label, then your flag and fleet name -->
+      <p class="page-head">Captain's Log</p>
+      <h1 class="page-line fleet-tag" data-fleet-tag></h1>
+      <div class="log" id="log"></div>
+    </div>
+
+    <nav class="tabbar" id="tabbar">
+      <button type="button" data-tab="Attack" class="is-on is-attack">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 1v5M12 18v5M1 12h5M18 12h5"/></svg>
+        Attack Grid
+      </button>
+      <button type="button" data-tab="Defense" class="is-defense">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 3v6c0 5-3.5 9.5-8 11-4.5-1.5-8-6-8-11V5z"/></svg>
+        Defense Grid<span class="tab-dot" id="defDot" hidden></span>
+      </button>
+      <button type="button" data-tab="Log">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h11l3 3v15H5z M8 9h8M8 13h8M8 17h5"/></svg>
+        Log
+      </button>
+    </nav>
+  </section>
+
+  <!-- ============ 010-MOBILE-GAME-OVER (screen name: "010-MOBILE-GAME-OVER") ============ -->
+
+</main>
+
+<!-- ============ SHEET (modal from bottom) ============
+     Shows 006-MOBILE-CALL-LETTER, and the unnumbered MOBILE-MENU and MOBILE-RULES (reachable from any screen).
+     The sheet's data-screen is set by whichever one is open. -->
+<div class="scrim" id="scrim" hidden></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" hidden>
+  <div class="sheet-grip"></div>
+  <div class="sheet-body" id="sheetBody"></div>
+</div>
+
+<!-- ============ ATTACK POPUP: only for Demand Surrender (009-MOBILE-SURRENDER).
+     Everything else in a turn is the coach bar. Sits under the letter-picker sheet. ============ -->
+<div class="scrim scrim--panel" id="panelScrim" hidden></div>
+<!-- COACH BAR: one line above the tabs during battle that says what to do next (renderCoach in app.js) -->
+<div class="coach" id="coach" role="status" aria-live="polite" hidden></div>
+<div class="sheet sheet--panel" id="panelSheet" role="dialog" aria-modal="true" aria-label="Turn" hidden>
+  <button class="sheet-x" id="panelClose" type="button" aria-label="Cancel">&times;</button>
+  <div id="firePanel"></div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+<!-- Prepare-section notices, in the coach-bar style (showNotice / toast / setupNotice in app.js) -->
+<div class="coach coach--notice" id="notice" role="alert" aria-live="assertive" hidden></div>
+<div class="bonus-banner" id="bonusBanner" role="status" aria-live="assertive" hidden></div>
+
+<script src="audio.js?v=161"></script>
+<script src="app.js?v=161"></script>
+</body>
+</html>
