@@ -1,0 +1,42 @@
+<section class="print-page sheet" aria-label="Battle sheet {{number}}">
+  <div>
+    <header class="sheet-header">
+      <strong>WORD FLEET BATTLE TRACKER</strong>
+      <span>The Word Fleet Game Notebook</span>
+    </header>
+    <div class="fleet-name">
+      <span>Fleet Name</span>
+      <span class="name-line" aria-label="Blank fleet name"></span>
+    </div>
+    <div class="sheet-board">
+      <div>
+        <h2>Attack Grid <span class="ship-lengths">{{lengths}}</span></h2>
+        {{attackGrid}}
+      </div>
+      <div>
+        <h2>Attack Manifest</h2>
+        {{attackManifest}}
+        <div class="launch-codes">
+          <strong>Launch Codes</strong>
+          <div>{{codes}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sheet-board sheet-defense">
+    <div>
+      <h2>Defense Grid <span class="ship-words">{{words}}</span></h2>
+      {{defenseGrid}}
+    </div>
+    <div>
+      <h2>Defense Manifest</h2>
+      {{defenseManifest}}
+    </div>
+  </div>
+
+  <footer class="sheet-footer">
+    <strong>The Game Bureau</strong>
+    <span>thegamebureau.com/wordfleet</span>
+  </footer>
+</section>

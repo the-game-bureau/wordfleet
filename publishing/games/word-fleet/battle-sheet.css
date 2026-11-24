@@ -1,0 +1,147 @@
+.sheet {
+  display: grid;
+  /* With the print page margin, the second row starts 5.5 inches down. */
+  grid-template-rows: 5in auto auto;
+  color: #181a18;
+  font: 11pt/1.15 Arial, sans-serif;
+}
+
+.sheet-header,
+.sheet-footer {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .15in;
+}
+
+.sheet-header {
+  margin-bottom: .105in;
+  padding-bottom: .075in;
+  border-bottom: 1pt solid;
+  font-size: 9pt;
+  font-weight: 700;
+}
+
+.sheet-header strong { font-size: 16pt; }
+
+.sheet-board {
+  display: grid;
+  grid-template-columns: 3.93in minmax(0, 1fr);
+  gap: .4in;
+}
+
+.sheet-defense {
+  padding-top: .2in;
+  border-top: .65pt dashed #8e968e;
+}
+
+.sheet-board h2 {
+  display: flex;
+  align-items: center;
+  gap: .09in;
+  min-height: .24in;
+  margin: 0 0 .05in;
+  font-size: 12pt;
+  text-transform: uppercase;
+}
+
+.ship-lengths {
+  display: inline-flex;
+  gap: .055in;
+}
+
+.ship-lengths span {
+  display: grid;
+  place-items: center;
+  width: .185in;
+  height: .185in;
+  border: .7pt solid;
+  border-radius: 50%;
+  font-size: 8pt;
+}
+
+.ship-words {
+  margin-inline-start: auto;
+  font: 700 9pt/1.1 "Courier New", monospace;
+  white-space: nowrap;
+}
+
+.coordinate-grid {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 9pt;
+  text-align: center;
+}
+
+.coordinate-grid col:first-child { width: .29in; }
+.coordinate-grid thead { height: .19in; }
+.coordinate-grid tbody tr { height: .354in; }
+.coordinate-grid th { padding: 0; vertical-align: middle; }
+.coordinate-grid tbody td { padding: 0; border: .55pt solid #757975; }
+.coordinate-grid tbody tr:first-child td { border-top: .9pt solid #1e211e; }
+.coordinate-grid tbody tr:last-child td { border-bottom: .9pt solid #1e211e; }
+.coordinate-grid tbody td:first-of-type { border-left: .9pt solid #1e211e; }
+.coordinate-grid tbody td:last-child { border-right: .9pt solid #1e211e; }
+
+.manifest {
+  display: grid;
+  gap: .043in;
+  margin: .15in 0 .12in;
+}
+
+.manifest-row { display: flex; justify-content: center; gap: .046in; }
+
+.manifest-cell {
+  position: relative;
+  width: .35in;
+  height: .337in;
+  padding: .038in;
+  border: .55pt solid #757975;
+  font-size: 8.5pt;
+}
+
+.manifest-cell.vowel {
+  background: linear-gradient(135deg, #dedfde 49%, #9b9f9b 50%, #fff 52%);
+}
+
+.manifest-count {
+  position: absolute;
+  right: .035in;
+  bottom: .035in;
+  font: 700 8pt/1 "Courier New", monospace;
+}
+
+.launch-codes {
+  padding: .057in .1in;
+  border: .8pt solid;
+  font-size: 8pt;
+  text-transform: uppercase;
+}
+
+.launch-codes div {
+  margin-top: .045in;
+  font: 700 10pt/1 "Courier New", monospace;
+  text-align: center;
+  word-spacing: .12in;
+}
+
+.fleet-name {
+  display: flex;
+  align-items: baseline;
+  gap: .1in;
+  margin-bottom: .12in;
+  font-size: 9pt;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.name-line { width: 4.1in; height: .13in; border-bottom: .65pt solid; }
+
+.sheet-footer {
+  margin-top: .11in;
+  padding-top: .073in;
+  border-top: .55pt solid #757975;
+  color: #444;
+  font-size: 8pt;
+}

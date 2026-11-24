@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>The Word Fleet Game Notebook</title>
-  <meta name="description" content="A pen-and-paper game of hidden words and naval strategy for two captains. Print your Battle Trackers and play Word Fleet.">
+  <meta name="description" content="A pen-and-paper game notebook for two captains. Hide a fleet of words and track your shots, guesses, and clues on your battle sheet.">
   <meta name="theme-color" content="#f7f5ed">
   <meta property="og:title" content="The Word Fleet Game Notebook">
-  <meta property="og:description" content="A pen-and-paper game of hidden words and naval strategy for two captains.">
+  <meta property="og:description" content="A game notebook for two captains. Hide your word-ships and hunt the opposing fleet one coordinate and one letter at a time.">
   <meta property="og:image" content="https://thegamebureau.com/wordfleet/src/media/wordfleet-social.png">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://thegamebureau.com/wordfleet/">
@@ -71,44 +71,77 @@
       border-bottom: 1px solid var(--line);
     }
 
-    .masthead-inner,
-    .site-nav,
-    .site-footer {
+    .masthead-inner {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 1rem 2rem;
+      gap: .75rem;
+      min-height: 4.4rem;
     }
 
-    .masthead-inner { min-height: 4.4rem; }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: .55rem;
+      margin-inline-start: auto;
+    }
+
+    .share { position: relative; }
+
+    .share-status {
+      position: absolute;
+      z-index: 1;
+      inset-inline-end: 0;
+      top: calc(100% + .3rem);
+      color: var(--muted);
+      font-size: .875rem;
+      white-space: nowrap;
+    }
+
+    .share-status:not(:empty) {
+      padding: .25rem .5rem;
+      border: 1px solid var(--line);
+      border-radius: .25rem;
+      background: var(--paper);
+    }
+
+    .share-dialog {
+      width: min(100% - 2rem, 26rem);
+      padding: 1.5rem;
+      border: 1px solid var(--line);
+      border-radius: .35rem;
+      color: var(--ink);
+      background: var(--paper);
+    }
+
+    .share-dialog::backdrop { background: #192f2766; }
+
+    .share-dialog label {
+      display: grid;
+      gap: .35rem;
+      margin-block: 1rem;
+    }
+
+    .share-dialog input {
+      width: 100%;
+      padding: .55rem .65rem;
+      border: 1px solid #aeb9a8;
+      border-radius: .25rem;
+      color: var(--ink);
+      font: inherit;
+    }
 
     .wordmark {
-      display: inline-flex;
-      align-items: center;
-      gap: .65rem;
       font: 800 1.55rem/.9 var(--display);
       letter-spacing: .04em;
       text-transform: uppercase;
-      text-decoration: none;
     }
 
-    .wordmark-icon,
     .cover-ship,
     .cover-stamp {
       position: relative;
       overflow: hidden;
     }
 
-    .wordmark-icon {
-      display: block;
-      width: 2.45rem;
-      height: 1.95rem;
-      border: 1px solid #a4ad96;
-      border-radius: .18rem;
-      background: #e1e5d4;
-    }
-
-    .wordmark-icon img,
     .cover-ship img,
     .cover-stamp img {
       position: absolute;
@@ -119,67 +152,148 @@
       transform: translate(-50%, -50%);
     }
 
-    .wordmark-icon img,
     .cover-ship img {
       filter: contrast(1.3);
       mix-blend-mode: multiply;
     }
 
-    .site-nav {
-      justify-content: flex-end;
-      gap: .5rem clamp(.9rem, 3vw, 2.4rem);
-      font-size: .9rem;
-      font-weight: 700;
-    }
-
-    .site-nav a,
-    .site-footer a {
-      padding-block: .4rem;
-      text-decoration: none;
-    }
-
-    .site-nav a:hover,
-    .site-footer a:hover { text-decoration: underline; }
-
     .hero {
       display: grid;
       grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-      align-items: center;
+      align-items: start;
       gap: clamp(2rem, 5.5vw, 5.3rem);
       padding-block: clamp(2rem, 4.5vw, 4.25rem);
     }
 
-    .notebook-art {
+    .fleet-graphic {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .gallery-slide {
       position: relative;
-      isolation: isolate;
-      container-type: inline-size;
-      aspect-ratio: 1.14;
+      aspect-ratio: 3 / 2;
       margin: 0;
       overflow: hidden;
       border: 1px solid #dcdcc9;
       border-radius: .35rem;
+    }
+
+    .notebook-art {
+      isolation: isolate;
+      container-type: inline-size;
       background:
         radial-gradient(circle, #59654133 1px, transparent 1.35px) 0 0 / 15px 15px,
         radial-gradient(ellipse at 29% 16%, #f0edde, #dfdfca 82%);
     }
 
-    .tracker-preview {
+    .sheet-art { background: #e9ecdf; }
+
+    .sheet-art img {
       position: absolute;
-      width: 46%;
-      top: 14%;
-      left: 44%;
-      transform: rotate(12deg);
-      border: 1px solid #dfded2;
-      border-radius: 2px;
-      box-shadow: 3px 6px 9px #28352624, 12px 18px 25px #28352625;
-      opacity: .95;
+      top: 50%;
+      left: 50%;
+      width: auto;
+      height: 88%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 5px 16px #28352625;
+    }
+
+    .video-art {
+      display: grid;
+      place-items: center;
+      color: var(--paper);
+      background: radial-gradient(ellipse at top right, #446351, var(--ink) 75%);
+      text-align: center;
+    }
+
+    .video-placeholder {
+      display: grid;
+      justify-items: center;
+      gap: .75rem;
+      margin: 0;
+      padding: 1rem;
+      font-weight: 700;
+    }
+
+    .video-placeholder::before {
+      content: '';
+      border-block: .6rem solid transparent;
+      border-inline-start: .95rem solid currentColor;
+    }
+
+    .gallery-controls {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: .5rem;
+      margin-top: .65rem;
+    }
+
+    .product-gallery [hidden] { display: none; }
+
+    .gallery-arrow,
+    .rules-link,
+    .share button,
+    .share-dialog button {
+      min-height: 2.65rem;
+      padding: .4rem .85rem;
+      border: 1px solid #aeb9a8;
+      border-radius: .25rem;
+      color: var(--ink);
+      background: transparent;
+      font: 700 .9rem/1.25 'DM Sans', Arial, sans-serif;
+      cursor: pointer;
+    }
+
+    .gallery-arrow:hover,
+    .rules-link:hover,
+    .share button:hover,
+    .share-dialog button:hover {
+      border-color: var(--green);
+      background: #e4e8d9;
+    }
+
+    .rules-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      text-decoration: none;
+    }
+
+    .gallery-arrow {
+      display: grid;
+      place-items: center;
+      inline-size: 2.75rem;
+      block-size: 2.75rem;
+      padding: 0;
+    }
+
+    .gallery-arrow::before {
+      content: '';
+      inline-size: .55rem;
+      block-size: .55rem;
+      border: solid currentColor;
+      border-width: 0 2px 2px 0;
+      transform: rotate(-45deg);
+    }
+
+    .gallery-arrow-prev::before { transform: rotate(135deg); }
+
+    .gallery-status {
+      margin: 0;
+      color: var(--muted);
+      font-size: .9rem;
+      text-align: center;
     }
 
     .notebook {
       position: absolute;
       top: 12%;
-      left: 23%;
-      width: 45%;
+      left: 30%;
+      width: 38%;
       aspect-ratio: .72;
       border: 1px solid #263c33;
       border-radius: .28rem .55rem .55rem .28rem;
@@ -221,7 +335,7 @@
     .cover-label {
       position: absolute;
       inset: 10% 12% auto 15%;
-      font: 700 2.1cqw/1.1 var(--mono);
+      font: 700 1.8cqw/1.1 var(--mono);
       letter-spacing: .12em;
       text-transform: uppercase;
     }
@@ -229,7 +343,7 @@
     .cover-title {
       position: absolute;
       inset: 19% 11% auto 14%;
-      font: 800 9.15cqw/.8 var(--display);
+      font: 800 7.75cqw/.8 var(--display);
       letter-spacing: .015em;
       text-transform: uppercase;
     }
@@ -257,7 +371,7 @@
     .cover-line {
       position: absolute;
       inset: auto 11% 9% 14%;
-      font: 700 1.9cqw/1.15 var(--mono);
+      font: 700 1.65cqw/1.15 var(--mono);
       letter-spacing: .04em;
       text-transform: uppercase;
     }
@@ -265,23 +379,24 @@
     .cover-stamp {
       position: absolute;
       z-index: 1;
-      right: 5%;
-      bottom: 8%;
-      width: 25%;
+      right: 4.5%;
+      bottom: 7%;
+      width: 18%;
       aspect-ratio: 1.9;
+      border-radius: .15rem;
+      background: #e5dfc7;
+      box-shadow: 2px 3px 7px #111e1973;
       transform: rotate(12deg);
-      mix-blend-mode: multiply;
-      opacity: .8;
     }
 
-    .cover-stamp img { width: 105%; }
+    .cover-stamp img { mix-blend-mode: multiply; }
 
     .pencil {
       position: absolute;
-      top: 8%;
-      right: 11%;
+      top: 17%;
+      right: 16%;
       width: 3.1%;
-      height: 52%;
+      height: 53%;
       transform: rotate(22deg);
       filter: drop-shadow(4px 4px 3px #28392645);
     }
@@ -362,38 +477,65 @@
       font: 700 .9rem/1.4 var(--mono);
     }
 
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: .65rem;
-      margin-top: 1.45rem;
+    .purchase { margin-top: 1.2rem; }
+
+    .product-price {
+      margin: 0 0 .9rem;
+      font-size: 1.2rem;
+      font-weight: 700;
     }
 
-    .button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 3.1rem;
-      padding: .65rem 1.05rem;
+    .purchase-controls {
+      display: grid;
+      grid-template-columns: 5.25rem minmax(0, 1fr);
+      align-items: end;
+      gap: .65rem;
+    }
+
+    .quantity-field {
+      display: grid;
+      gap: .3rem;
+      font-size: .9rem;
+      font-weight: 700;
+    }
+
+    .quantity-field input,
+    .add-to-cart {
+      min-width: 0;
+      min-height: 3rem;
+      padding: .6rem .75rem;
       border: 1px solid var(--ink);
       border-radius: .25rem;
-      font-size: .95rem;
-      font-weight: 700;
-      text-decoration: none;
+      font: inherit;
     }
 
-    .button-primary {
+    .quantity-field input {
+      width: 100%;
+      color: var(--ink);
+      background: #fffdf6;
+    }
+
+    .add-to-cart {
       color: var(--paper);
       background: var(--ink);
+      font-weight: 700;
+      cursor: pointer;
     }
 
-    .button-primary:hover { background: var(--green); }
-    .button-secondary:hover { background: #e4e8d9; }
+    .add-to-cart:hover:not(:disabled) { background: var(--green); }
+    .add-to-cart:disabled { opacity: .65; cursor: default; }
+
+    .purchase-status {
+      min-height: 1.5em;
+      margin: .55rem 0 0;
+      color: var(--muted);
+      font-size: .9rem;
+    }
 
     .how-to {
-      padding-block: clamp(1.8rem, 4vw, 3.5rem);
-      border-block: 1px solid var(--line);
-      background: #e9ecdf;
+      margin-top: 1.4rem;
+      padding-top: 1.4rem;
+      border-top: 1px solid var(--line);
     }
 
     h2 {
@@ -403,17 +545,13 @@
 
     .steps {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 1.25rem 2.25rem;
-      margin: 1.25rem 0 0;
+      gap: 1rem;
+      margin: 1rem 0 0;
       padding: 0;
       list-style: none;
     }
 
-    .steps li { border-top: 1px solid #aeb9a8; }
-
     .steps h3 {
-      margin-top: .65rem;
       font-size: 1.55rem;
       line-height: 1;
     }
@@ -423,8 +561,25 @@
       color: var(--muted);
     }
 
+    .rule-guide { margin-top: 1.4rem; }
+
+    .rule-guide h3 {
+      font-size: 1.55rem;
+      line-height: 1;
+    }
+
+    .rule-guide p {
+      margin: .4rem 0 0;
+      color: var(--muted);
+    }
+
+    .rule-guide a {
+      color: var(--ink);
+      font-weight: 700;
+      text-underline-offset: .15em;
+    }
+
     .site-footer {
-      flex-wrap: wrap;
       padding-block: 1rem;
       color: var(--muted);
       font-size: .9rem;
@@ -436,22 +591,18 @@
       .hero {
         grid-template-columns: 1fr;
         justify-items: start;
+        gap: 1.5rem;
       }
 
-      .hero-copy { grid-row: 1; }
-      .notebook-art { width: min(100%, 38rem); }
-      .game-details { max-width: 38rem; }
+      .product-gallery,
+      .hero-copy { width: min(100%, 38rem); }
     }
 
     @media (max-width: 35rem) {
       .wrap { width: calc(100% - 2rem); }
-      .masthead-inner { gap: .4rem 1rem; }
       .wordmark { font-size: 1.25rem; }
-      .wordmark-icon { width: 2rem; height: 1.65rem; }
-      .desktop-nav-link { display: none; }
+      .rules-link { padding-inline: .5rem; }
       h1 { font-size: clamp(2.8rem, 10.2vw, 3.8rem); }
-      .steps { grid-template-columns: 1fr; }
-      .site-footer { gap: .4rem 1rem; }
     }
   </style>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-RVDTY31P7E"></script>
@@ -466,40 +617,54 @@
   <a class="skip-link" href="#main-content">Skip to content</a>
   <header class="masthead">
     <div class="wrap masthead-inner">
-      <a class="wordmark" href="index.html">
-        <span class="wordmark-icon" aria-hidden="true">
-          <img src="src/media/silohette_4.png" alt="">
-        </span>
-        Word Fleet
-      </a>
-      <nav class="site-nav" aria-label="Main navigation">
-        <a class="desktop-nav-link" href="#how-to-play">How to play</a>
-        <a href="rules.html">Rules</a>
-        <a href="pandp.html">Pen &amp; paper</a>
-      </nav>
+      <span class="wordmark">Word Fleet</span>
+      <div class="header-actions">
+        <a class="rules-link" href="rules-of-engagement.html">RULES OF ENGAGEMENT</a>
+        <div class="share" id="share-controls" hidden>
+          <span class="share-status" id="share-status" role="status"></span>
+          <button type="button" id="share-notebook">Share</button>
+        </div>
+      </div>
     </div>
   </header>
 
   <main id="main-content">
     <section class="wrap hero" aria-labelledby="notebook-title">
-      <figure class="notebook-art" aria-hidden="true">
-        <img class="tracker-preview" src="src/media/preview.png" alt="" width="1632" height="2112">
-        <div class="notebook">
-          <span class="binding"></span>
-          <span class="cover-label">The Game Bureau</span>
-          <span class="cover-title">Word<br>Fleet<span>Game Notebook</span></span>
-          <span class="cover-ship"><img src="src/media/silohette_4.png" alt=""></span>
-          <span class="cover-line">Sink or Spell</span>
+      <div class="product-gallery" role="region" aria-roledescription="carousel" aria-label="Notebook media">
+        <div id="gallery-slides">
+          <figure class="gallery-slide" data-caption="Word Fleet artwork">
+            <img class="fleet-graphic" src="src/media/wfbg.webp" alt="The original Word Fleet artwork of two warships at sea" width="1536" height="1024">
+          </figure>
+          <figure class="gallery-slide notebook-art" id="notebook-cover" data-caption="Notebook cover" role="img" aria-label="Green spiral-bound Word Fleet notebook with a warship silhouette on the cover" hidden>
+            <div class="notebook">
+              <span class="binding"></span>
+              <span class="cover-label">The Game Bureau</span>
+              <span class="cover-title">Word<br>Fleet<span>Game Notebook</span></span>
+              <span class="cover-ship"><img src="src/media/silohette_4.png" alt=""></span>
+              <span class="cover-line">Sink or Spell</span>
+            </div>
+            <span class="cover-stamp"><img src="src/media/stamp.png" alt=""></span>
+            <span class="pencil"></span>
+          </figure>
+          <figure class="gallery-slide sheet-art" id="battle-sheet" data-caption="Sample battle sheet" hidden>
+            <img src="src/media/battle-sheet-preview.webp" alt="Sample battle sheet with attack and defense grids, launch codes, and a blank fleet name" width="918" height="1188">
+          </figure>
+          <div class="gallery-slide video-art" id="notebook-video" data-caption="Video coming soon" hidden>
+            <p class="video-placeholder">Video coming soon</p>
+          </div>
         </div>
-        <span class="cover-stamp"><img src="src/media/stamp.png" alt=""></span>
-        <span class="pencil"></span>
-      </figure>
+        <div class="gallery-controls" role="group" aria-label="Gallery navigation" hidden>
+          <button type="button" class="gallery-arrow gallery-arrow-prev" id="gallery-prev" aria-label="Previous slide" aria-controls="gallery-slides"></button>
+          <p class="gallery-status" id="gallery-status" role="status"></p>
+          <button type="button" class="gallery-arrow" id="gallery-next" aria-label="Next slide" aria-controls="gallery-slides"></button>
+        </div>
+      </div>
 
       <div class="hero-copy">
         <p class="presenter"><a href="https://thegamebureau.com">thegamebureau.com</a> presents</p>
         <h1 id="notebook-title">The Word Fleet <span>Game Notebook</span></h1>
         <p class="tagline">Sink or Spell.</p>
-        <p class="summary">Hide your word-ships on a grid, then hunt your opponent’s fleet one coordinate and one letter at a time. All you need are two Battle Trackers and something to write with.</p>
+        <p class="summary">Open the notebook, grab a pencil, and challenge a friend to a duel of hidden words. Each battle sheet gives you one grid to hide your word-ships and another to track your shots, guesses, and clues.</p>
 
         <ul class="game-details" aria-label="Game details">
           <li>2 captains</li>
@@ -507,38 +672,121 @@
           <li>Ages 10+</li>
         </ul>
 
-        <div class="actions">
-          <a class="button button-primary" href="pandp.html">Print game sheets</a>
-          <a class="button button-secondary" href="rules.html">Read the rules</a>
-          <a class="button button-secondary" href="mobile/">Play Mobile Mode</a>
+        <div class="purchase">
+          <p class="product-price" id="notebook-price">Price to be announced</p>
+          <div class="purchase-controls">
+            <label class="quantity-field" for="notebook-quantity">
+              Quantity
+              <input type="number" id="notebook-quantity" min="1" step="1" value="1" required>
+            </label>
+            <button type="button" class="add-to-cart" id="add-to-cart" aria-describedby="notebook-price" disabled>Add to cart</button>
+          </div>
+          <p class="purchase-status" id="purchase-status" role="status"></p>
         </div>
-      </div>
-    </section>
 
-    <section class="how-to" id="how-to-play" aria-labelledby="how-to-play-title">
-      <div class="wrap">
-        <h2 id="how-to-play-title">How to play</h2>
-        <ol class="steps">
-          <li>
-            <h3>Hide your fleet</h3>
-            <p>Place five word-ships across your defense grid. Keep their locations and letters secret.</p>
-          </li>
-          <li>
-            <h3>Call your shot</h3>
-            <p>Pick a coordinate on your opponent’s grid. If you hit a ship, guess the letter in that square.</p>
-          </li>
-          <li>
-            <h3>Sink their ships</h3>
-            <p>Use the letters you uncover to work out the hidden words and sink the opposing fleet.</p>
-          </li>
-        </ol>
+        <section class="how-to" id="how-to-play" aria-labelledby="how-to-play-title">
+          <h2 id="how-to-play-title">How it works</h2>
+          <ol class="steps">
+            <li>
+              <h3>Plot your fleet</h3>
+              <p>Each captain tears a Battle Tracker out of the notebook and keeps the printed words hidden from their opponent. Place your five words of 5, 4, 3, 3, and 2 letters on your Defense Grid, across or down, one letter per square.</p>
+            </li>
+            <li>
+              <h3>Bluff for the first turn</h3>
+              <p>Use the five launch codes on your sheet to decide who goes first. Call out a real or made-up code. The other captain can concede, challenge your code, or counter with an equal or higher number.</p>
+            </li>
+            <li>
+              <h3>Guess a word-ship to earn a shot</h3>
+              <p>Start your attack by guessing one whole enemy word-ship. A correct guess lets you call a coordinate and take a shot. A wrong guess ends your turn. If your shot hits, take one guess at the letter in that square.</p>
+            </li>
+            <li>
+              <h3>Demand surrender</h3>
+              <p>When you think you’ve found the entire fleet, name all five words and their exact locations. Get them all right and you win. One wrong word or location costs you the game.</p>
+            </li>
+          </ol>
+          <div class="rule-guide">
+            <h3>Rules of Engagement</h3>
+            <p>You can read the <a href="rules-of-engagement.html">detailed rule guide here</a>.</p>
+            <p><a href="src/media/word-fleet-sampler.pdf" download>Download the free sampler (PDF)</a> for one complete match.</p>
+          </div>
+        </section>
       </div>
     </section>
   </main>
 
   <footer class="wrap site-footer">
     <p>A game by Kevin Kolb</p>
-    <a href="future.html">Future Deployments</a>
   </footer>
+  <dialog class="share-dialog" id="share-dialog" aria-labelledby="share-title">
+    <h2 id="share-title">Share Word Fleet</h2>
+    <label for="share-url">Copy this link
+      <input type="url" id="share-url" readonly>
+    </label>
+    <form method="dialog">
+      <button type="submit">Done</button>
+    </form>
+  </dialog>
+  <script>
+    const galleryControls = document.querySelector('.gallery-controls');
+    const gallerySlides = document.querySelectorAll('#gallery-slides .gallery-slide');
+    const galleryStatus = document.getElementById('gallery-status');
+    let currentSlide = 0;
+
+    function moveSlide(step) {
+      const count = gallerySlides.length;
+      gallerySlides[currentSlide].hidden = true;
+      currentSlide = (currentSlide + step + count) % count;
+      const slide = gallerySlides[currentSlide];
+      slide.hidden = false;
+      galleryStatus.textContent = slide.dataset.caption + ' · ' + (currentSlide + 1) + ' of ' + count;
+    }
+
+    document.getElementById('gallery-prev').addEventListener('click', () => moveSlide(-1));
+    document.getElementById('gallery-next').addEventListener('click', () => moveSlide(1));
+    galleryControls.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+        event.preventDefault();
+        moveSlide(event.key === 'ArrowLeft' ? -1 : 1);
+      }
+    });
+    moveSlide(0);
+    galleryControls.hidden = false;
+
+    const cartButton = document.getElementById('add-to-cart');
+    const quantity = document.getElementById('notebook-quantity');
+    const purchaseStatus = document.getElementById('purchase-status');
+    cartButton.addEventListener('click', () => {
+      if (quantity.reportValidity()) {
+        purchaseStatus.textContent = 'Checkout coming soon.';
+      }
+    });
+    cartButton.disabled = false;
+
+    const shareButton = document.getElementById('share-notebook');
+    const shareStatus = document.getElementById('share-status');
+    const shareUrl = document.querySelector('meta[property="og:url"]').content;
+    shareButton.addEventListener('click', async () => {
+      shareStatus.textContent = '';
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: document.title, url: shareUrl });
+          return;
+        } catch (error) {
+          if (error.name === 'AbortError') return;
+        }
+      }
+
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        shareStatus.textContent = 'Link copied.';
+      } catch {
+        const field = document.getElementById('share-url');
+        field.value = shareUrl;
+        document.getElementById('share-dialog').showModal();
+        field.select();
+      }
+    });
+    document.getElementById('share-controls').hidden = false;
+  </script>
 </body>
 </html>

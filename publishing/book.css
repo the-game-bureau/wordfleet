@@ -1,0 +1,97 @@
+@page { size: letter; margin: .5in; }
+
+:root { color: #202521; font: 11pt/1.45 Arial, sans-serif; }
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; }
+img { max-width: 100%; }
+a { color: #274e3c; }
+
+.cover-page {
+  padding-top: .85in;
+  color: #192f27;
+}
+
+.cover-page h1 {
+  max-width: 6.45in;
+  margin: .2in 0 .13in;
+  font-size: 39pt;
+  line-height: 1.03;
+  letter-spacing: -.035em;
+  text-wrap: balance;
+}
+
+.cover-publisher, .edition-label {
+  font-size: 10pt;
+  font-weight: 700;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.cover-subtitle { margin: 0 0 .22in; font-size: 16pt; font-weight: 700; }
+.cover-art { display: block; width: 100%; height: auto; margin: 0 0 .24in; }
+.cover-page footer { margin-top: .25in; border-top: 1pt solid #dce0dc; padding-top: .13in; }
+.cover-page footer p { margin: .04in 0; }
+
+.book-rules .rulebook { font: 10.5pt/1.34 Arial, sans-serif; }
+.book-rules h1 { margin: 0 0 .07in; font-size: 25pt; line-height: 1.1; }
+.book-rules h2 { margin: 0 0 .075in; font-size: 15pt; line-height: 1.2; }
+.book-rules h3 { margin: .12in 0 .045in; font-size: 11pt; line-height: 1.2; }
+.book-rules p, .book-rules ul, .book-rules ol, .book-rules dl { margin: 0 0 .075in; }
+.book-rules ul, .book-rules ol { padding-inline-start: .24in; }
+.book-rules li + li { margin-top: .025in; }
+.book-rules dt { font-weight: 700; }
+.book-rules dd { margin: 0 0 .055in; }
+.book-rules .game-specs { color: #4b594e; font-size: 9pt; }
+.book-rules .contents, .book-rules .sheet-guide figure { display: none; }
+.book-rules .rules-section { margin-top: .14in; padding-top: .08in; border-top: .7pt solid #dce0dc; }
+
+.book-rules table {
+  width: 100%;
+  margin: .08in 0;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.book-rules td, .book-rules th {
+  padding: .045in .07in;
+  border: .6pt solid #dce0dc;
+  vertical-align: top;
+}
+
+.book-rules thead { background: #f0f3ef; }
+
+.book-rules .example {
+  padding: .04in .1in;
+  border-inline-start: 1.4pt solid #779282;
+  background: #f4f6f3;
+}
+
+.sampler-header {
+  margin-bottom: .16in;
+  padding-bottom: .08in;
+  border-bottom: .8pt solid #779282;
+  color: #274e3c;
+}
+
+.sampler-header p { margin: 0; }
+
+@media screen {
+  html { background: #eceeeb; }
+  body { min-width: 8.5in; padding: .24in 0; }
+  .print-page, .book-rules {
+    width: 8.5in;
+    min-height: 11in;
+    margin: 0 auto .24in;
+    padding: .5in;
+    background: #fff;
+    box-shadow: 0 2px 9px #192f2724;
+  }
+  .cover-page { padding-top: 1.35in; }
+}
+
+@media print {
+  .cover-page { break-after: page; }
+  .sheet { break-before: page; break-inside: avoid; }
+  .book-rules h1, .book-rules h2, .book-rules h3 { break-after: avoid; }
+  .book-rules .example, .book-rules tr { break-inside: avoid; }
+}

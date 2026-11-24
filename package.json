@@ -1,0 +1,17 @@
+{
+  "name": "word-fleet-publishing",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "book:build": "node publishing/cli.mjs build",
+    "book:preview": "node publishing/cli.mjs preview",
+    "book:stage-sampler": "node publishing/cli.mjs stage-sampler",
+    "test": "node --test publishing/book.test.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "1.62.1"
+  }
+}
